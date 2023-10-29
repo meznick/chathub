@@ -49,6 +49,7 @@ async def handle_messaging(reader: asyncio.StreamReader, writer: asyncio.StreamW
 
         logger.debug(f'{username}: {message.strip()}')
 
+        # broadcasting?
         for client, client_writer in clients.items():
             if client_writer != writer:
                 client_writer.write(f'{username}: {message}'.encode())
