@@ -1,12 +1,14 @@
 <script setup lang="ts">
 
 import { useChatStore } from "../stores/chat.ts";
+import { SocketClient } from "../utils/socket_client.ts"
 
 const store = useChatStore()
+const socket_client = new SocketClient()
 
 function sendMessage() {
-  // code for sending message to server here
   console.log('sending ' + store.newMessage)
+  socket_client.sendMessage(store.newMessage)
   store.saveMessage()
 }
 
