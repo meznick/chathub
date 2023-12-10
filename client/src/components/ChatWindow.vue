@@ -1,14 +1,16 @@
 <script setup lang="ts">
 
 import { useChatStore } from "../stores/chat.ts";
-import { SocketClient } from "../utils/socket_client.ts"
+import { SocketClient, MessagePayload } from "../utils/socket_client.ts"
 
 const store = useChatStore()
-const socket_client = new SocketClient()
+const socket_client = new SocketClient('test', 'ws://localhost:4321')
+socket_client.handshakeServer()
 
 function sendMessage() {
   console.log('sending ' + store.newMessage)
-  socket_client.sendMessage(store.newMessage)
+  let payload: MessagePayload = {"message": store.newMessage}
+  socket_client.sendMessage(JSON.stringify(payload))
   store.saveMessage()
 }
 
