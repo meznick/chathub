@@ -49,6 +49,8 @@ async def handle_client(websocket: websockets.WebSocketClientProtocol):
         else:
             await connect_user_to_chat(websocket, message)
 
+        await asyncio.sleep(1)
+
 
 async def connect_user_to_chat(websocket: websockets.WebSocketClientProtocol, message: dict):
     try:
@@ -64,7 +66,7 @@ async def connect_user_to_chat(websocket: websockets.WebSocketClientProtocol, me
 
     await websocket.send(json.dumps({'system': 'connected'}))
     for client in clients.values():
-        client.send('Another user connected!')
+        await client.send('Another user connected!')
 
     clients[websocket.remote_address] = websocket
 
@@ -88,7 +90,7 @@ async def handle_messaging(websocket: websockets.WebSocketClientProtocol, messag
     # broadcasting?
     for client, ws in clients.items():
         if ws != websocket:
-            ws.send(f'{websocket.remote_address}: {message}')
+            await ws.send(f'{websocket.remote_address}: {message}')
 
 
 async def main():
