@@ -11,7 +11,7 @@ function sendMessage() {
   console.log('sending ' + store.newMessage)
   let payload: MessagePayload = {"message": store.newMessage}
   socket_client.sendMessage(JSON.stringify(payload))
-  store.saveMessage()
+  store.saveMessage("1")
 }
 
 </script>
