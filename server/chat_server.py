@@ -41,6 +41,8 @@ async def handle_client(websocket: websockets.WebSocketClientProtocol):
         except Exception as e:
             logger.warning(f'Caught error: {e}')
             continue
+        finally:
+            await asyncio.sleep(0.1)
 
         if client in clients.keys():
             await handle_messaging(websocket, message)
@@ -49,7 +51,7 @@ async def handle_client(websocket: websockets.WebSocketClientProtocol):
         else:
             await connect_user_to_chat(websocket, message)
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
 
 async def connect_user_to_chat(websocket: websockets.WebSocketClientProtocol, message: dict):
