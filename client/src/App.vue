@@ -1,10 +1,10 @@
 <script setup lang="ts">
 
-import ChatWindow from "./components/ChatWindow.vue";
+import Chat from "./components/Chat.vue";
 </script>
 
 <template>
-  <ChatWindow></ChatWindow>
+  <Chat></Chat>
 </template>
 
 <style scoped>
