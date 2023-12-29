@@ -7,7 +7,10 @@ Chat platform for experiments
 cd server
 python -m venv venv
 pip install -r requirements.txt
+# websocket
 python chat_server.py
+# fastapi
+uvicorn main:app --reload
 ```
 
 ### Frontend
