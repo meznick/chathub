@@ -4,6 +4,7 @@ export interface MessagePayload {
 
 export class SocketClient {
     private client: WebSocket;
+    private serverLastAlive: Date;
     public username: string;
     public url: string;
 
@@ -11,6 +12,8 @@ export class SocketClient {
         this.username = username
         this.url = url
         this.client = new WebSocket(this.url)
+        this.serverLastAlive = new Date()
+        this.serverLastAlive.setSeconds(this.serverLastAlive.getSeconds() - 15)
         this.registerEvents()
         this.heartbeat()
     }
@@ -23,6 +26,11 @@ export class SocketClient {
             console.log(`Cannot send message ${message} now, state is ${this.client.readyState}`)
         }
     }
+
+    public serverIsAlive() {
+        let currentTime = new Date()
+        return currentTime.getTime() - this.serverLastAlive.getTime() < 12000;
+    };
 
     private handshakeServer() {
         let connectMessage: MessagePayload = {
@@ -41,7 +49,18 @@ export class SocketClient {
                 'system': 'heartbeat'
             }
             this.sendMessage(JSON.stringify(heartbeatMessage));
+            console.log(`Heartbeat sent, server is alive: ${this.serverIsAlive()}`)
         }, 5000);
+    }
+
+    private processSystemEvents(data: any) {
+        if (data['system'] == 'server_is_alive') {
+            this.serverLastAlive = new Date()
+        }
+    }
+
+    private processMessages(data: any) {
+        // pass
     }
 
     private registerEvents(): void {
@@ -55,8 +74,15 @@ export class SocketClient {
             console.log('Disconnected from the server');
         });
 
-        this.client.addEventListener('message', (data: any) => {
-            console.log('Message received:', data);
+        this.client.addEventListener('message', (message: any) => {
+            let data = JSON.parse(message.data)
+            console.log('Data received:', data)
+
+            if ('message' in data) {
+                this.processMessages(data)
+            } else if ('system' in data) {
+                this.processSystemEvents(data)
+            }
         });
 
         // other possible events
