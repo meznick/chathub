@@ -1,5 +1,5 @@
 export interface MessagePayload {
-  [key: string]: string
+    [key: string]: string
 }
 
 export class SocketClient {
@@ -11,11 +11,20 @@ export class SocketClient {
         this.username = username
         this.url = url
         this.client = new WebSocket(this.url)
-        // Register event listeners
-        this.registerEvents();
+        this.registerEvents()
+        this.heartbeat()
     }
 
-    public handshakeServer() {
+    public sendMessage(message: string): void {
+        if (this.client.readyState === WebSocket.OPEN) {
+            this.client.send(message);
+            console.log(`Sent message ${message}`)
+        } else {
+            console.log(`Cannot send message ${message} now, state is ${this.client.readyState}`)
+        }
+    }
+
+    private handshakeServer() {
         let connectMessage: MessagePayload = {
             'username': 'test',
             'message': 'connecting'
@@ -25,9 +34,18 @@ export class SocketClient {
 
     }
 
+    private heartbeat() {
+        setInterval(() => {
+            let heartbeatMessage: MessagePayload = {
+                'username': 'test',
+                'system': 'heartbeat'
+            }
+            this.sendMessage(JSON.stringify(heartbeatMessage));
+        }, 5000);
+    }
+
     private registerEvents(): void {
         this.client.addEventListener('open', () => {
-
             console.log('Connected to the server, sending handshake');
             this.handshakeServer();
             console.log('Handshake done!')
@@ -42,15 +60,5 @@ export class SocketClient {
         });
 
         // other possible events
-    }
-
-    // Example function to emit an event to the server
-    public sendMessage(message: string): void {
-        if (this.client.readyState === WebSocket.OPEN) {
-            this.client.send(message);
-            console.log(`Sent message ${message}`)
-        } else {
-            console.log(`Cannot send message ${message} now, state is ${this.client.readyState}`)
-        }
     }
 }
