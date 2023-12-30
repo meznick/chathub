@@ -29,5 +29,7 @@ prod
 ```shell
 cd deploy/db
 docker build -t chathub-postgres:latest -f pg-Dockerfile .
-docker run -e POSTGRES_PASSWORD=password -p 5432:5432 chathub-postgres:latest
+docker run -e POSTGRES_PASSWORD=password \
+-v $HOME/Documents/Projects/chathub/deploy/db/pg-data:/var/lib/postgresql/data \
+-p 5432:5432 -d chathub-postgres:latest
 ```
