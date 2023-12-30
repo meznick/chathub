@@ -35,7 +35,7 @@ export class SocketClient {
     private handshakeServer() {
         let connectMessage: MessagePayload = {
             'username': 'test',
-            'message': 'connecting'
+            'system': 'connecting'
         }
         this.sendMessage(JSON.stringify(connectMessage))
         console.log('Connected')
@@ -59,7 +59,7 @@ export class SocketClient {
         }
     }
 
-    private processMessages(data: any) {
+    private processMessages() {
         // pass
     }
 
@@ -79,7 +79,7 @@ export class SocketClient {
             console.log('Data received:', data)
 
             if ('message' in data) {
-                this.processMessages(data)
+                this.processMessages()
             } else if ('system' in data) {
                 this.processSystemEvents(data)
             }

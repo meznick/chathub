@@ -1,9 +1,10 @@
 import asyncio
 import json
-
 import logging
 
 import websockets
+
+from system_messages import CONNECTED, ANOTHER_USER_CONNECTED, CONNECTING
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -57,7 +58,7 @@ async def handle_client(websocket: websockets.WebSocketClientProtocol):
 async def connect_user_to_chat(websocket: websockets.WebSocketClientProtocol, message: dict):
     try:
         username = message['username']
-        if message['message'] == 'connecting':
+        if message['system'] == CONNECTING:
             logger.debug(f'User {username} connected')
         else:
             logger.warning('No connecting message, dropping')
@@ -66,9 +67,9 @@ async def connect_user_to_chat(websocket: websockets.WebSocketClientProtocol, me
     finally:
         logger.debug(message)
 
-    await websocket.send(json.dumps({'system': 'connected'}))
+    await websocket.send(json.dumps({'system': CONNECTED}))
     for client in clients.values():
-        await client.send('Another user connected!')
+        await client.send(json.dumps({'system': ANOTHER_USER_CONNECTED}))
 
     clients[websocket.remote_address] = websocket
 
