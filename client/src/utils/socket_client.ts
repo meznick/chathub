@@ -54,7 +54,7 @@ export class SocketClient {
     }
 
     private processSystemEvents(data: any) {
-        if (data['system'] == 'server_is_alive') {
+        if (data['system'] == 'heartbeat') {
             this.serverLastAlive = new Date()
         }
     }

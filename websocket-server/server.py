@@ -4,7 +4,7 @@ import logging
 
 import websockets
 
-from system_messages import CONNECTED, ANOTHER_USER_CONNECTED, CONNECTING
+from system_messages import CONNECTED, ANOTHER_USER_CONNECTED, CONNECTING, HEARTBEAT
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -48,7 +48,7 @@ async def handle_client(websocket: websockets.WebSocketClientProtocol):
         if client in clients.keys():
             await handle_messaging(websocket, message)
             await handle_commands()
-            await handle_system()
+            await handle_system(websocket, message)
         else:
             await connect_user_to_chat(websocket, message)
 
@@ -78,8 +78,16 @@ async def handle_commands():
     pass
 
 
-async def handle_system():
-    pass
+async def handle_system(websocket: websockets.WebSocketClientProtocol, message: dict):
+    try:
+        system_message = message['system']
+    except KeyError as e:
+        return
+
+    logger.debug(f'[SYS] {websocket.remote_address}: {system_message}')
+
+    if system_message == HEARTBEAT:
+        await websocket.send(json.dumps({'system': HEARTBEAT}))
 
 
 async def handle_messaging(websocket: websockets.WebSocketClientProtocol, message: dict):
@@ -88,12 +96,11 @@ async def handle_messaging(websocket: websockets.WebSocketClientProtocol, messag
     except KeyError:
         return
 
-    logger.debug(f'{websocket.remote_address}: {message}')
+    logger.debug(f'[MSG] {websocket.remote_address}: {message}')
 
-    # broadcasting?
     for client, ws in clients.items():
         if ws != websocket:
-            await ws.send(f'{websocket.remote_address}: {message}')
+            await ws.send(json.dumps({'user': websocket.remote_address, 'message': message}))
 
 
 async def main():
