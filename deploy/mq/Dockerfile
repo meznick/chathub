@@ -5,8 +5,8 @@ FROM rabbitmq:3.12-management
 EXPOSE 5672 15672
 
 # set default user and password
-ENV RABBITMQ_DEFAULT_USER=myuser
-ENV RABBITMQ_DEFAULT_PASS=mypassword
+ENV RABBITMQ_DEFAULT_USER=dev
+ENV RABBITMQ_DEFAULT_PASS=devpassword
 
 # set default virtual host
-ENV RABBITMQ_DEFAULT_VHOST=myvhost
+ENV RABBITMQ_DEFAULT_VHOST=dev
