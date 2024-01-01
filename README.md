@@ -39,7 +39,14 @@ docker run -e POSTGRES_PASSWORD=password \
 ```shell
 cd deploy/mq
 docker build -t chathub-rmq:latest -f Dockerfile .
-docker run -d --hostname chathub-rmq --name chathub-rmq -d \
+docker run -d --hostname chathub-rmq --name chathub-rmq \
 -p 8081:15672 \
 chathub-rmq:latest
+```
+
+### Redis
+```shell
+cd deploy/redis
+docker build -t chathub-redis:latest -f Dockerfile .
+docker run -d --hostname chathub-redis --name chathub-redis -p 6379:6379 chathub-redis:latest
 ```
