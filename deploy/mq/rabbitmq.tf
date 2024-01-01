@@ -13,17 +13,22 @@ variable "api_user_password" {
 
 variable "provider_user" {
   type = string
-  default = "myuser"
+  default = "dev"
 }
 
 variable "provider_password" {
   type = string
-  default = "mypassword"
+  default = "devpassword"
 }
 
 variable "rabbitmq_endpoint" {
   type = string
   default = "http://localhost:8081"
+}
+
+variable "target_vhost" {
+  type = string
+  default = "chathub_prod"
 }
 
 provider "rabbitmq" {
@@ -33,7 +38,7 @@ provider "rabbitmq" {
 }
 
 resource "rabbitmq_vhost" "chathub_prod" {
-  name = "chathub_prod"
+  name = var.target_vhost
 }
 
 resource "rabbitmq_user" "api_user" {
@@ -54,7 +59,7 @@ resource "rabbitmq_permissions" "permissions" {
 }
 
 resource "rabbitmq_exchange" "direct_main" {
-  name  = "test"
+  name  = "direct_main"
   vhost = rabbitmq_vhost.chathub_prod.name
 
   settings {
@@ -65,7 +70,7 @@ resource "rabbitmq_exchange" "direct_main" {
 }
 
 resource "rabbitmq_queue" "matchmaker" {
-  name  = "test"
+  name  = "matchmaker"
   vhost = rabbitmq_vhost.chathub_prod.name
 
   settings {
@@ -77,7 +82,7 @@ resource "rabbitmq_queue" "matchmaker" {
   }
 }
 
-resource "rabbitmq_binding" "test" {
+resource "rabbitmq_binding" "matchmaker" {
   source           = rabbitmq_exchange.direct_main.name
   vhost            = rabbitmq_vhost.chathub_prod.name
   destination      = rabbitmq_queue.matchmaker.name
