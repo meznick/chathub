@@ -12,6 +12,8 @@ logger.setLevel(logging.DEBUG)
 logger.debug('Logger initiated!')
 
 clients = {}  # remake to redis?
+# todo: добавить асинхронный луп который проверяет наличие сигналов в очереди сообщений
+#   для рассылки уведомлений о начале чата
 
 
 async def handle_client(websocket: websockets.WebSocketClientProtocol):

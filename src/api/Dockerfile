@@ -19,5 +19,6 @@ COPY server/api.py /code/api.py
 # Expose the port the app runs on. Maybe set exposed port with param
 EXPOSE $PORT
 
+# todo: переписать докерфайл, он теперь не работает из-за изменения структуры файлов
 # define the default command to run when starting a container
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -2,6 +2,7 @@ export interface MessagePayload {
     [key: string]: string
 }
 
+// todo: состояние перенести в chat storage
 export class SocketClient {
     private client: WebSocket;
     private serverLastAlive: Date;
