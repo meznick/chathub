@@ -1,13 +1,17 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 
-from src.api.auth import AuthProcessor
+from chathub_utils.auth import AuthProcessor
+from chathub_connectors.redis_connector import RedisConnector
+
 
 app = FastAPI()
+redis_connector = RedisConnector(
+    username='api_user',
+    password='test',
+)
 auth_processor = AuthProcessor(
-    # todo: change secret
-    secret='test',
-    redis_username='api_user',
+    redis_connector=redis_connector,
+    secret=open("/dev/urandom", "rb").read(64).hex()
 )
 
 
@@ -18,7 +22,6 @@ async def root():
 
 @app.get('/login')
 async def login(username: str, password: str):
-    # todo: return jwt token if creds are ok
     return {}
 
 
