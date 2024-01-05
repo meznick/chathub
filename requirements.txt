@@ -1,0 +1,8 @@
+# use this file only for installing requirements for local development
+fastapi==0.108.0
+uvicorn[standart]==0.25
+pydantic==2.5.3
+redis==5.0.1
+# todo: create packages
+# chathub-connectors
+# chathub-utils
