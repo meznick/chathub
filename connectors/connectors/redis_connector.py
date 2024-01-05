@@ -3,7 +3,7 @@ from typing import Optional
 import redis
 
 
-class UsesRedisMixin:
+class RedisConnector:
     def __init__(
             self,
             host: str,
