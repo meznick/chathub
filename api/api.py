@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from chathub_utils.auth import AuthProcessor
 from chathub_connectors.redis_connector import RedisConnector
@@ -22,6 +22,12 @@ async def root():
 
 @app.get('/login')
 async def login(username: str, password: str):
+    # validating credentials first to prevent injection attacks
+    if not auth_processor.validate_credentials(username, password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    # try to authenticate user with creds
+    # generate JWT token
+    # send token
     return {}
 
 
