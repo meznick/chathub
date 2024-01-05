@@ -28,7 +28,7 @@ class AuthProcessor:
         :param username: The username to be validated.
         :return: Returns True if the username is valid, False otherwise.
         """
-        return bool(re.fullmatch(r'[a-zA-Z0-9_]{4,20}', username))
+        return bool(re.fullmatch(r'^[a-zA-Z0-9_]{4,20}$', username))
 
     @staticmethod
     def validate_password(password: str) -> bool:
