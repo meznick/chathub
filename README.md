@@ -50,3 +50,10 @@ cd deploy/redis
 docker build -t chathub-redis:latest -f Dockerfile .
 docker run -d --hostname chathub-redis --name chathub-redis -p 6379:6379 chathub-redis:latest
 ```
+
+
+## Run tests
+```shell
+# chathub_utils: from /utils dir:
+python -m unittest tests/test_auth.py -v
+```
