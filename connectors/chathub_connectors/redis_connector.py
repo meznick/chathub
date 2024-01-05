@@ -6,9 +6,9 @@ import redis
 class RedisConnector:
     def __init__(
             self,
-            host: str,
-            port: int,
-            db: int,
+            host: str = 'localhost',
+            port: int = 6379,
+            db: int = 0,
             username: Optional[str] = None,
             password: Optional[str] = None,
     ):
