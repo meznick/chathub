@@ -27,12 +27,26 @@ prod
 
 ### DB
 ```shell
+# setup
 cd deploy/db
 docker build -t chathub-postgres:latest -f pg-Dockerfile .
 docker run -e POSTGRES_PASSWORD=password \
 -v $HOME/Documents/pg-data:/var/lib/postgresql/data \
 --hostname chathub-pg --name chathub-pg \
 -p 5432:5432 -d chathub-postgres:latest
+# terraform initiation
+terraform plan
+terraform apply # set variables when deploying to prod!
+# migrations
+sudo pacman -S dbmate
+export DATABASE_URL=postgres://dev_developer:devpassword@localhost:5432/chathub_dev?sslmode=disable
+# new migration
+dbmate new "migration_name" # do not forget grants!
+# use sqlfluff on created migration before making commit!
+sqlfluff lint filename.sql --dialect postgres
+sqlfluff fix filename.sql --dialect postgres
+dbmate up # perform migrations
+dbmate rollback # revert last batch of migrations
 ```
 
 ### MQ
