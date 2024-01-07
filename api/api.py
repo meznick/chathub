@@ -1,7 +1,7 @@
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 
 app = FastAPI()
 redis_connector = RedisConnector(
@@ -45,7 +45,9 @@ async def register(username: str, password1: str, password2: str, email: str):
 
 
 @app.get('/user/{username}')
-async def user(username: str, jwt: str):
+async def user(username: str, authorization: str = Header(None)):
+    # todo: get token from header
+    jwt = None
     if not auth_processor.validate_token(username, jwt):
         raise HTTPException(status_code=403, detail="Forbidden")
 
