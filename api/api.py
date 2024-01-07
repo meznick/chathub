@@ -1,16 +1,20 @@
-from fastapi import FastAPI, HTTPException
-
-from chathub_utils.auth import AuthProcessor
+from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
-
+from chathub_utils.auth import AuthProcessor
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 redis_connector = RedisConnector(
     username='api_user',
     password='test',
 )
+postgres_connector = AsyncPgConnector(
+    username='dev_service',
+    password='devpassword'
+)
 auth_processor = AuthProcessor(
     redis_connector=redis_connector,
+    postgres_connector=postgres_connector,
     secret=open("/dev/urandom", "rb").read(64).hex()
 )
 
@@ -24,11 +28,14 @@ async def root():
 async def login(username: str, password: str):
     # validating credentials first to prevent injection attacks
     if not auth_processor.validate_credentials(username, password):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(status_code=401, detail="Invalid username or password 1")
     # try to authenticate user with creds
+    auth_success = await auth_processor.authenticate(username, password)
     # generate JWT token
-    # send token
-    return {}
+    if auth_success:
+        return {'code': 200, 'token': auth_processor.generate_token(username)}
+    else:
+        raise HTTPException(status_code=403, detail="Invalid username or password 2")
 
 
 @app.post('/register')
