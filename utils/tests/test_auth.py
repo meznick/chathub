@@ -31,3 +31,5 @@ class TestUsernameValidation(unittest.TestCase):
         self.assertFalse(validate_function('ABCabc@$'))
         # Test case 6: Password with no special characters
         self.assertFalse(validate_function('ABCabc123'))
+
+    # todo: add tests for auth class methods
