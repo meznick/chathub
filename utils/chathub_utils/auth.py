@@ -7,6 +7,9 @@ import jwt
 from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_LOW_MEMORY
 
+from chathub_connectors.postgres_connector import AsyncPgConnector
+from chathub_connectors.redis_connector import RedisConnector
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.DEBUG)
@@ -19,8 +22,8 @@ TOKEN_REFRESH_DELTA_MINS = 60
 class AuthProcessor:
     def __init__(
             self,
-            redis_connector,
-            postgres_connector,
+            redis_connector: RedisConnector,
+            postgres_connector: AsyncPgConnector,
             secret: str,
             algorithm: Optional[str] = 'HS256'
     ):
@@ -90,22 +93,36 @@ class AuthProcessor:
                     timedelta(hours=TOKEN_EXPIRATION_TIME_HOURS)
             ).strftime(DATETIME_DUMP_FORMAT)
         }
-        # put to cache with 50m expiration
-        return jwt.encode(payload, key=self._secret, algorithm=self._algorithm)
+        token = jwt.encode(payload, key=self._secret, algorithm=self._algorithm)
+        self._redis_connector.client.setex(
+            f'user:{username}:jwt',
+            60 * 60 * TOKEN_EXPIRATION_TIME_HOURS,
+            token
+        )
+        return token
 
-    def verify_token(self, token: str) -> Optional[str]:
+    def verify_token(self, token: str, username: str) -> Optional[str]:
         # get from cache - if exists then do not make full verification
+        cached_token = self._redis_connector.client.get(f'user:{username}:jwt')
+        if token != cached_token:
+            # token is invalid
+            return
         payload = jwt.decode(token, key=self._secret, algorithms=[self._algorithm])
         if not payload:
+            # token cannot be decoded (basically invalid?)
             return
         elif datetime.strptime(payload['expire_time'], DATETIME_DUMP_FORMAT) < datetime.utcnow():
+            # token is expired
             return
         elif (
             datetime.strptime(payload['expire_time'], DATETIME_DUMP_FORMAT)
             - datetime.utcnow() < timedelta(minutes=TOKEN_REFRESH_DELTA_MINS)
         ):
+            # token is fine but can be updated
+            # drop previous key
             return self.generate_token(payload['username'])
         else:
+            # token is just fine
             return token
 
     def update_token_expiration(self, token: str) -> bool:

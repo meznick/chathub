@@ -31,6 +31,7 @@ async def login(username: str, password: str):
         raise HTTPException(status_code=401, detail="Invalid username or password 1")
     # try to authenticate user with creds
     auth_success = await auth_processor.authenticate(username, password)
+    # todo: check if user not authenticated yet
     # generate JWT token
     if auth_success:
         return {'code': 200, 'token': auth_processor.generate_token(username)}
@@ -44,8 +45,11 @@ async def register(username: str, password1: str, password2: str, email: str):
 
 
 @app.get('/user/{username}')
-async def user(username: str):
-    return {}
+async def user(username: str, jwt: str):
+    if not auth_processor.validate_token(username, jwt):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    return {'code': 200, 'user': {'HERE WILL': 'BE USER DATA'}}
 
 
 @app.post('/chat')
