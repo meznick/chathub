@@ -3,6 +3,8 @@ from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
 from fastapi import FastAPI, HTTPException, Header
 
+from utils.chathub_utils.auth import LoginError
+
 app = FastAPI()
 redis_connector = RedisConnector(
     username='api_user',
@@ -26,17 +28,12 @@ async def root():
 
 @app.get('/login')
 async def login(username: str, password: str):
-    # validating credentials first to prevent injection attacks
-    if not auth_processor.validate_credentials(username, password):
-        raise HTTPException(status_code=401, detail="Invalid username or password 1")
-    # try to authenticate user with creds
-    auth_success = await auth_processor.authenticate(username, password)
-    # todo: check if user not authenticated yet
-    # generate JWT token
-    if auth_success:
-        return {'code': 200, 'token': auth_processor.generate_token(username)}
+    try:
+        token = auth_processor.login(username, password)
+    except LoginError:
+        raise HTTPException(status_code=403, detail="Invalid username or password")
     else:
-        raise HTTPException(status_code=403, detail="Invalid username or password 2")
+        return {'code': 200, 'token': token}
 
 
 @app.post('/register')
@@ -48,7 +45,7 @@ async def register(username: str, password1: str, password2: str, email: str):
 async def user(username: str, authorization: str = Header(None)):
     # todo: get token from header
     jwt = None
-    if not auth_processor.validate_token(username, jwt):
+    if not auth_processor.validate_token(jwt, username):
         raise HTTPException(status_code=403, detail="Forbidden")
 
     return {'code': 200, 'user': {'HERE WILL': 'BE USER DATA'}}
