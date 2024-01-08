@@ -5,7 +5,7 @@ from chathub_utils.auth import AuthProcessor
 
 class TestUsernameValidation(unittest.TestCase):
     def test_validate_username(self):
-        validate_function = AuthProcessor.validate_username
+        validate_function = AuthProcessor._validate_username
 
         # It should validate a valid username
         self.assertTrue(validate_function('username_09'))
@@ -17,7 +17,7 @@ class TestUsernameValidation(unittest.TestCase):
         self.assertFalse(validate_function('username_09123123123123123123123'))
 
     def test_validate_password(self):
-        validate_function = AuthProcessor.validate_password
+        validate_function = AuthProcessor._validate_password
 
         # Test case 1: Password fulfilling all requirements
         self.assertTrue(validate_function('Abc123@$'))
