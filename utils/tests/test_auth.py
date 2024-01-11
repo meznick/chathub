@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import unittest
+from time import sleep
 from unittest.mock import MagicMock, AsyncMock
 
 from argon2.exceptions import InvalidHashError
@@ -85,3 +86,59 @@ class TestAuthProcessor(unittest.TestCase):
         self.assertTrue(res)
         self.mock_postgres_connector.get_user.assert_called_once_with('user3')
         self.mock_password_hasher.verify.assert_called_once_with('good_hash', 'password3')
+
+    def test_validate_token_success(self):
+        username = 'test'
+
+        with self.subTest(msg='correct token no need to update'):
+            self.mock_redis_connector.client.setex.return_value = None
+            valid_token = self.authenticate._generate_token(username, 2)
+            self.mock_redis_connector.client.get.return_value = None
+            validated = self.authenticate.validate_token(valid_token, username, 0)
+            self.assertEqual(valid_token, validated)
+
+        with self.subTest(msg='correct token but expired'):
+            sleep(2)
+            validated = self.authenticate.validate_token(valid_token, username)
+            self.assertIsNone(validated)
+
+        with self.subTest(msg='correct token but time to update'):
+            valid_token = self.authenticate._generate_token(username, 10)
+            self.mock_redis_connector.client.get.return_value = None
+            validated = self.authenticate.validate_token(valid_token, username, 10)
+            self.assertNotEqual(valid_token, validated)
+            self.assertIsNotNone(validated)
+
+        with self.subTest(msg='correct token in cache'):
+            valid_token = self.authenticate._generate_token(username, 10)
+            self.mock_redis_connector.client.get.return_value = valid_token
+            validated = self.authenticate.validate_token(valid_token, username, 1)
+            self.assertEqual(valid_token, validated)
+
+    def test_validate_token_mismatch(self):
+        username = 'test'
+        hacker_username = 'hacker'
+
+        with self.subTest(msg='token cannot be decoded'):
+            invalid_token = 'blablabla'
+            self.mock_redis_connector.client.get.return_value = None
+            validated = self.authenticate.validate_token(invalid_token, username)
+            self.assertIsNone(validated)
+
+        with self.subTest(msg='token is incorrect but correct token in cache'):
+            invalid_token = 'blablabla'
+            self.mock_redis_connector.client.get.return_value = 'correct_token'
+            validated = self.authenticate.validate_token(invalid_token, username)
+            self.assertIsNone(validated)
+
+        with self.subTest(msg='token can be decoded but expired'):
+            invalid_token = self.authenticate._generate_token(username, 2)
+            sleep(2)
+            validated = self.authenticate.validate_token(invalid_token, username)
+            self.assertIsNone(validated)
+
+        with self.subTest(msg='provided username does not match with one in token'):
+            invalid_token = self.authenticate._generate_token(username)
+            self.mock_redis_connector.client.get.return_value = None
+            validated = self.authenticate.validate_token(invalid_token, hacker_username)
+            self.assertIsNone(validated)
