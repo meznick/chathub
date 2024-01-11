@@ -74,9 +74,19 @@ class AuthProcessor:
         if cached_token and (token != cached_token):
             # token is invalid
             return
-        payload = jwt.decode(token, key=self._secret, algorithms=[self._algorithm])
+        try:
+            payload = jwt.decode(token, key=self._secret, algorithms=[self._algorithm])
+        except jwt.exceptions.DecodeError:
+            payload = None
         if not payload:
             # token cannot be decoded (basically invalid?)
+            LOGGER.warning(f'Someone tried to login as {username} using invalid token')
+            return
+        if payload['username'] != username:
+            # stolen token
+            LOGGER.warning(
+                f'{username} tried to login as {payload["username"]} using stolen token!'
+            )
             return
         elif datetime.strptime(payload['expire_time'], DATETIME_DUMP_FORMAT) < datetime.utcnow():
             # token is expired
