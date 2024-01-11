@@ -14,8 +14,8 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
 
 DATETIME_DUMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
-TOKEN_EXPIRATION_TIME_HOURS = 2
-TOKEN_REFRESH_DELTA_MINS = 60
+TOKEN_EXPIRATION_TIME_SECONDS = 60 * 60 * 2
+TOKEN_REFRESH_DELTA_SECONDS = 60 * 60
 
 
 class LoginError(Exception):
@@ -63,10 +63,15 @@ class AuthProcessor:
         else:
             raise LoginError('Invalid username or password 2')
 
-    def validate_token(self, token: str, username: str) -> Optional[str]:
+    def validate_token(
+            self,
+            token: str,
+            username: str,
+            token_refresh_delta: Optional[int] = TOKEN_REFRESH_DELTA_SECONDS,
+    ) -> Optional[str]:
         # get from cache - if exists then do not make full verification
         cached_token = self._redis_connector.client.get(f'user:{username}:jwt')
-        if token != cached_token:
+        if cached_token and (token != cached_token):
             # token is invalid
             return
         payload = jwt.decode(token, key=self._secret, algorithms=[self._algorithm])
@@ -75,16 +80,19 @@ class AuthProcessor:
             return
         elif datetime.strptime(payload['expire_time'], DATETIME_DUMP_FORMAT) < datetime.utcnow():
             # token is expired
+            LOGGER.debug('Token expired')
             return
         elif (
             datetime.strptime(payload['expire_time'], DATETIME_DUMP_FORMAT)
-            - datetime.utcnow() < timedelta(minutes=TOKEN_REFRESH_DELTA_MINS)
+            - datetime.utcnow() < timedelta(seconds=token_refresh_delta)
         ):
             # token is fine but can be updated
             # drop previous key
+            LOGGER.debug('Token nearly expired, generating new')
             return self._generate_token(payload['username'])
         else:
             # token is just fine
+            LOGGER.debug('Token is fine')
             return token
 
     def _validate_credentials(self, username: str, password: str) -> bool:
@@ -137,18 +145,22 @@ class AuthProcessor:
         else:
             return True
 
-    def _generate_token(self, username: str) -> str:
+    def _generate_token(
+            self,
+            username: str,
+            expiration_time: Optional[int] = TOKEN_EXPIRATION_TIME_SECONDS
+    ) -> str:
         payload = {
             'username': username,
             'expire_time': (
                     datetime.utcnow() +
-                    timedelta(hours=TOKEN_EXPIRATION_TIME_HOURS)
+                    timedelta(seconds=expiration_time)
             ).strftime(DATETIME_DUMP_FORMAT)
         }
         token = jwt.encode(payload, key=self._secret, algorithm=self._algorithm)
         self._redis_connector.client.setex(
             f'user:{username}:jwt',
-            60 * 60 * TOKEN_EXPIRATION_TIME_HOURS,
+            TOKEN_EXPIRATION_TIME_SECONDS,
             token
         )
         return token
