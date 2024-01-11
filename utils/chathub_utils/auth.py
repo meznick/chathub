@@ -1,14 +1,14 @@
+import abc
 import logging
 import re
+from abc import ABCMeta
 from datetime import datetime, timedelta
 from typing import Optional
 
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError
-
-from chathub_connectors.postgres_connector import AsyncPgConnector
-from chathub_connectors.redis_connector import RedisConnector
+from asyncpg import Record
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
@@ -22,11 +22,18 @@ class LoginError(Exception):
     pass
 
 
+class PostgresConnectorInterface(metaclass=ABCMeta):
+    # todo: use interfaces for type annotations in AuthProcessor's init
+    @abc.abstractmethod
+    async def get_user(self, username: str) -> Optional[Record]:
+        ...
+
+
 class AuthProcessor:
     def __init__(
             self,
-            redis_connector: RedisConnector,
-            postgres_connector: AsyncPgConnector,
+            redis_connector,
+            postgres_connector,
             password_hasher: PasswordHasher,
             secret: str,
             algorithm: Optional[str] = 'HS256',
