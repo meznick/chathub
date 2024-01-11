@@ -39,7 +39,6 @@ class AuthProcessor:
             algorithm: Optional[str] = 'HS256',
             log_level: Optional[int] = logging.DEBUG
     ):
-        # todo: create some interface for redis_connector type annotation
         self._redis_connector = redis_connector
         self._postgres_connector = postgres_connector
         self._secret = secret
