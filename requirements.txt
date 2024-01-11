@@ -4,6 +4,8 @@ uvicorn[standart]==0.25
 pydantic==2.5.3
 redis==5.0.1
 sqlfluff
-# todo: create packages
-# chathub-connectors
-# chathub-utils
+chathub_connectors~=0.0.1
+chathub_utils~=0.0.1
+PyJWT~=2.8.0
+asyncpg~=0.29.0
+websockets~=12.0
