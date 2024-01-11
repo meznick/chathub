@@ -5,14 +5,13 @@ from typing import Optional
 
 import jwt
 from argon2 import PasswordHasher
-from argon2.profiles import RFC_9106_LOW_MEMORY
+from argon2.exceptions import InvalidHashError
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
-LOGGER.setLevel(logging.DEBUG)
 
 DATETIME_DUMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
 TOKEN_EXPIRATION_TIME_HOURS = 2
@@ -28,15 +27,18 @@ class AuthProcessor:
             self,
             redis_connector: RedisConnector,
             postgres_connector: AsyncPgConnector,
+            password_hasher: PasswordHasher,
             secret: str,
-            algorithm: Optional[str] = 'HS256'
+            algorithm: Optional[str] = 'HS256',
+            log_level: Optional[int] = logging.DEBUG
     ):
         # todo: create some interface for redis_connector type annotation
         self._redis_connector = redis_connector
         self._postgres_connector = postgres_connector
         self._secret = secret
         self._algorithm = algorithm
-        self._password_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
+        self._password_hasher = password_hasher
+        LOGGER.setLevel(log_level)
         LOGGER.info('Auth processor initialized')
 
     def get_algo(self):
@@ -127,10 +129,13 @@ class AuthProcessor:
             return False
         # compare hash from db with provided password's hash
         saved_hash = user.get('password_hash')
-        if not self._password_hasher.verify(saved_hash, password):
+        try:
+            self._password_hasher.verify(saved_hash, password)
+        except InvalidHashError:
             LOGGER.debug('Password does not match saved hash')
             return False
-        return True
+        else:
+            return True
 
     def _generate_token(self, username: str) -> str:
         payload = {

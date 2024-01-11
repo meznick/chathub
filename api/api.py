@@ -1,3 +1,6 @@
+from argon2 import PasswordHasher
+from argon2.profiles import RFC_9106_LOW_MEMORY
+
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
@@ -14,10 +17,12 @@ postgres_connector = AsyncPgConnector(
     username='dev_service',
     password='devpassword'
 )
+password_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 auth_processor = AuthProcessor(
     redis_connector=redis_connector,
     postgres_connector=postgres_connector,
-    secret=open("/dev/urandom", "rb").read(64).hex()
+    password_hasher=password_hasher,
+    secret=open("/dev/urandom", "rb").read(64).hex(),
 )
 
 
