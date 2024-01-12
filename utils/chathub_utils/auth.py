@@ -75,6 +75,7 @@ class AuthProcessor:
             username: str,
             token_refresh_delta: Optional[int] = TOKEN_REFRESH_DELTA_SECONDS,
     ) -> Optional[str]:
+        LOGGER.debug(f'Validating token: {token}')
         # get from cache - if exists then do not make full verification
         cached_token = self._redis_connector.client.get(f'user:{username}:jwt')
         if cached_token and (token != cached_token):
