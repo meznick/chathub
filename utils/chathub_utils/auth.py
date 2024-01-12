@@ -46,6 +46,7 @@ class AuthProcessor:
         self._password_hasher = password_hasher
         LOGGER.setLevel(log_level)
         LOGGER.info('Auth processor initialized')
+        LOGGER.debug(f'Secret: {self._secret}')
 
     def get_algo(self):
         return self._algorithm
