@@ -1,13 +1,12 @@
 from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_LOW_MEMORY
+from fastapi import FastAPI, HTTPException, Header, Cookie, Response
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
-from fastapi import FastAPI, HTTPException, Header, Cookie
-
+from chathub_utils.auth import LoginError
 from chathub_utils.user import UserManager
-from utils.chathub_utils.auth import LoginError
 
 app = FastAPI()
 redis_connector = RedisConnector(
@@ -34,13 +33,14 @@ async def root():
 
 
 @app.get('/login')
-async def login(username: str, password: str):
+async def login(username: str, password: str, response: Response):
     try:
-        token = auth_processor.login(username, password)
+        token = await auth_processor.login(username, password)
     except LoginError:
         raise HTTPException(status_code=403, detail='Invalid username or password')
     else:
-        return {'code': 200, 'token': token}
+        response.set_cookie(key='Authorization', value=token, httponly=True)
+        return {'code': 200}
 
 
 @app.post('/register')
@@ -59,7 +59,7 @@ async def user(username: str, jwt: str = Header(None)):
 
 
 @app.post('/chat/{action}')
-async def chat(action: str, username: str, jwt: Cookie() = None):
+async def chat(action: str, username: str, jwt: str = Cookie(None)):
     # валидировать токен
     token_valid = auth_processor.validate_token(jwt, username)
     if not token_valid:
