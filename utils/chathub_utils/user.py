@@ -1,10 +1,23 @@
 import logging
 from typing import Optional
+from enum import Enum
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
 
 STATE_EXPIRATION_TIME_SECONDS = 60 * 60 * 2
+
+
+class Action(Enum):
+    START = 'start'
+    STOP = 'stop'
+    RECONNECT = 'reconnect'
+
+
+class State(Enum):
+    MAIN = 'main'
+    CHAT = 'chat'
+    MATCHMAKING = 'matchmaking'
 
 
 class UserManager:
@@ -17,7 +30,7 @@ class UserManager:
         LOGGER.setLevel(log_level)
         LOGGER.info('User manager initialized')
 
-    def set_user_state(self, username: str, state: str) -> None:
+    def set_user_state(self, username: str, state: State) -> None:
         self._redis_connector.client.setex(
             f'user:{username}:state',
             STATE_EXPIRATION_TIME_SECONDS,
