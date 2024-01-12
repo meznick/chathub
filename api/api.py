@@ -4,8 +4,9 @@ from argon2.profiles import RFC_9106_LOW_MEMORY
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Cookie
 
+from chathub_utils.user import UserManager
 from utils.chathub_utils.auth import LoginError
 
 app = FastAPI()
@@ -24,6 +25,7 @@ auth_processor = AuthProcessor(
     password_hasher=password_hasher,
     secret=open("/dev/urandom", "rb").read(64).hex(),
 )
+user_manager = UserManager(redis_connector=redis_connector)
 
 
 @app.get('/')
@@ -36,7 +38,7 @@ async def login(username: str, password: str):
     try:
         token = auth_processor.login(username, password)
     except LoginError:
-        raise HTTPException(status_code=403, detail="Invalid username or password")
+        raise HTTPException(status_code=403, detail='Invalid username or password')
     else:
         return {'code': 200, 'token': token}
 
@@ -47,23 +49,36 @@ async def register(username: str, password1: str, password2: str, email: str):
 
 
 @app.get('/user/{username}')
-async def user(username: str, authorization: str = Header(None)):
+async def user(username: str, jwt: str = Header(None)):
     # todo: get token from header
     jwt = None
     if not auth_processor.validate_token(jwt, username):
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail='Forbidden')
 
     return {'code': 200, 'user': {'HERE WILL': 'BE USER DATA'}}
 
 
-@app.post('/chat')
-async def chat(message: str):
-    # todo: api start chat
-    # todo: api force stop chat
-    # взять токен пользователя
-    # получить айди пользователя по токену из редиса
-    # проверить что пользователь не в чате? (подумать как такое может быть и что с этим делать)
-    # добавить пользователя в вейтлист матчмейкера (редис)
-    # кинуть сигнал в брокер? кто-то должен подхватить этот сигнал и отправить юзеру сообщение что
-    #   матчмейкинг пошел
-    return {}
+@app.post('/chat/{action}')
+async def chat(action: str, username: str, jwt: Cookie() = None):
+    # валидировать токен
+    token_valid = auth_processor.validate_token(jwt, username)
+    if not token_valid:
+        raise HTTPException(status_code=403, detail='Forbidden')
+    user_state = user_manager.get_user_state(username)
+    if action == 'start' and user_state == 'main':
+        # starting new chat
+        user_manager.start_chat(username)
+    elif action == 'start' and user_state in ('chat', 'matchmaking'):
+        # starting new chat after previous page close
+        # maybe remove this branch?
+        user_manager.start_chat(username)
+    elif action == 'stop' and user_state in ('chat', 'matchmaking'):
+        # stopping current chat\search
+        user_manager.stop_chat(username)
+    elif action == 'reconnect' and user_state == 'chat':
+        # reconnecting to old chat
+        user_manager.reconnect_to_chat(username)
+    else:
+        raise HTTPException(status_code=401, detail='Command does not match state')
+    # if nothing was raised in user manager return success
+    return {'code': 200, 'action': action}
