@@ -8,7 +8,7 @@ from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
 from chathub_utils.auth import LoginError
-from chathub_utils.user import UserManager, Action
+from chathub_utils.user import UserManager, Action, State
 
 app = FastAPI()
 redis_connector = RedisConnector(
@@ -42,6 +42,7 @@ async def login(username: str, password: str, response: Response):
         raise HTTPException(status_code=403, detail='Invalid username or password')
     else:
         response.set_cookie(key='jwt', value=token, httponly=True)
+        user_manager.set_user_state(username, State.MAIN)
         return {'code': 200}
 
 
