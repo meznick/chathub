@@ -28,5 +28,10 @@ class RedisConnector:
         LOGGER.setLevel(log_level)
         LOGGER.info('Redis connector initialized')
 
+    def add_user_to_matchmaker_queue(self, username: str):
+        index = len(self.client.keys('matchmaker:queue'))
+        self.client.set(f'matchmaker:queue:{index}', username)
+        LOGGER.debug(f'User {username} added to MM queue as {index}')
+
     def __del__(self):
         self.client.close()
