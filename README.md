@@ -28,7 +28,7 @@ prod
 ### DB
 ```shell
 # setup
-cd deploy/db
+cd deploy/pg
 docker build -t chathub-postgres:latest -f pg-Dockerfile .
 docker run -e POSTGRES_PASSWORD=password \
 -v $HOME/Documents/pg-data:/var/lib/postgresql/data \
