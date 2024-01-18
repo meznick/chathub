@@ -5,6 +5,7 @@ from argon2.profiles import RFC_9106_LOW_MEMORY
 from fastapi import FastAPI, HTTPException, Header, Cookie, Response
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
+from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 from chathub_connectors.redis_connector import RedisConnector
 from chathub_utils.auth import AuthProcessor
 from chathub_utils.auth import LoginError
@@ -19,6 +20,10 @@ postgres_connector = AsyncPgConnector(
     username='dev_service',
     password='devpassword'
 )
+rmq_connector = RabbitMQConnector(
+    username='api_service',
+    password='apipassword'
+)
 password_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 auth_processor = AuthProcessor(
     redis_connector=redis_connector,
@@ -31,6 +36,7 @@ user_manager = UserManager(redis_connector=redis_connector)
 
 @app.get('/')
 async def root():
+    rmq_connector.publish('test', 'matchmaker', 'direct_main_dev')
     return {"status": 200, "data": "Hello World"}
 
 
