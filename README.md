@@ -54,8 +54,8 @@ dbmate rollback # revert last batch of migrations
 cd deploy/mq
 docker build -t chathub-rmq:latest -f Dockerfile .
 docker run -d --hostname chathub-rmq --name chathub-rmq \
--p 8081:15672 \
--p 8082:5672 \
+-p 15672:15672 \
+-p 5672:5672 \
 chathub-rmq:latest
 ```
 
