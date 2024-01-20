@@ -101,6 +101,32 @@ resource "rabbitmq_queue" "matchmaker_dev" {
   }
 }
 
+resource "rabbitmq_queue" "websocket_prod" {
+  name = "websocket_prod"
+  vhost = rabbitmq_vhost.chathub.name
+
+  settings {
+    durable = false
+    auto_delete = false
+    arguments = {
+      "x-queue-type": "classic",
+    }
+  }
+}
+
+resource "rabbitmq_queue" "websocket_dev" {
+  name = "websocket_dev"
+  vhost = rabbitmq_vhost.chathub.name
+
+  settings {
+    durable = false
+    auto_delete = false
+    arguments = {
+      "x-queue-type": "classic",
+    }
+  }
+}
+
 resource "rabbitmq_binding" "matchmaker_prod" {
   source           = rabbitmq_exchange.direct_main_prod.name
   vhost            = rabbitmq_vhost.chathub.name
@@ -115,4 +141,20 @@ resource "rabbitmq_binding" "matchmaker_dev" {
   destination      = rabbitmq_queue.matchmaker_dev.name
   destination_type = "queue"
   routing_key      = "matchmaker"
+}
+
+resource "rabbitmq_binding" "websocket_prod" {
+  source           = rabbitmq_exchange.direct_main_prod.name
+  vhost            = rabbitmq_vhost.chathub.name
+  destination      = rabbitmq_queue.websocket_prod.name
+  destination_type = "queue"
+  routing_key      = "websocket"
+}
+
+resource "rabbitmq_binding" "websocket_dev" {
+  source           = rabbitmq_exchange.direct_main_dev.name
+  vhost            = rabbitmq_vhost.chathub.name
+  destination      = rabbitmq_queue.websocket_dev.name
+  destination_type = "queue"
+  routing_key      = "websocket"
 }
