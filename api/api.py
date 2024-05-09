@@ -13,14 +13,20 @@ from chathub_utils.user import UserManager, Action, State
 
 app = FastAPI()
 redis_connector = RedisConnector(
+    host='10.132.179.6',  # zeph srv
+    port=6379,
     username='api_user',
     password='test',
 )
 postgres_connector = AsyncPgConnector(
+    host='10.132.179.6',  # zeph srv
+    port=5432,
     username='dev_service',
     password='devpassword'
 )
 rmq_connector = RabbitMQConnector(
+    host='10.132.179.6',  # zeph srv
+    port=5672,
     username='api_service',
     password='apipassword'
 )
