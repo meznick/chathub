@@ -4,7 +4,10 @@ from typing import Optional
 import redis
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+LOGGER.addHandler(stream_handler)
 
 
 class RedisConnector:

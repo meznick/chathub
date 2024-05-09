@@ -11,7 +11,10 @@ from argon2.exceptions import InvalidHashError
 from asyncpg import Record
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+LOGGER.addHandler(stream_handler)
 
 DATETIME_DUMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
 TOKEN_EXPIRATION_TIME_SECONDS = 60 * 60 * 2

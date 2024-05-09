@@ -3,7 +3,9 @@ from typing import Optional
 from enum import Enum
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
 
 STATE_EXPIRATION_TIME_SECONDS = 60 * 60 * 2
 
