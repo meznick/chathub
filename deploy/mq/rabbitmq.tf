@@ -23,7 +23,7 @@ variable "provider_password" {
 
 variable "rabbitmq_endpoint" {
   type = string
-  default = "http://localhost:8081"
+  default = "http://localhost:15672"
 }
 
 provider "rabbitmq" {
