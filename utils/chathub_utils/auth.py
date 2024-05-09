@@ -25,6 +25,10 @@ class LoginError(Exception):
     pass
 
 
+class RegisterError(Exception):
+    pass
+
+
 class PostgresConnectorInterface(metaclass=ABCMeta):
     # todo: use interfaces for type annotations in AuthProcessor's init
     @abc.abstractmethod
@@ -62,7 +66,7 @@ class AuthProcessor:
         auth_success = await self._authenticate(username, password)
         # generate JWT token
         if auth_success:
-            # this part can be skipped? =====
+            # todo: this part can be skipped? =====
             cached_token = self._redis_connector.client.get(f'user:{username}:jwt')
             if cached_token:
                 LOGGER.warning(
@@ -72,6 +76,18 @@ class AuthProcessor:
             return self._generate_token(username)
         else:
             raise LoginError('Invalid username or password 2')
+
+    async def register(self, username: str, password1: str, password2: str):
+        if password1 != password2:
+            raise RegisterError('Passwords do not match')
+        if await self._is_user_exists(username):
+            raise RegisterError('User already exists')
+
+        self._postgres_connector.add_user(
+            username=username,
+            password_hash=self._password_hasher.hash(password1),
+        )
+        return True
 
     def validate_token(
             self,
@@ -152,9 +168,8 @@ class AuthProcessor:
 
     async def _authenticate(self, username: str, password: str) -> bool:
         # get user from pg
-        user = await self._postgres_connector.get_user(username)
+        user = await self._is_user_exists(username)
         if not user:
-            LOGGER.debug('User does not exist')
             return False
         # compare hash from db with provided password's hash
         saved_hash = user.get('password_hash')
@@ -165,6 +180,14 @@ class AuthProcessor:
             return False
         else:
             return True
+
+    async def _is_user_exists(self, username: str) -> bool:
+        user = await self._postgres_connector.get_user(username)
+        if user:
+            return user
+        else:
+            LOGGER.debug('User does not exist')
+            return False
 
     def _generate_token(
             self,

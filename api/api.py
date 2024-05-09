@@ -4,10 +4,11 @@ from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_LOW_MEMORY
 from fastapi import FastAPI, HTTPException, Header, Cookie, Response
 
+from api.data_types import NewUser, User
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 from chathub_connectors.redis_connector import RedisConnector
-from chathub_utils.auth import AuthProcessor
+from chathub_utils.auth import AuthProcessor, RegisterError
 from chathub_utils.auth import LoginError
 from chathub_utils.user import UserManager, Action, State
 
@@ -47,20 +48,27 @@ async def root():
 
 
 @app.get('/login')
-async def login(username: str, password: str, response: Response):
+async def login(login_user: User, response: Response):
     try:
-        token = await auth_processor.login(username, password)
+        token = await auth_processor.login(login_user.username, login_user.password)
     except LoginError:
         raise HTTPException(status_code=403, detail='Invalid username or password')
     else:
         response.set_cookie(key='jwt', value=token, httponly=True)
-        user_manager.set_user_state(username, State.MAIN)
+        user_manager.set_user_state(login_user.username, State.MAIN)
         return {'code': 200}
 
 
 @app.post('/register')
-async def register(username: str, password1: str, password2: str, email: str):
-    return {}
+async def register(new_user: NewUser):
+    try:
+        await auth_processor.register(new_user.username, new_user.password1, new_user.password2)
+    except RegisterError:
+        raise HTTPException(status_code=400, detail='Registration failed')
+    else:
+        # or redirect?
+        # RedirectResponse(url='/login')
+        return {'code': 200}
 
 
 @app.get('/user/{username}')

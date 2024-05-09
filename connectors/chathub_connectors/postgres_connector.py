@@ -54,26 +54,43 @@ class AsyncPgConnector:
         return data
 
     async def add_user(
-            self,
-            username: str,
-            password_hash: str,
-            avatar_url: Optional[str] = None,
-            bio: Optional[str] = None,
-            sex: Optional[str] = None,
-            name: Optional[str] = None,
-            rating: Optional[float] = 0.0
+        self,
+        username: str,
+        password_hash: str,
+        avatar_url: Optional[str] = None,
+        bio: Optional[str] = None,
+        sex: Optional[str] = None,
+        name: Optional[str] = None,
+        rating: Optional[float] = 0.0
     ):
-        pass
+        query = '''
+            INSERT INTO users
+            (
+                username,
+                password_hash,
+                avatar_url,
+                bio,
+                sex,
+                name,
+                rating
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+        '''
+        LOGGER.debug(f'Creating user: {username}')
+        # todo: check if None values are passed as NULLs
+        await self.client.execute(
+            query, username, password_hash, avatar_url, bio, sex, name, rating
+        )
 
     async def update_user(
-            self,
-            username: str,
-            password_hash: Optional[str] = None,
-            avatar_url: Optional[str] = None,
-            bio: Optional[str] = None,
-            sex: Optional[str] = None,
-            name: Optional[str] = None,
-            rating: Optional[float] = None
+        self,
+        username: str,
+        password_hash: Optional[str] = None,
+        avatar_url: Optional[str] = None,
+        bio: Optional[str] = None,
+        sex: Optional[str] = None,
+        name: Optional[str] = None,
+        rating: Optional[float] = None
     ):
         pass
 
