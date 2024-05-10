@@ -36,7 +36,7 @@ class UserManager:
         self._redis_connector.client.setex(
             f'user:{username}:state',
             STATE_EXPIRATION_TIME_SECONDS,
-            state
+            state.value
         )
 
     def get_user_state(self, username: str) -> str:
