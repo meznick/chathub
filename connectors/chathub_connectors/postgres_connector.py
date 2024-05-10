@@ -77,7 +77,6 @@ class AsyncPgConnector:
             VALUES ($1, $2, $3, $4, $5, $6, $7);
         '''
         LOGGER.debug(f'Creating user: {username}')
-        # todo: check if None values are passed as NULLs
         await self.client.execute(
             query, username, password_hash, avatar_link, bio, sex, name, rating
         )
