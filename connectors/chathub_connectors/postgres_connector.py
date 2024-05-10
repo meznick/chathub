@@ -57,7 +57,7 @@ class AsyncPgConnector:
         self,
         username: str,
         password_hash: str,
-        avatar_url: Optional[str] = None,
+        avatar_link: Optional[str] = None,
         bio: Optional[str] = None,
         sex: Optional[str] = None,
         name: Optional[str] = None,
@@ -68,18 +68,18 @@ class AsyncPgConnector:
             (
                 username,
                 password_hash,
-                avatar_url,
+                avatar_link,
                 bio,
                 sex,
                 name,
                 rating
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+            VALUES ($1, $2, $3, $4, $5, $6, $7);
         '''
         LOGGER.debug(f'Creating user: {username}')
         # todo: check if None values are passed as NULLs
         await self.client.execute(
-            query, username, password_hash, avatar_url, bio, sex, name, rating
+            query, username, password_hash, avatar_link, bio, sex, name, rating
         )
 
     async def update_user(

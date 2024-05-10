@@ -63,8 +63,8 @@ async def login(login_user: User, response: Response):
 async def register(new_user: NewUser):
     try:
         await auth_processor.register(new_user.username, new_user.password1, new_user.password2)
-    except RegisterError:
-        raise HTTPException(status_code=400, detail='Registration failed')
+    except RegisterError as e:
+        raise HTTPException(status_code=400, detail=f'Registration failed: {e}')
     else:
         # or redirect?
         # RedirectResponse(url='/login')

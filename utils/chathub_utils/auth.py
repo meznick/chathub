@@ -61,7 +61,7 @@ class AuthProcessor:
     async def login(self, username: str, password: str):
         # validating credentials first to prevent injection attacks
         if not self._validate_credentials(username, password):
-            raise LoginError('Invalid username or password 1')
+            raise LoginError('Invalid username or password')
         # try to authenticate user with creds
         auth_success = await self._authenticate(username, password)
         # generate JWT token
@@ -80,10 +80,12 @@ class AuthProcessor:
     async def register(self, username: str, password1: str, password2: str):
         if password1 != password2:
             raise RegisterError('Passwords do not match')
+        if not self._validate_credentials(username, password1):
+            raise RegisterError('Invalid username or password')
         if await self._is_user_exists(username):
             raise RegisterError('User already exists')
 
-        self._postgres_connector.add_user(
+        await self._postgres_connector.add_user(
             username=username,
             password_hash=self._password_hasher.hash(password1),
         )
