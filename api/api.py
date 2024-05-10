@@ -72,10 +72,9 @@ async def register(new_user: NewUser):
 
 
 @app.get('/user/{username}')
-async def user(username: str, jwt: str = Header(None)):
-    # todo: get token from header
-    jwt = None
-    if not auth_processor.validate_token(jwt, username):
+async def user(username: str, authorization: str = Header(None)):
+    bearer, _, token = authorization.partition(' ')
+    if not auth_processor.validate_token(token, username):
         raise HTTPException(status_code=403, detail='Forbidden')
 
     return {'code': 200, 'user': {'HERE WILL': 'BE USER DATA'}}
