@@ -1,8 +1,13 @@
+import json
 import logging
 from typing import Optional
 from pika import PlainCredentials, ConnectionParameters
 
 from pika.adapters.asyncio_connection import AsyncioConnection
+
+MATCHMAKER_RK = 'matchmaker'
+EXCHANGE_PROD = 'direct_main_prod'
+EXCHANGE_DEV = 'direct_main_dev'
 
 LOGGER = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -22,6 +27,7 @@ class RabbitMQConnector:
             loglevel: Optional[str] = logging.DEBUG,
     ):
         LOGGER.setLevel(loglevel)
+        self._exchange = EXCHANGE_DEV if loglevel == logging.DEBUG else EXCHANGE_PROD
         creds = PlainCredentials(
             username=username,
             password=password
@@ -51,7 +57,14 @@ class RabbitMQConnector:
             self._connection.close()
             LOGGER.info('Connection closed')
 
-    def publish(self, message: str, routing_key: str, exchange: str):
+    def add_user_to_matchmaking_queue(self, username: str):
+        self._publish(
+            message=json.dumps({'command': 'add_user_to_matchmaking_queue', 'data': username}),
+            routing_key=MATCHMAKER_RK,
+            exchange=self._exchange
+        )
+
+    def _publish(self, message: str, routing_key: str, exchange: str):
         if self._channel.is_open:
             self._channel.basic_publish(exchange=exchange, routing_key=routing_key, body=message)
             LOGGER.debug(

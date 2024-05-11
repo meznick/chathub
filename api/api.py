@@ -43,7 +43,6 @@ user_manager = UserManager(redis_connector=redis_connector)
 
 @app.get('/')
 async def root():
-    rmq_connector.publish('test', 'matchmaker', 'direct_main_dev')
     return {"status": 200, "data": "Hello World"}
 
 
@@ -82,7 +81,7 @@ async def user(username: str, authorization: str = Header(None)):
 
 @app.post('/chat/{action}')
 async def chat(action: Action, username: str, jwt: Annotated[str, Cookie()] = None):
-    # валидировать токен
+    # validate token
     token_valid = auth_processor.validate_token(jwt, username)
     if not token_valid:
         raise HTTPException(status_code=403, detail='Forbidden')
@@ -90,6 +89,7 @@ async def chat(action: Action, username: str, jwt: Annotated[str, Cookie()] = No
     if action == 'start' and user_state == 'main':
         # starting new chat
         user_manager.start_chat(username)
+        rmq_connector.add_user_to_matchmaking_queue(username)
     elif action == 'start' and user_state in ('chat', 'matchmaking'):
         # starting new chat after previous page close
         # maybe remove this branch?

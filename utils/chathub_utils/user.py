@@ -45,8 +45,6 @@ class UserManager:
     def start_chat(self, username: str) -> None:
         LOGGER.debug(f'{username} executed chat START (adding to MM)')
         self._redis_connector.add_user_to_matchmaker_queue(username)
-        # send signal to MQ
-        # websocket server should read this signal and notify client about search start
 
     def stop_chat(self, username: str) -> None:
         LOGGER.debug(f'{username} executed chat STOP')
