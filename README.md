@@ -6,7 +6,10 @@ Backend:
 ```shell
 cd server
 python -m venv venv
-pip install -r requirements.txt
+# first build chathub packages (below) or install them as editable with pip (pip install -e)
+pip install -r requirements.txt  # base requirements
+cd api
+pip install -r requirements.txt  # FastAPI requirements
 # websocket
 python sever.py
 # fastapi
