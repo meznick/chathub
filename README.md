@@ -1,8 +1,8 @@
 # chathub
 Chat platform for experiments
 
-# Deploy
-### Backend
+# Develop
+Backend:
 ```shell
 cd server
 python -m venv venv
@@ -13,19 +13,35 @@ python sever.py
 uvicorn api:app --reload
 ```
 
-### Frontend
-dev
+Frontend:
 ```shell
 # надо повспоминать как ставить окружение
 npm run dev
 ```
 
-prod
+# Run tests
+```shell
+# chathub_utils: from /utils dir:
+python -m unittest tests/test_auth.py -v
+```
+
+# Deploy
+Backend
+```shell
+docker build -t chathub-api:latest .
+docker run --rm --hostname chathub-api --name chathub-api \
+-p 8888:8888 -d chathub-api:latest
+```
+
+Frontend
 ```shell
 # пока хз)
 ```
+---
+Все что ниже -- нужно вынести в отдельную от проекта репу для переиспользования
+в других.
 
-### DB
+Postgres
 ```shell
 # setup
 cd deploy/pg
@@ -49,7 +65,7 @@ dbmate up # perform migrations
 dbmate rollback # revert last batch of migrations
 ```
 
-### MQ
+RabbitMQ
 ```shell
 cd deploy/mq
 docker build -t chathub-rmq:latest -f Dockerfile .
@@ -59,16 +75,25 @@ docker run -d --hostname chathub-rmq --name chathub-rmq \
 chathub-rmq:latest
 ```
 
-### Redis
+Redis
 ```shell
 cd deploy/redis
 docker build -t chathub-redis:latest -f Dockerfile .
 docker run -d --hostname chathub-redis --name chathub-redis -p 6379:6379 chathub-redis:latest
 ```
 
-
-## Run tests
+Package registry (pypiserver)
 ```shell
-# chathub_utils: from /utils dir:
-python -m unittest tests/test_auth.py -v
+# later create systemd daemon
+pip install pypiserver
+mkdir ~/pypi_packages
+# listening only inside VPN
+pypi-server run -p 8228 -i 10.132.179.1 -a . -P . /home/meznick/pypi_packages --verbos
+
+# pushing packages: on dev machine
+pip install twine build
+cd connectors
+python -m build
+# signing is optional
+twine upload --repository-url http://10.132.179.1:8228 dist/* --verbose
 ```
