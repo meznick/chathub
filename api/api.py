@@ -4,7 +4,7 @@ from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_LOW_MEMORY
 from fastapi import FastAPI, HTTPException, Header, Cookie, Response
 
-from api.data_types import NewUser, User
+from data_types import NewUser, User
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 from chathub_connectors.redis_connector import RedisConnector
