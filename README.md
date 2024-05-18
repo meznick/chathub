@@ -79,6 +79,11 @@ chathub-rmq:latest
 ```
 
 Redis
+```python
+# generating password hash for ACL
+import hashlib
+hashlib.sha256(''.encode()).hexdigest()
+```
 ```shell
 cd deploy/redis
 docker build -t chathub-redis:latest -f Dockerfile .
