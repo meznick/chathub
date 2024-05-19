@@ -2,28 +2,46 @@
 
 // some place holding code, need to be replaced
 import { ref } from 'vue';
+import { useAuthStore } from "../stores/auth.ts";
+import { useGeneralStore } from "../stores/general.ts";
 
-const username = ref('');
-const password = ref('');
+export default {
+  setup() {
+    const authStore = useAuthStore();
+    const generalStore = useGeneralStore();
+    const username = ref('');
+    const password = ref('');
 
-const handleLogin = async () => {
-  if (!username.value || !password.value) {
-    alert('Please fill all input fields...');
-    return;
+    const handleLogin = async () => {
+      if (!username.value || !password.value) {
+        alert('Please fill all input fields...');
+        return;
+      }
+
+      // Here you would usually use this data to send a login request to your server
+      authStore.$patch((state) => {
+        state.loginFormData.username = username.value;
+        state.loginFormData.password = password.value;
+      });
+      authStore.authorize()
+
+      // if ok:
+      // Clear the form
+      username.value = '';
+      password.value = '';
+      // redirect to /
+      // else:
+      // show error message
+    }
+
+    return {
+      username,
+      password,
+      handleLogin
+    }
   }
-
-  // Here you would usually use this data to send a login request to your server
-  const data = {
-    username: username.value,
-    password: password.value
-  }
-
-  console.log(data);
-
-  // Clear the form
-  username.value = '';
-  password.value = '';
 }
+
 
 </script>
 
@@ -32,11 +50,11 @@ const handleLogin = async () => {
     <h2>Sign In</h2>
     <form @submit.prevent="handleLogin">
       <div>
-        <label for="username">Username:</label>
+        <label for="username">Username</label>
         <input type="text" id="username" v-model="username" required />
       </div>
       <div>
-        <label for="password">Password:</label>
+        <label for="password">Password</label>
         <input type="password" id="password" v-model="password" required />
       </div>
       <button type="submit">Sign In</button>
