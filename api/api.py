@@ -46,7 +46,7 @@ async def root():
     return {"status": 200, "data": "Hello World"}
 
 
-@app.get('/login')
+@app.post('/login')
 async def login(login_user: User, response: Response):
     try:
         token = await auth_processor.login(login_user.username, login_user.password)
