@@ -60,7 +60,14 @@ async def login(login_user: User, response: Response):
     except LoginError:
         raise HTTPException(status_code=403, detail='Invalid username or password')
     else:
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(
+            key='jwt',
+            value=token,
+            httponly=True,
+            # secure=True,  # only applicable for prod env, when using https
+            max_age=60 * 60 * 24,  # 1 day
+            samesite='strict'
+        )
         user_manager.set_user_state(login_user.username, State.MAIN)
         return {
             'code': 200,
