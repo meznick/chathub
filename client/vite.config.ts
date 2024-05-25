@@ -13,6 +13,11 @@ export default defineConfig({
         target: 'http://161.35.194.242:8888',
         secure: false,
         changeOrigin: false
+      },
+      '/register': {
+        target: 'http://161.35.194.242:8888',
+        secure: false,
+        changeOrigin: false
       }
     }
   }

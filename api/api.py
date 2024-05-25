@@ -3,6 +3,7 @@ from typing import Annotated
 from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_LOW_MEMORY
 from fastapi import FastAPI, HTTPException, Header, Cookie, Response
+from starlette.responses import RedirectResponse
 
 from data_types import NewUser, User
 from chathub_connectors.postgres_connector import AsyncPgConnector
@@ -46,6 +47,12 @@ async def root():
     return {"status": 200, "data": "Hello World"}
 
 
+@app.get('/login')
+@app.get('/register')
+def get_login():
+    return RedirectResponse(url='/')
+
+
 @app.post('/login')
 async def login(login_user: User, response: Response):
     try:
@@ -55,7 +62,10 @@ async def login(login_user: User, response: Response):
     else:
         response.set_cookie(key='jwt', value=token, httponly=True)
         user_manager.set_user_state(login_user.username, State.MAIN)
-        return {'code': 200}
+        return {
+            'code': 200,
+            'username': login_user.username,
+        }
 
 
 @app.post('/register')
@@ -65,8 +75,6 @@ async def register(new_user: NewUser):
     except RegisterError as e:
         raise HTTPException(status_code=400, detail=f'Registration failed: {e}')
     else:
-        # or redirect?
-        # RedirectResponse(url='/login')
         return {'code': 200}
 
 
