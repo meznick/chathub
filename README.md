@@ -40,3 +40,16 @@ Frontend
 ```shell
 # пока хз)
 ```
+
+# PG migrations
+```shell
+sudo pacman -S dbmate
+export DATABASE_URL=postgres://dev_developer:devpassword@localhost:5432/meznick_dev?sslmode=disable
+# new migration
+dbmate new "migration_name" # do not forget grants!
+# use sqlfluff on created migration before making commit!
+sqlfluff lint filename.sql --dialect postgres
+sqlfluff fix filename.sql --dialect postgres
+dbmate up # perform migrations
+dbmate rollback # revert last batch of migrations
+```
