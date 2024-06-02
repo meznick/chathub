@@ -1,0 +1,16 @@
+{
+    "pg_host": "",
+    "pg_port": 0,
+    "pg_username": "",
+    "pg_password": "",
+    "redis_host": "",
+    "redis_port": 0,
+    "redis_username": "",
+    "redis_password": "",
+    "rmq_host": "",
+    "rmq_port": 0,
+    "rmq_username": "",
+    "rmq_password": "",
+    "api_host": "",
+    "api_port": 0
+}
