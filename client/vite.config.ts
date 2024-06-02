@@ -8,14 +8,15 @@ export default defineConfig({
     exclude: ['fsevents'],
   },
   server: {
+    // fill in dioc server address and port holding dev API service
     proxy: {
       '/login': {
-        target: 'http://161.35.194.242:8888',
+        target: 'http://',
         secure: false,
         changeOrigin: false
       },
       '/register': {
-        target: 'http://161.35.194.242:8888',
+        target: 'http://',
         secure: false,
         changeOrigin: false
       }
