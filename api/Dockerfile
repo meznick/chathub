@@ -10,14 +10,15 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 # Install dependencies.
-COPY server/requirements.txt /code/
-RUN pip install --upgrade pip && pip install -r requirements.txt
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install -r requirements.txt \
+    --extra-index-url http://10.132.179.1:8228/simple/ --trusted-host 10.132.179.1
 
 # Copy project.
-COPY server/api.py /code/api.py
+COPY /*.py ./
 
 # Expose the port the app runs on. Maybe set exposed port with param
 EXPOSE $PORT
 
 # define the default command to run when starting a container
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8888"]

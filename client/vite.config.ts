@@ -7,4 +7,19 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['fsevents'],
   },
+  server: {
+    // fill in dioc server address and port holding dev API service
+    proxy: {
+      '/login': {
+        target: 'http://',
+        secure: false,
+        changeOrigin: false
+      },
+      '/register': {
+        target: 'http://',
+        secure: false,
+        changeOrigin: false
+      }
+    }
+  }
 })

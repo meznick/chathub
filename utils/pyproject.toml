@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=69.0.3", "wheel>=0.42.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chathub_utils"
+version = "0.0.1"
+requires-python = ">=3.10"
+description = "Utils for chathub project"
+dependencies = []

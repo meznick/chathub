@@ -1,10 +1,21 @@
 <script setup lang="ts">
 
 import Chat from "./components/Chat.vue";
+import Auth from "./components/Auth.vue";
+import { useAuthStore } from "./stores/auth.ts";
+import { useGeneralStore } from "./stores/general.ts";
+
+import config from "../config.json"
+
+const authStore = useAuthStore()
+const generalStore = useGeneralStore()
+
+generalStore.parseConfig(config)
 </script>
 
 <template>
-  <Chat></Chat>
+  <Chat v-if="authStore.isUserAuthorized"/>
+  <Auth v-else />
 </template>
 
 <style scoped>

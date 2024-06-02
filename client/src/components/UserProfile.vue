@@ -3,10 +3,20 @@
 // some place holding code, need to be replaced
 import { ref } from 'vue';
 
-const username = ref('some_user');
-const email = ref('user@example.com');
-const birthDate = ref(new Date()); // assuming Date object
+export default {
+  setup() {
+    const username = ref('some_user');
+    const email = ref('user@example.com');
+    const birthDate = ref(new Date()); // assuming Date object
 
+    return {
+      username,
+      email,
+      birthDate
+
+    }
+  }
+}
 </script>
 
 <template>

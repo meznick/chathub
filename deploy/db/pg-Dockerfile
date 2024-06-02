@@ -1,2 +1,0 @@
-FROM postgres:15
-ADD pg-init /docker-entrypoint-initdb.d
