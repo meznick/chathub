@@ -9,7 +9,9 @@ create table public.users
     name varchar(16),
     rating real default 0.0
 );
-grant select, insert, update on public.users to dev_service;
+
+grant select, insert, update on public.users to chathub_service;
+grant all on public.users to developer;
 
 
 -- migrate:down
