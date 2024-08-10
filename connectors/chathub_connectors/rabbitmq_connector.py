@@ -38,9 +38,12 @@ class RabbitMQConnector:
                 port=port,
                 virtual_host=virtual_host,
                 credentials=creds,
+                stack_timeout=2,
+                connection_attempts=2,
+                retry_delay=2
             ),
             on_open_callback=self._on_connection_open,
-            on_open_error_callback=self._on_connection_oper_error
+            on_open_error_callback=self._on_connection_open_error
         )
         self._channel = None
         LOGGER.info('RabbitMQ connector initialized')
@@ -77,8 +80,9 @@ class RabbitMQConnector:
         LOGGER.debug('RMQ connection opened')
         self._connection.channel(on_open_callback=self._on_channel_open)
 
-    def _on_connection_oper_error(self, _, err):
+    def _on_connection_open_error(self, _, err):
         LOGGER.error(f'RabbitMQ connection open error: {err}')
+        exit(1)
 
     def _on_channel_open(self, channel):
         self._channel = channel
