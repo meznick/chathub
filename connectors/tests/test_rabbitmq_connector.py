@@ -16,14 +16,15 @@ class TestRabbitMQConnector:
         test_parameters = {
             'host': 'test host', 'virtual_host': 'test host', 'port': 123,
             'username': 'test username', 'password': 'test password',
-            'loglevel': 20
+            'loglevel': 20, 'exchange': 'test_exchange', 'routing_key': 'test_routing_key',
+            'queue': 'test_queue'
         }
         mock_connection = mock_asyncio_connection.return_value
         mock_connection.connect.return_value = mock_connection
         mock_connection.ioloop = MagicMock()
-        from chathub_connectors.rabbitmq_connector import RabbitMQConnector, EXCHANGE_PROD
+        from chathub_connectors.rabbitmq_connector import RabbitMQConnector
         connector = RabbitMQConnector(**test_parameters)
-        assert connector._exchange == EXCHANGE_PROD
+        assert connector._exchange == 'test_exchange'
         mock_asyncio_connection.assert_called_once_with(
             parameters=ConnectionParameters(
                 host='test host', port=123, virtual_host='test host',

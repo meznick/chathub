@@ -1,13 +1,11 @@
 import json
 import logging
-from typing import Optional
-from pika import PlainCredentials, ConnectionParameters
+from typing import Optional, Callable
 
+from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
 
 MATCHMAKER_RK = 'matchmaker'
-EXCHANGE_PROD = 'direct_main_prod'
-EXCHANGE_DEV = 'direct_main_dev'
 
 LOGGER = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,14 +18,17 @@ class RabbitMQConnector:
     def __init__(
             self,
             host: str = 'localhost',
-            virtual_host: str = 'chathub',
             port: int = 8082,
+            virtual_host: str = '',
+            exchange: str = '',
+            queue: str = '',
+            routing_key: str = '',
             username: Optional[str] = None,
             password: Optional[str] = None,
+            message_callback: Callable = None,
             loglevel: Optional[str] = logging.DEBUG,
     ):
         LOGGER.setLevel(loglevel)
-        self._exchange = EXCHANGE_DEV if loglevel == logging.DEBUG else EXCHANGE_PROD
         creds = PlainCredentials(
             username=username,
             password=password
@@ -45,6 +46,10 @@ class RabbitMQConnector:
             on_open_callback=self._on_connection_open,
             on_open_error_callback=self._on_connection_open_error
         )
+        self._exchange = exchange
+        self._queue = queue
+        self._routing_key = routing_key
+        self._message_callback = message_callback
         self._channel = None
         LOGGER.info('RabbitMQ connector initialized')
         try:
@@ -59,13 +64,6 @@ class RabbitMQConnector:
                 LOGGER.info('Channel closed')
             self._connection.close()
             LOGGER.info('Connection closed')
-
-    def add_user_to_matchmaking_queue(self, username: str):
-        self._publish(
-            message=json.dumps({'command': 'add_user_to_matchmaking_queue', 'data': username}),
-            routing_key=MATCHMAKER_RK,
-            exchange=self._exchange
-        )
 
     def _publish(self, message: str, routing_key: str, exchange: str):
         if self._channel.is_open:
@@ -86,4 +84,17 @@ class RabbitMQConnector:
 
     def _on_channel_open(self, channel):
         self._channel = channel
+        self._channel.basic_consume(
+            queue=self._queue,
+            on_message_callback=(
+                self._message_callback
+                if self._message_callback
+                else self._default_on_message_callback
+            ),
+            auto_ack=True
+        )
         LOGGER.debug('RMQ channel opened')
+
+    @staticmethod
+    def _default_on_message_callback(channel, method, properties, body):
+        LOGGER.debug(f'Processed message by default method: {body.decode()}')
