@@ -1,14 +1,13 @@
-import json
 import logging
 from typing import Optional, Callable
 
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
 
-MATCHMAKER_RK = 'matchmaker'
+from chathub_connectors import LOG_FORMAT
 
 LOGGER = logging.getLogger(__name__)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(LOG_FORMAT)
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 LOGGER.addHandler(stream_handler)
