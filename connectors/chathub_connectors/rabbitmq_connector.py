@@ -57,7 +57,7 @@ class RabbitMQConnector:
             password: Optional[str] = None,
             message_callback: Callable = None,
             caller_service: str = 'standalone',
-            loglevel: Optional[str] = logging.DEBUG,
+            loglevel: Optional[int] = logging.DEBUG,
     ):
         """
         Initialize the RabbitMQ connector.
@@ -74,7 +74,8 @@ class RabbitMQConnector:
         :param message_callback: A callback function to handle received messages. Default is None.
         :param caller_service: The name of the service using the RabbitMQ connector.
                      Default is standalone.
-        :param loglevel: The logging level for the RabbitMQ connector. Default is logging.DEBUG.
+        :param loglevel: The logging level for the RabbitMQ connector.
+                     Default is logging.DEBUG (10).
         """
         LOGGER.setLevel(loglevel)
         creds = PlainCredentials(
