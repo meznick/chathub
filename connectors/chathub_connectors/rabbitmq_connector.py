@@ -14,6 +14,10 @@ stream_handler.setFormatter(formatter)
 LOGGER.addHandler(stream_handler)
 
 
+class ConnectionFailedException(Exception):
+    pass
+
+
 class RabbitMQConnector:
     """
     This class provides a connector to the RabbitMQ server for asynchronous messaging.
@@ -45,7 +49,7 @@ class RabbitMQConnector:
     def __init__(
             self,
             host: str = 'localhost',
-            port: int = 8082,
+            port: int = 5672,
             virtual_host: str = '',
             exchange: str = '',
             queue: str = '',
@@ -53,7 +57,7 @@ class RabbitMQConnector:
             username: Optional[str] = None,
             password: Optional[str] = None,
             message_callback: Callable = None,
-            caller_service: str = '',
+            caller_service: str = 'standalone',
             loglevel: Optional[str] = logging.DEBUG,
     ):
         """
@@ -70,7 +74,7 @@ class RabbitMQConnector:
         :param password: The password for authentication. Default is None.
         :param message_callback: A callback function to handle received messages. Default is None.
         :param caller_service: The name of the service using the RabbitMQ connector.
-                     Default is an empty string.
+                     Default is standalone.
         :param loglevel: The logging level for the RabbitMQ connector. Default is logging.DEBUG.
         """
         LOGGER.setLevel(loglevel)
@@ -127,10 +131,6 @@ class RabbitMQConnector:
         LOGGER.debug('RMQ connection opened')
         self._connection.channel(on_open_callback=self._on_channel_open)
 
-    def _on_connection_open_error(self, _, err):
-        LOGGER.error(f'RabbitMQ connection open error: {err}')
-        exit(1)
-
     def _on_channel_open(self, channel):
         self._channel = channel
         self._channel.basic_consume(
@@ -144,6 +144,11 @@ class RabbitMQConnector:
             auto_ack=True
         )
         LOGGER.debug(f'Consuming on queue {self._queue}')
+
+    @staticmethod
+    def _on_connection_open_error(_: AsyncioConnection, err: Exception):
+        LOGGER.error(f'RabbitMQ connection open error: {err}')
+        raise ConnectionFailedException('RabbitMQ connection open error')
 
     @staticmethod
     def _default_on_message_callback(channel, method, properties, body):
