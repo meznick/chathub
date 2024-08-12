@@ -77,7 +77,7 @@ class RabbitMQConnector:
         :param loglevel: The logging level for the RabbitMQ connector.
                      Default is logging.DEBUG (10).
         """
-        LOGGER.setLevel(loglevel)
+        self.set_log_level(loglevel)
         creds = PlainCredentials(
             username=username,
             password=password
@@ -102,6 +102,10 @@ class RabbitMQConnector:
         self._channel = None
         self.tag = f'python-rmq-connector-{caller_service}'
         LOGGER.info(f'RabbitMQ connector {self.tag} initialized')
+
+    @staticmethod
+    def set_log_level(loglevel):
+        LOGGER.setLevel(loglevel)
 
     def run(self):
         LOGGER.info(f'Running RabbitMQ connector {self.tag}')
