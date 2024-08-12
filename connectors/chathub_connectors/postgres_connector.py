@@ -18,7 +18,7 @@ class AsyncPgConnector:
             self,
             host: str = 'localhost',
             port: int = 5432,
-            db: int = 'chathub_dev',
+            db: str = 'chathub_dev',
             username: Optional[str] = None,
             password: Optional[str] = None,
     ):
