@@ -1,6 +1,6 @@
 .PHONY: clean build upload
 
-BUILD_DIR = build/
+BUILD_DIR = dist/
 
 all: clean build upload
 
@@ -14,4 +14,4 @@ build: clean
 
 upload:
 	@echo "Uploading package..."
-	twine upload --repository-url http://10.137.239.2:8228 dist/* --verbose
+	twine upload --repository-url http://10.137.239.1:8228 dist/* --verbose
