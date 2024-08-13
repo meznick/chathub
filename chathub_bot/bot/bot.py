@@ -22,83 +22,66 @@ from bot.scenes.profile_editing import ProfileEditingScene
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 
-dp = Dispatcher(
-    # needed for fast user responses
-    events_isolation=SimpleEventIsolation(),
-    storage=MemoryStorage(),  # replace for Redis storage
-)
-dp.include_router(dev_router)
-dp.include_router(scenes_router)
-sr = SceneRegistry(dp)
-sr.add(RegistrationScene)
-sr.add(ProfileEditingScene)
-sr.add(DatingScene)
 
-rmq = RabbitMQConnector(
-    host=MESSAGE_BROKER_HOST,
-    port=MESSAGE_BROKER_PORT,
-    virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
-    exchange=MESSAGE_BROKER_EXCHANGE,
-    queue=MESSAGE_BROKER_QUEUE,
-    routing_key=MESSAGE_BROKER_ROUTING_KEY,
-    username=MESSAGE_BROKER_USERNAME,
-    password=MESSAGE_BROKER_PASSWORD,
-    message_callback=process_message,
-    caller_service='tg-bot',
-    loglevel=logging.INFO,
-)
-
-pg = AsyncPgConnector(
-    host=POSTGRES_HOST,
-    port=POSTGRES_PORT,
-    db=POSTGRES_DB,
-    username=POSTGRES_USER,
-    password=POSTGRES_PASSWORD,
-)
-
-
-def main(tg_token: str, long_polling: bool = True, debug: bool = False) -> None:
-    """
-    This method is the entry point for running the bot.
-    It initializes the logging level based on the debug parameter.
-    Depending on launch flags, bot is run in long polling or webhook mode.
-
-    :param tg_token: The token for the Telegram bot.
-    :param long_polling: A boolean indicating whether to run the bot in long
-            polling mode or webhook mode.
-            Defaults to True.
-    :param debug: A boolean indicating whether to enable debug logging.
-    Defaults to False.
-    :return: None
-    """
-    LOGGER.setLevel(logging.DEBUG if debug else logging.INFO)
-    rmq.set_log_level(logging.DEBUG if debug else logging.INFO)
-
-    LOGGER.debug('Preparing to run bot...')
-    if long_polling:
-        LOGGER.debug('Running in long polling mode...')
-        asyncio.run(start_long_polling(tg_token))
-    else:
-        LOGGER.debug('Running in webhook mode...')
-        asyncio.run(start_webhook(tg_token))
-
-
-async def start_long_polling(token: str) -> None:
-    bot = Bot(
-        token=token,
-        default=DefaultBotProperties(
-            parse_mode=ParseMode.HTML,
+class DatingBot:
+    def __init__(self, tg_token: str, debug: bool = False):
+        self._bot = Bot(
+            token=tg_token,
+            default=DefaultBotProperties(
+                parse_mode=ParseMode.HTML,
+            )
         )
-    )
-    LOGGER.debug('Starting long polling...')
-    try:
-        loop = asyncio.get_running_loop()
-        rmq.run(custom_loop=loop)
-        await dp.start_polling(bot)
-    except KeyboardInterrupt:
-        LOGGER.info('Shutting down...')
-        rmq.disconnect()
 
+        self._pg = AsyncPgConnector(
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            db=POSTGRES_DB,
+            username=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+        )
 
-async def start_webhook(token: str) -> None:
-    ...
+        self._rmq = RabbitMQConnector(
+            host=MESSAGE_BROKER_HOST,
+            port=MESSAGE_BROKER_PORT,
+            virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
+            exchange=MESSAGE_BROKER_EXCHANGE,
+            queue=MESSAGE_BROKER_QUEUE,
+            routing_key=MESSAGE_BROKER_ROUTING_KEY,
+            username=MESSAGE_BROKER_USERNAME,
+            password=MESSAGE_BROKER_PASSWORD,
+            message_callback=self.process_rmq_message,
+            caller_service='tg-bot',
+            loglevel=logging.INFO,
+        )
+
+        self._dp = Dispatcher(
+            # needed for fast user responses
+            events_isolation=SimpleEventIsolation(),
+            storage=MemoryStorage(),  # replace for Redis storage
+        )
+        self._dp.include_router(dev_router)
+        self._dp.include_router(scenes_router)
+        sr = SceneRegistry(self._dp)
+        sr.add(RegistrationScene)
+        sr.add(ProfileEditingScene)
+        sr.add(DatingScene)
+
+        LOGGER.setLevel(logging.DEBUG if debug else logging.INFO)
+        self._rmq.set_log_level(logging.DEBUG if debug else logging.INFO)
+
+    def process_rmq_message(self, *args, **kwargs):
+        # this method should be synchronous
+        ...
+
+    async def start_long_polling(self) -> None:
+        LOGGER.debug('Starting long polling...')
+        try:
+            loop = asyncio.get_running_loop()
+            self._rmq.run(custom_loop=loop)
+            await self._dp.start_polling(self._bot)
+        except KeyboardInterrupt:
+            LOGGER.info('Shutting down...')
+            self._rmq.disconnect()
+
+    async def start_webhook(self) -> None:
+        ...
