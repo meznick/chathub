@@ -1,16 +1,11 @@
+import asyncio
 import logging
 from typing import Optional, Callable
 
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
 
-from chathub_connectors import LOG_FORMAT
-
-LOGGER = logging.getLogger(__name__)
-formatter = logging.Formatter(LOG_FORMAT)
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-LOGGER.addHandler(stream_handler)
+from chathub_connectors import LOGGER
 
 
 class ConnectionFailedException(Exception):
@@ -78,28 +73,17 @@ class RabbitMQConnector:
                      Default is logging.DEBUG (10).
         """
         self.set_log_level(loglevel)
-        creds = PlainCredentials(
-            username=username,
-            password=password
-        )
-        self._connection = AsyncioConnection(
-            parameters=ConnectionParameters(
-                host=host,
-                port=port,
-                virtual_host=virtual_host,
-                credentials=creds,
-                stack_timeout=2,
-                connection_attempts=2,
-                retry_delay=2
-            ),
-            on_open_callback=self._on_connection_open,
-            on_open_error_callback=self._on_connection_open_error
-        )
+        self.host = host
+        self.port = port
+        self.virtual_host = virtual_host
+        self._username = username
+        self._password = password
         self._exchange = exchange
         self._queue = queue
         self._routing_key = routing_key
         self._message_callback = message_callback
         self._channel = None
+        self._connection = None
         self.tag = f'python-rmq-connector-{caller_service}'
         LOGGER.info(f'RabbitMQ connector {self.tag} initialized')
 
@@ -107,20 +91,54 @@ class RabbitMQConnector:
     def set_log_level(loglevel):
         LOGGER.setLevel(loglevel)
 
-    def run(self):
-        LOGGER.info(f'Running RabbitMQ connector {self.tag}')
-        try:
-            if not self._connection.ioloop.is_running():
-                LOGGER.debug('Starting ioloop')
-                self._connection.ioloop.run_forever()
-            else:
-                LOGGER.debug('Ioloop is already running')
-        except KeyboardInterrupt:
+    def run(self, custom_loop: asyncio.AbstractEventLoop = None):
+        # --------------- standalone only ----------------------
+        # LOGGER.info(f'Running RabbitMQ connector {self.tag}')
+        # self._connection = self.connect()
+        # try:
+        #     if not self._connection.ioloop.is_running():
+        #         LOGGER.debug('Starting ioloop')
+        #         self._connection.ioloop.run_forever()
+        #     else:
+        #         LOGGER.debug('Ioloop is already running')
+        # except KeyboardInterrupt:
+        #     self.disconnect()
+        # ------------------------------------------------------
+        self._connection = self.connect(custom_loop)
+        if not self._connection.ioloop.is_running:
+            self._connection.ioloop.run_forever()
+        LOGGER.debug(
+            f'Event loop state is running: {self._connection.ioloop.is_running}'
+        )
+
+    def connect(self, custom_loop=None):
+        LOGGER.info(f'Connecting to RabbitMQ server {self.host}')
+        return AsyncioConnection(
+            parameters=ConnectionParameters(
+                host=self.host,
+                port=self.port,
+                virtual_host=self.virtual_host,
+                credentials=PlainCredentials(
+                    username=self._username,
+                    password=self._password,
+                ),
+                stack_timeout=5,
+                connection_attempts=2,
+                retry_delay=2,
+            ),
+            on_open_callback=self._on_connection_open,
+            on_open_error_callback=self._on_connection_open_error,
+            custom_ioloop=custom_loop
+        )
+
+    def disconnect(self):
+        if self._connection.is_closing or self._connection.is_closed:
+            LOGGER.info('Connection is closing or already closed')
+        else:
+            LOGGER.info('Closing connection')
             if self._channel:
-                self._channel.close()
-                LOGGER.info('Channel closed')
-            self._connection.close()
-            LOGGER.info('Connection closed')
+                self._connection.close()
+                self._connection.close()
 
     def publish(self, message: str, routing_key: str, exchange: str):
         if self._channel.is_open:
@@ -136,6 +154,7 @@ class RabbitMQConnector:
         self._connection.channel(on_open_callback=self._on_channel_open)
 
     def _on_channel_open(self, channel):
+        LOGGER.debug('RMQ channel opened')
         self._channel = channel
         self._channel.basic_consume(
             queue=self._queue,
