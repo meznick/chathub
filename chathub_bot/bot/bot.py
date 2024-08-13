@@ -15,7 +15,6 @@ from bot import (
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
 )
 from bot.dev_router import dev_router
-from bot.message_broker_callback import process_message
 from bot.scenes import scenes_router, RegistrationScene
 from bot.scenes.dating import DatingScene
 from bot.scenes.profile_editing import ProfileEditingScene
