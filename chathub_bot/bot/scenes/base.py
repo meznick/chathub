@@ -1,5 +1,5 @@
 """
-aiogram’s basics API is easy to use and powerful, allowing the implementation of
+Aiogram’s basics API is easy to use and powerful, allowing the implementation of
 simple interactions such as triggering a command or message for a response.
 However, certain tasks require a dialogue between the user and the bot. This is
 where Scenes come into play.
