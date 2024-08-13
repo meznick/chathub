@@ -2,8 +2,8 @@
 main file for calling module
 """
 import argparse
-import os
 
+from bot import TG_TOKEN
 from .bot import main
 
 if __name__ == "__main__":
@@ -22,6 +22,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    tg_token = os.getenv('TG_BOT_TOKEN', '')
-
-    main(tg_token, getattr(args, 'long_polling', False), getattr(args, 'debug', False))
+    main(TG_TOKEN, getattr(args, 'long_polling', False), getattr(args, 'debug', False))
