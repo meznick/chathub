@@ -164,7 +164,7 @@ class RabbitMQConnector:
                 else self._default_on_message_callback
             ),
             consumer_tag=self.tag,
-            auto_ack=True
+            auto_ack=True,
         )
         LOGGER.debug(f'Consuming on queue {self._queue}')
 
