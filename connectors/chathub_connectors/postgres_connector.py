@@ -1,16 +1,10 @@
 import asyncio
 from typing import Optional
-import logging
 
 import asyncpg
 from asyncpg import Record
 
-LOGGER = logging.getLogger(__name__)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-LOGGER.addHandler(stream_handler)
-LOGGER.setLevel(logging.DEBUG)
+from chathub_connectors import LOGGER
 
 
 class AsyncPgConnector:
