@@ -1,6 +1,8 @@
 import logging
 import os
 
+__version__ = '0.1.0'
+
 
 def setup_logger():
     logger = logging.getLogger(__name__)

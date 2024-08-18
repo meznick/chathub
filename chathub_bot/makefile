@@ -1,9 +1,11 @@
 # Define directories and files
 SRC_DIR := .
-DOMAIN := bot  # potentially there will be more of these
+# potentially there will be more of these
+DOMAIN := bot
 POT_FILE := bot/locales/$(DOMAIN).pot
 PO_DIR := bot/locales
 CFG_FILE := babel.cfg
+VERSION := $(shell python3 -c "import os; import sys; sys.path.insert(0, '$(SRC_DIR)'); from bot import __version__; print(__version__)")
 
 # Goals
 .PHONY: extract compile update
@@ -18,13 +20,11 @@ extract:
 	@echo "Extracting..."
 	pybabel extract -F $(CFG_FILE) -o $(POT_FILE) --input-dirs=$(SRC_DIR) \
 	--project="SpeedDatingBot" \
-	--version="0.1" \
-	--copyright-holder="Nick Letov" \
-	--msgid-bugs-address="mezhng@gmail.com"
+	--version=$(VERSION)
 
 update:
 	@echo "Updating..."
-	pybabel update -i $(POT_FILE) -d $(PO_DIR)
+	pybabel update -i $(POT_FILE) -d $(PO_DIR) -D $(DOMAIN)
 
 compile:
 	@echo "Compiling..."
