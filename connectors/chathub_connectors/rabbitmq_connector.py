@@ -112,8 +112,8 @@ class RabbitMQConnector:
         )
 
     def connect(self, custom_loop=None):
-        LOGGER.info(f'Connecting to RabbitMQ server {self.host}')
-        return AsyncioConnection(
+        LOGGER.debug(f'Connecting to RabbitMQ server {self.host}')
+        connection = AsyncioConnection(
             parameters=ConnectionParameters(
                 host=self.host,
                 port=self.port,
@@ -130,6 +130,8 @@ class RabbitMQConnector:
             on_open_error_callback=self._on_connection_open_error,
             custom_ioloop=custom_loop
         )
+        LOGGER.info(f'RabbitMQ connection to {self.host} established')
+        return connection
 
     def disconnect(self):
         if self._connection.is_closing or self._connection.is_closed:
