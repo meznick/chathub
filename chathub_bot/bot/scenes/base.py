@@ -15,13 +15,11 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.types import Message
 
 
-class BaseSpeedDatingScene(Scene, abc.ABCMeta):
+class BaseSpeedDatingScene(Scene, abc.ABC):
     @abc.abstractmethod
-    @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext) -> Any:
         ...
 
     @abc.abstractmethod
-    @on.message.exit()
     async def on_exit(self, message: Message, state: FSMContext) -> None:
         ...
