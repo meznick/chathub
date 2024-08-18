@@ -7,6 +7,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.scene import SceneRegistry
 from aiogram.fsm.storage.memory import SimpleEventIsolation, MemoryStorage
+from aiogram.fsm.strategy import FSMStrategy
+from aiogram.utils.i18n import I18n
 
 from bot import (
     LOGGER, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT,
@@ -53,13 +55,21 @@ class DatingBot:
             loglevel=logging.INFO,
         )
 
+        self._i18n = I18n(
+            path="locales",
+            default_locale="ru",
+            domain="bot"
+        )
+
         self._dp = Dispatcher(
             # needed for fast user responses
             events_isolation=SimpleEventIsolation(),
             storage=MemoryStorage(),  # replace for Redis storage
+            fsm_strategy=FSMStrategy.USER_IN_CHAT,  # choose a correct strategy
         )
-        self._dp.include_router(dev_router)
+        # include order makes sense!
         self._dp.include_router(scenes_router)
+        self._dp.include_router(dev_router)
         sr = SceneRegistry(self._dp)
         sr.add(RegistrationScene)
         sr.add(ProfileEditingScene)
