@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from typing import Optional
 
 import asyncpg
@@ -54,6 +55,8 @@ class AsyncPgConnector:
         user_id: int,
         username: str,
         password_hash: Optional[str] = None,
+        birthday: Optional[datetime.date] = None,
+        city: Optional[str] = None,
         bio: Optional[str] = None,
         sex: Optional[str] = None,
         name: Optional[str] = None,
@@ -65,15 +68,17 @@ class AsyncPgConnector:
                 id,
                 username,
                 password_hash,
+                birthday,
+                city,
                 bio,
                 sex,
                 name,
                 rating
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
         '''
         await self.client.execute(
-            query, user_id, username, password_hash, bio, sex, name, rating
+            query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
         )
         LOGGER.debug(f'User created in postgres: {username} [{user_id}]')
 
@@ -82,6 +87,8 @@ class AsyncPgConnector:
         user_id: int,
         username: Optional[str] = None,
         password_hash: Optional[str] = None,
+        birthday: Optional[datetime.date] = None,
+        city: Optional[str] = None,
         bio: Optional[str] = None,
         sex: Optional[str] = None,
         name: Optional[str] = None,
@@ -99,6 +106,14 @@ class AsyncPgConnector:
         if password_hash is not None:
             set_clauses.append(f"password_hash = ${i}")
             values.append(password_hash)
+
+        if birthday is not None:
+            set_clauses.append(f"birthday = ${i}")
+            values.append(birthday)
+
+        if city is not None:
+            set_clauses.append(f"city = ${i}")
+            values.append(city)
 
         if bio is not None:
             set_clauses.append(f"bio = ${i}")
