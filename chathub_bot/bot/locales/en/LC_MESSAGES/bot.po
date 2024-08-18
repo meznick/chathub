@@ -1,10 +1,9 @@
 # English translations for SpeedDatingBot.
-
 msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-18 15:30+0300\n"
+"POT-Creation-Date: 2024-08-18 21:13+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -15,6 +14,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:32
-msgid "Hello, {name}!"
+#: bot/scenes/registration.py:42
+msgid "welcome message {name}"
 msgstr ""
+"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
+" get started, please enter your name so we can register you for the "
+"event.Looking forward to helping you find your perfect match!"
+
+#: bot/scenes/registration.py:46
+msgid "invite to enter name"
+msgstr ""
+
+#: bot/scenes/registration.py:62
+msgid "user already exists"
+msgstr ""
+

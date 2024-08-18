@@ -1,10 +1,15 @@
 # Translations template for SpeedDatingBot.
-
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the SpeedDatingBot
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: SpeedDatingBot 0.1\n"
-"Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-18 15:30+0300\n"
+"Project-Id-Version: SpeedDatingBot 0.1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-08-18 21:13+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -13,6 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:32
-msgid "Hello, {name}!"
+#: bot/scenes/registration.py:42
+msgid "welcome message {name}"
 msgstr ""
+
+#: bot/scenes/registration.py:46
+msgid "invite to enter name"
+msgstr ""
+
+#: bot/scenes/registration.py:62
+msgid "user already exists"
+msgstr ""
+
