@@ -46,14 +46,14 @@ class AsyncPgConnector:
 
         query = 'SELECT * FROM users WHERE id = $1;'
         data = await self.client.fetchrow(query, user_id)
-        LOGGER.debug(f'Fetched user: {data}')
+        LOGGER.debug(f'User found in postgres: {data}')
         return data
 
     async def add_user(
         self,
+        user_id: int,
         username: str,
-        password_hash: str,
-        avatar_link: Optional[str] = None,
+        password_hash: Optional[str] = None,
         bio: Optional[str] = None,
         sex: Optional[str] = None,
         name: Optional[str] = None,
@@ -62,9 +62,9 @@ class AsyncPgConnector:
         query = '''
             INSERT INTO users
             (
+                id,
                 username,
                 password_hash,
-                avatar_link,
                 bio,
                 sex,
                 name,
@@ -72,27 +72,71 @@ class AsyncPgConnector:
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7);
         '''
-        LOGGER.debug(f'Creating user: {username}')
         await self.client.execute(
-            query, username, password_hash, avatar_link, bio, sex, name, rating
+            query, user_id, username, password_hash, bio, sex, name, rating
         )
+        LOGGER.debug(f'User created in postgres: {username} [{user_id}]')
 
     async def update_user(
         self,
-        username: str,
+        user_id: int,
+        username: Optional[str] = None,
         password_hash: Optional[str] = None,
-        avatar_url: Optional[str] = None,
         bio: Optional[str] = None,
         sex: Optional[str] = None,
         name: Optional[str] = None,
         rating: Optional[float] = None
     ):
-        pass
+        set_clauses = []
+        i = 2
+        values = []
+
+        if username is not None:
+            set_clauses.append(f"username = ${i}")
+            i += 1
+            values.append(username)
+
+        if password_hash is not None:
+            set_clauses.append(f"password_hash = ${i}")
+            values.append(password_hash)
+
+        if bio is not None:
+            set_clauses.append(f"bio = ${i}")
+            values.append(bio)
+
+        if sex is not None:
+            set_clauses.append(f"sex = ${i}")
+            values.append(sex)
+
+        if name is not None:
+            set_clauses.append(f"name = ${i}")
+            values.append(name)
+
+        if rating is not None:
+            set_clauses.append(f"rating = ${i}")
+            values.append(rating)
+
+        if not set_clauses:
+            LOGGER.debug(f"No fields to update for user: {user_id}")
+            return
+
+        set_queries = ", ".join(set_clauses)
+        query = f'''
+            UPDATE users
+            SET {set_queries}
+            WHERE id = $1;
+        '''
+        LOGGER.debug(f'update_user query: {query}, params: {values}')
+
+        await self.client.execute(
+            query, user_id, *values
+        )
+        LOGGER.debug(f'User altered in postgres: {username} [{user_id}]')
 
     def __del__(self):
         if self.client:
-            # looks like it cannot close properly
+            # it looks like it cannot close properly
             asyncio.new_event_loop().run_until_complete(self.client.close())
-            LOGGER.info(f'PG connection to {self._host}:{self._port}:{self._db} closed')
+            LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
 
         LOGGER.debug('PG connector deleted')
