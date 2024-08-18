@@ -5,8 +5,10 @@ CREATE TABLE public.users
     username VARCHAR(16) NOT NULL,
     password_hash VARCHAR(128),
     bio VARCHAR(512),
+    birthday DATE,
     sex VARCHAR(1),
     name VARCHAR(16),
+    city VARCHAR(32),
     rating REAL DEFAULT 0.0
 );
 
