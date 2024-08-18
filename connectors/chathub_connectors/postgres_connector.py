@@ -34,16 +34,16 @@ class AsyncPgConnector:
         )
         LOGGER.info(f'Connected to {self._host}:{self._port}:{self._db}')
 
-    async def get_user(self, username: str) -> Optional[Record]:
+    async def get_user(self, user_id: int) -> Optional[Record]:
         """
-        :param username: The username of the user to fetch.
+        :param user_id: ID of the user to fetch.
         :return: The user data fetched from the database.
         """
         if not self.client:
             await self.connect()
 
-        query = 'SELECT * FROM users WHERE username = $1;'
-        data = await self.client.fetchrow(query, username)
+        query = 'SELECT * FROM users WHERE id = $1;'
+        data = await self.client.fetchrow(query, user_id)
         LOGGER.debug(f'Fetched user: {data}')
         return data
 
