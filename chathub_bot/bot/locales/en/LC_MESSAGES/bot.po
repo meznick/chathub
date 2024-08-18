@@ -1,0 +1,20 @@
+# English translations for SpeedDatingBot.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: SpeedDatingBot 0.1\n"
+"Report-Msgid-Bugs-To: mezhng@gmail.com\n"
+"POT-Creation-Date: 2024-08-18 15:30+0300\n"
+"PO-Revision-Date: 2024-08-18 15:35+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: bot/scenes/registration.py:32
+msgid "Hello, {name}!"
+msgstr ""
