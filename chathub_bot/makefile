@@ -14,7 +14,7 @@ VERSION := $(shell python3 -c "import os; import sys; sys.path.insert(0, '$(SRC_
 all: extract init update compile
 
 # generic update on new iterations:
-update_templates: extract update compile
+update_templates: extract update
 
 extract:
 	@echo "Extracting..."
