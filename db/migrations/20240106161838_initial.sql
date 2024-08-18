@@ -1,18 +1,28 @@
 -- migrate:up
-create table public.users
+CREATE TABLE public.users
 (
-    username varchar(16) primary key,
-    password_hash varchar(128) not null,
-    avatar_link varchar(256),
-    bio varchar(512),
-    sex varchar(1),
-    name varchar(16),
-    rating real default 0.0
+    id INT8 PRIMARY KEY,
+    username VARCHAR(16) NOT NULL,
+    password_hash VARCHAR(128),
+    bio VARCHAR(512),
+    sex VARCHAR(1),
+    name VARCHAR(16),
+    rating REAL DEFAULT 0.0
 );
 
-grant select, insert, update on public.users to chathub_service;
-grant all on public.users to developer;
+GRANT SELECT, INSERT, UPDATE ON public.users TO chathub_service;
+GRANT ALL ON public.users TO developer;
 
+CREATE TABLE public.images
+(
+    id INT8 PRIMARY KEY,
+    owner INT8 NOT NULL,
+    link VARCHAR(1024)
+);
+
+GRANT SELECT, INSERT, UPDATE ON public.images TO chathub_service;
+GRANT ALL ON public.images TO developer;
 
 -- migrate:down
-drop table if exists public.users;
+DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.images;
