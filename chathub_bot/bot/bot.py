@@ -16,7 +16,6 @@ from bot import (
     MESSAGE_BROKER_ROUTING_KEY, MESSAGE_BROKER_USERNAME, MESSAGE_BROKER_PASSWORD,
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
 )
-from bot.dev_router import dev_router
 from bot.scenes import scenes_router, RegistrationScene
 from bot.scenes.dating import DatingScene
 from bot.scenes.profile_editing import ProfileEditingScene
@@ -24,16 +23,32 @@ from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 
 
+class CustomBot(Bot):
+    # to be able to use these connectors while handling events
+    pg = None
+    rmq = None
+
+    def __init__(
+        self,
+        token: str,
+        default: DefaultBotProperties,
+    ):
+        super().__init__(
+            token=token,
+            default=default
+        )
+
+
 class DatingBot:
     def __init__(self, tg_token: str, debug: bool = False):
-        self._bot = Bot(
+        self._bot = CustomBot(
             token=tg_token,
             default=DefaultBotProperties(
                 parse_mode=ParseMode.HTML,
             )
         )
 
-        self._pg = AsyncPgConnector(
+        self._bot.pg = AsyncPgConnector(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
             db=POSTGRES_DB,
@@ -41,7 +56,7 @@ class DatingBot:
             password=POSTGRES_PASSWORD,
         )
 
-        self._rmq = RabbitMQConnector(
+        self._bot.rmq = RabbitMQConnector(
             host=MESSAGE_BROKER_HOST,
             port=MESSAGE_BROKER_PORT,
             virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
@@ -62,10 +77,23 @@ class DatingBot:
             fsm_strategy=FSMStrategy.USER_IN_CHAT,  # choose a correct strategy
         )
 
+        self._register_middlewares()
+        self._setup_routing()
+
+        LOGGER.setLevel(logging.DEBUG if debug else logging.INFO)
+        self._bot.rmq.set_log_level(logging.DEBUG if debug else logging.INFO)
+
+    def _setup_routing(self):
         # include order makes sense!
         self._dp.include_router(scenes_router)
-        self._dp.include_router(dev_router)
+        # self._dp.include_router(dev_router)
+        sr = SceneRegistry(self._dp)
+        sr.add(RegistrationScene)
+        sr.add(ProfileEditingScene)
+        sr.add(DatingScene)
 
+    def _register_middlewares(self):
+        # applying order makes sense!
         self._dp.message.middleware(SimpleI18nMiddleware(
             i18n=I18n(
                 path="bot/locales",
@@ -73,14 +101,6 @@ class DatingBot:
                 domain="bot"
             ),
         ))
-
-        sr = SceneRegistry(self._dp)
-        sr.add(RegistrationScene)
-        sr.add(ProfileEditingScene)
-        sr.add(DatingScene)
-
-        LOGGER.setLevel(logging.DEBUG if debug else logging.INFO)
-        self._rmq.set_log_level(logging.DEBUG if debug else logging.INFO)
 
     def process_rmq_message(self, *args, **kwargs):
         # this method should be synchronous
@@ -90,11 +110,12 @@ class DatingBot:
         LOGGER.debug('Starting long polling...')
         try:
             loop = asyncio.get_running_loop()
-            self._rmq.run(custom_loop=loop)
+            self._bot.rmq.run(custom_loop=loop)
+            await self._bot.pg.connect()
             await self._dp.start_polling(self._bot)
         except KeyboardInterrupt:
             LOGGER.info('Shutting down...')
-            self._rmq.disconnect()
+            self._bot.rmq.disconnect()
 
     async def start_webhook(self) -> None:
         ...
