@@ -34,7 +34,7 @@ class AsyncPgConnector:
             password=self._password,
             timeout=10
         )
-        LOGGER.info(f'Connected to {self._host}:{self._port}/{self._db}')
+        LOGGER.info(f'PG connected to {self._host}:{self._port}/{self._db}')
 
     async def get_user(self, user_id: int) -> Optional[Record]:
         """
