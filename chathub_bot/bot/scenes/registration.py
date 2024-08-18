@@ -1,3 +1,4 @@
+from datetime import datetime
 from xml.sax import parse
 
 from aiogram import F
@@ -19,8 +20,8 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
     - providing name
     - providing sex
     - providing birthday
-    - providing photo
     - providing city
+    - providing photo
     Current step is stored in context: state['step'].
     """
 
@@ -72,7 +73,56 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
         pg_connector = kwargs['bot'].pg
-        pg_connector.update_user(name=message.text, user_id=message.from_user.id)
+
+        if step_name == 'name':
+            await pg_connector.update_user(name=message.text, user_id=message.from_user.id)
+            await message.answer(
+                _('invite to enter sex'),
+                parse_mode=ParseMode.HTML,
+            )
+            await state.update_data(step='sex')
+
+        elif step_name == 'sex':
+            sex = message.text.upper()
+            if sex not in ['M', 'F']:
+                await message.answer(
+                    _('wrong sex'),
+                    parse_mode=ParseMode.HTML,
+                )
+            else:
+                await pg_connector.update_user(sex=message.text, user_id=message.from_user.id)
+                await message.answer(
+                    _('invite to enter birthday'),
+                )
+                await state.update_data(step='birthday')
+
+        elif step_name == 'birthday':
+            try:
+                input_value = message.text
+                birthday = datetime.strptime(input_value, '%Y-%m-%d').date()
+                await pg_connector.update_user(birthday=birthday, user_id=message.from_user.id)
+                await message.answer(
+                    _('invite to send city'),
+                    parse_mode=ParseMode.HTML,
+                )
+                await state.update_data(step='city')
+            except ValueError:
+                await message.answer(
+                    _('wrong date format'),
+                    parse_mode=ParseMode.HTML,
+                )
+
+        elif step_name == 'city':
+            await pg_connector.update_user(city=message.text, user_id=message.from_user.id)
+            await message.answer(
+                _('invite to send photo'),
+                parse_mode=ParseMode.HTML,
+            )
+            await state.update_data(step='photo')
+
+        elif step_name == 'photo':
+            # photo is processed in on_photo method
+            pass
 
     @on.message(F.photo)
     async def on_photo(self, message: Message, state: FSMContext):
