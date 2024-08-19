@@ -14,11 +14,14 @@ from bot import (
     LOGGER, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT,
     MESSAGE_BROKER_VIRTUAL_HOST, MESSAGE_BROKER_EXCHANGE, MESSAGE_BROKER_QUEUE,
     MESSAGE_BROKER_ROUTING_KEY, MESSAGE_BROKER_USERNAME, MESSAGE_BROKER_PASSWORD,
-    POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+    POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
+    AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET
 )
 from bot.scenes import scenes_router, RegistrationScene
 from bot.scenes.dating import DatingScene
 from bot.scenes.profile_editing import ProfileEditingScene
+from bot.tmp_files_manager import TempFileManager
+from chathub_connectors.aws_connectors import S3Client
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 
@@ -27,6 +30,8 @@ class CustomBot(Bot):
     # to be able to use these connectors while handling events
     pg = None
     rmq = None
+    s3 = None
+    tfm = None
 
     def __init__(
         self,
@@ -69,6 +74,14 @@ class DatingBot:
             caller_service='tg-bot',
             loglevel=logging.INFO,
         )
+
+        self._bot.s3 = S3Client(
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            bucket_name=AWS_BUCKET
+        )
+
+        self._bot.tfm = TempFileManager()
 
         self._dp = Dispatcher(
             # needed for fast user responses
