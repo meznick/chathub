@@ -3,7 +3,10 @@ from typing import Optional
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
 
-from chathub_connectors import LOGGER
+from chathub_connectors import setup_logger
+
+LOGGER = setup_logger(__name__)
+LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
 
 
 class S3Client:
@@ -30,6 +33,10 @@ class S3Client:
             region_name=region_name
         )
         self.bucket_name = bucket_name
+        LOGGER.info(
+            f'S3 client in region {region_name} initialized '
+            f'and connected to bucket {bucket_name}'
+        )
 
     def upload_file(self, local_file_path: str, s3_file_path: str):
         try:

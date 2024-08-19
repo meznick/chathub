@@ -5,7 +5,10 @@ from typing import Optional, Callable
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
 
-from chathub_connectors import LOGGER
+from chathub_connectors import setup_logger
+
+LOGGER = setup_logger(__name__)
+LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
 
 
 class ConnectionFailedException(Exception):
