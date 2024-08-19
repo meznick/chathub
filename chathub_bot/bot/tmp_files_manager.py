@@ -18,7 +18,7 @@ class TempFileManager:
     def __init__(self, root: Optional[str] = '/tmp/'):
         self.root = root
 
-    def create_temp_file(self, suffix=".txt") -> str:
+    def create_temp_file(self, suffix: Optional[str]) -> str:
         fd, path = tempfile.mkstemp(suffix=suffix, dir=self.root)
         os.close(fd)
         self.files.add(path)
@@ -31,7 +31,7 @@ class TempFileManager:
         else:
             raise FileNotFoundError(f"File {path} does not exist or already deleted.")
 
-    def delete_temp_file(self, path):
+    def delete_temp_file(self, path: str):
         if path in self.files:
             os.remove(path)
             self.files.remove(path)
