@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-18 21:13+0300\n"
+"POT-Creation-Date: 2024-08-19 20:34+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -15,19 +15,58 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:42
+#: bot/scenes/registration.py:44
 msgid "welcome message {name}"
 msgstr ""
 "Добро пожаловать в Speed Dating Bot, {name}! 💕Мы рады видеть вас здесь! "
 "Чтобы начать, пожалуйста, введите ваше имя, чтобы мы могли "
-"зарегистрировать вас на мероприятие.С нетерпением ждем возможности помочь"
-" вам найти вашу идеальную пару!"
+"зарегистрировать вас на мероприятие. С нетерпением ждем возможности помочь "
+"вам найти вашу идеальную пару!"
 
-#: bot/scenes/registration.py:46
+#: bot/scenes/registration.py:48
 msgid "invite to enter name"
-msgstr ""
+msgstr "Пожалуйста, введите ваше имя."
 
-#: bot/scenes/registration.py:62
+#: bot/scenes/registration.py:64
 msgid "user already exists"
-msgstr ""
+msgstr "Пользователь с такими данными уже существует."
 
+#: bot/scenes/registration.py:81
+msgid "invite to enter sex"
+msgstr "Пожалуйста, укажите ваш пол (м или ж)."
+
+#: bot/scenes/registration.py:90
+msgid "wrong sex"
+msgstr "Неправильный выбор пола. Пожалуйста, выберите 'Мужской' или 'Женский'."
+
+#: bot/scenes/registration.py:96
+msgid "invite to enter birthday"
+msgstr "Пожалуйста, введите вашу дату рождения (ГГГГ-ММ-ВВ)."
+
+#: bot/scenes/registration.py:106
+msgid "invite to send city"
+msgstr "Пожалуйста, укажите ваш город."
+
+#: bot/scenes/registration.py:112
+msgid "wrong date format"
+msgstr "Неправильный формат даты. Используйте ГГГГ-ММ-ВВ."
+
+#: bot/scenes/registration.py:119
+msgid "invite to send photo"
+msgstr "Пожалуйста, загрузите вашу фотографию."
+
+#: bot/scenes/registration.py:158
+msgid "registration complete"
+msgstr "Регистрация завершена."
+
+#: bot/scenes/registration.py:178
+msgid "your profile {name} {sex} {age} {city}"
+msgstr "Ваш профиль: Имя: {name}, Пол: {sex}, Возраст: {age}, Город: {city}."
+
+#: bot/scenes/registration.py:180
+msgid "sex_male"
+msgstr "Мужской"
+
+#: bot/scenes/registration.py:180
+msgid "sex_female"
+msgstr "Женский"

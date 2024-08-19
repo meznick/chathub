@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-18 21:13+0300\n"
+"POT-Creation-Date: 2024-08-19 20:34+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,18 +14,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:42
+#: bot/scenes/registration.py:44
 msgid "welcome message {name}"
 msgstr ""
-"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
-" get started, please enter your name so we can register you for the "
-"event.Looking forward to helping you find your perfect match!"
+"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To "
+"get started, please enter your name so we can register you for the "
+"event. Looking forward to helping you find your perfect match!"
 
-#: bot/scenes/registration.py:46
+#: bot/scenes/registration.py:48
 msgid "invite to enter name"
-msgstr ""
+msgstr "Please enter your name."
 
-#: bot/scenes/registration.py:62
+#: bot/scenes/registration.py:64
 msgid "user already exists"
-msgstr ""
+msgstr "A user with this information already exists."
 
+#: bot/scenes/registration.py:81
+msgid "invite to enter sex"
+msgstr "Please enter your gender (m or f)."
+
+#: bot/scenes/registration.py:90
+msgid "wrong sex"
+msgstr "Invalid gender selection. Please choose 'Male' or 'Female'."
+
+#: bot/scenes/registration.py:96
+msgid "invite to enter birthday"
+msgstr "Please enter your birthdate (YYYY-MM-DD)."
+
+#: bot/scenes/registration.py:106
+msgid "invite to send city"
+msgstr "Please enter your city."
+
+#: bot/scenes/registration.py:112
+msgid "wrong date format"
+msgstr "Invalid date format. Please use YYYY-MM-DD."
+
+#: bot/scenes/registration.py:119
+msgid "invite to send photo"
+msgstr "Please upload your photo."
+
+#: bot/scenes/registration.py:158
+msgid "registration complete"
+msgstr "Registration complete."
+
+#: bot/scenes/registration.py:178
+msgid "your profile {name} {sex} {age} {city}"
+msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
+
+#: bot/scenes/registration.py:180
+msgid "sex_male"
+msgstr "Male"
+
+#: bot/scenes/registration.py:180
+msgid "sex_female"
+msgstr "Female"
