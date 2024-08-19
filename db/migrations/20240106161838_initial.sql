@@ -17,7 +17,7 @@ GRANT ALL ON public.users TO developer;
 
 CREATE TABLE public.images
 (
-    id INT8 PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     owner INT8 NOT NULL,
     s3_bucket varchar(64) NOT NULL,
     s3_path VARCHAR(1024) NOT NULL,
@@ -27,7 +27,8 @@ CREATE TABLE public.images
 
 GRANT SELECT, INSERT, UPDATE ON public.images TO chathub_service;
 GRANT ALL ON public.images TO developer;
+GRANT USAGE, UPDATE ON SEQUENCE images_id_seq TO chathub_service, developer;
 
 -- migrate:down
 DROP TABLE IF EXISTS public.users;
-DROP TABLE IF EXISTS public.images;
+DROP TABLE IF EXISTS public.images CASCADE;
