@@ -22,7 +22,7 @@ CREATE TABLE public.images
     s3_bucket varchar(64) NOT NULL,
     s3_prefix VARCHAR(1024) NOT NULL,
     url varchar(1024),
-    upload_time TIMESTAMP WITHOUT TIME ZONE NOT NULL
+    upload_dttm TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 GRANT SELECT, INSERT, UPDATE ON public.images TO chathub_service;
