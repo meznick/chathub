@@ -20,7 +20,7 @@ CREATE TABLE public.images
     id INT8 PRIMARY KEY,
     owner INT8 NOT NULL,
     s3_bucket varchar(64) NOT NULL,
-    s3_prefix VARCHAR(1024) NOT NULL,
+    s3_path VARCHAR(1024) NOT NULL,
     url varchar(1024),
     upload_dttm TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
