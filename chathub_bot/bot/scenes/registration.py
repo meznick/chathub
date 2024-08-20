@@ -62,6 +62,8 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
                 _('user already exists'),
                 parse_mode=ParseMode.HTML,
             )
+            await self.wizard.exit()
+
 
     @on.message(F.text)
     async def on_message(self, message: Message, state: FSMContext, **kwargs):
@@ -139,11 +141,13 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         :return: None
 
         """
+        data = await state.get_data()
+        step_name = data.get('step', '')
         pg, __, s3, fm = self.get_connectors(kwargs)
 
-        user, images = await self._get_user_profile_data(pg, message)
-
-        await self._send_user_profile(fm, images, message, s3, user)
+        if step_name != '':
+            user, images = await self._get_user_profile_data(pg, message)
+            await self._send_user_profile(fm, images, message, s3, user)
 
     @staticmethod
     async def _start_registration(message, pg, state, step_name):

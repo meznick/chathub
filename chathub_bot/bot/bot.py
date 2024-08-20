@@ -11,11 +11,11 @@ from aiogram.fsm.strategy import FSMStrategy
 from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 
 from bot import (
-    LOGGER, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT,
+    MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT,
     MESSAGE_BROKER_VIRTUAL_HOST, MESSAGE_BROKER_EXCHANGE, MESSAGE_BROKER_QUEUE,
     MESSAGE_BROKER_ROUTING_KEY, MESSAGE_BROKER_USERNAME, MESSAGE_BROKER_PASSWORD,
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
-    AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET
+    AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET, setup_logger
 )
 from bot.scenes import scenes_router, RegistrationScene
 from bot.scenes.dating import DatingScene
@@ -24,6 +24,8 @@ from bot.tmp_files_manager import TempFileManager
 from chathub_connectors.aws_connectors import S3Client
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
+
+LOGGER = setup_logger(__name__)
 
 
 class CustomBot(Bot):
