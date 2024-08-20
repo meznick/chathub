@@ -17,9 +17,8 @@ from bot import (
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
     AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET, setup_logger
 )
-from bot.scenes import scenes_router, RegistrationScene
+from bot.scenes import scenes_router, RegistrationScene, ProfileEditingScene
 from bot.scenes.dating import DatingScene
-from bot.scenes.profile_editing import ProfileEditingScene
 from bot.tmp_files_manager import TempFileManager
 from chathub_connectors.aws_connectors import S3Client
 from chathub_connectors.postgres_connector import AsyncPgConnector
