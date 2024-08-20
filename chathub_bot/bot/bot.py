@@ -17,6 +17,7 @@ from bot import (
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
     AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET, setup_logger
 )
+from bot.dev_router import dev_router
 from bot.scenes import scenes_router, RegistrationScene, ProfileEditingScene
 from bot.scenes.dating import DatingScene
 from bot.tmp_files_manager import TempFileManager
@@ -33,6 +34,10 @@ class CustomBot(Bot):
     rmq = None
     s3 = None
     tfm = None
+
+    # stats
+    sent_messages = 0
+    received_messages = 0
 
     def __init__(
         self,
@@ -100,7 +105,7 @@ class DatingBot:
     def _setup_routing(self):
         # include order makes sense!
         self._dp.include_router(scenes_router)
-        # self._dp.include_router(dev_router)
+        self._dp.include_router(dev_router)
         sr = SceneRegistry(self._dp)
         sr.add(RegistrationScene)
         sr.add(ProfileEditingScene)
