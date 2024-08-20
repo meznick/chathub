@@ -298,3 +298,66 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         # clear temp files
         for tmp_file in tmp_files:
             fm.delete_temp_file(tmp_file)
+
+
+class ProfileEditingScene(RegistrationScene, state='profile_editing'):
+    @on.message.enter()
+    async def on_enter(self, message: Message, state: FSMContext, **kwargs):
+        """
+        This method is triggered when the user enters the registration scene.
+
+        If the user does not exist, it starts the registration process by calling
+        the `_start_registration` method. If the user already exists, it sends
+        a message to the user indicating that they can edit their profile.
+
+        Note: This method requires a connection to a PostgreSQL database, which
+        is obtained from the `get_connectors` method of a parent class.
+
+        :param message: The message object received from the user.
+        :param state: The FSMContext object for storing and retrieving conversation state.
+        :param kwargs: Additional keyword arguments.
+        """
+        data = await state.get_data()
+        step_name = data.get('step', '')
+        LOGGER.debug(
+            f'Profile editing Scene: '
+            f'{message.from_user.id}[{step_name}]: {message.text}'
+        )
+
+        pg, *__ = self.get_connectors(kwargs)
+
+        user = await pg.get_user(message.from_user.id)
+        if user:
+            # if a user doesn't exist -- starting a registration process
+            await self._start_editing(message, state, step_name)
+        else:
+            # this should not be the case, because normal user should not
+            # enter editing mode before registration
+            LOGGER.error(
+                'Profile Editing Scene: '
+                f'{message.from_user.id} wants to edit profile, '
+                f'but he is not registered'
+            )
+            await message.answer(
+                _('user does not exist'),
+                parse_mode=ParseMode.HTML,
+            )
+            await self.wizard.exit()
+
+    @staticmethod
+    async def _start_editing(message, state, step_name):
+        if step_name == '':
+            await message.answer(
+                _('starting editing message {name}').format(name=message.from_user.full_name),
+                parse_mode=ParseMode.HTML,
+            )
+            await message.answer(
+                _('invite to enter name'),
+                parse_mode=ParseMode.HTML,
+            )
+            await state.update_data(step='name')
+        else:
+            await message.answer(
+                _(f'invite to send {step_name}'),
+                parse_mode=ParseMode.HTML,
+            )
