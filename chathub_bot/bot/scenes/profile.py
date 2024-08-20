@@ -268,7 +268,8 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
                 parse_mode=ParseMode.HTML,
             )
             return
-        images = await pg.get_images_by_owner(message.from_user.id)
+        # for now, showing only the latest image
+        images = await pg.get_latest_image_by_owner(message.from_user.id)
 
         return user, images
 
@@ -301,6 +302,12 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
 
 
 class ProfileEditingScene(RegistrationScene, state='profile_editing'):
+    """
+    Scene for profile editing.
+    Editing steps are all the same as in registration scene.
+    Current step is stored in context: state['step'].
+    """
+
     @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext, **kwargs):
         """
