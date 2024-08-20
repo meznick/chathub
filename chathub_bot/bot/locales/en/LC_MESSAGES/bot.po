@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-20 19:13+0300\n"
+"POT-Creation-Date: 2024-08-20 20:17+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,64 +14,72 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:62
+#: bot/scenes/profile.py:62
 msgid "user already exists"
-msgstr ""
-"A user with this information already exists. You can update it with "
-"\\edit."
+msgstr "A user with this information already exists. You can update it with /edit."
 
-#: bot/scenes/registration.py:152
+#: bot/scenes/profile.py:156
 msgid "welcome message {name}"
 msgstr ""
 "Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
 " get started, please enter your name so we can register you for the "
 "event. Looking forward to helping you find your perfect match!"
 
-#: bot/scenes/registration.py:156
+#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
 msgid "invite to enter name"
 msgstr "Please enter your name."
 
-#: bot/scenes/registration.py:174
+#: bot/scenes/profile.py:178
 msgid "invite to enter sex"
 msgstr "Please enter your gender (m or f)."
 
-#: bot/scenes/registration.py:184
+#: bot/scenes/profile.py:188
 msgid "wrong sex"
 msgstr "Invalid gender selection. Please choose 'Male' or 'Female'."
 
-#: bot/scenes/registration.py:196
+#: bot/scenes/profile.py:200
 msgid "invite to enter birthday"
 msgstr "Please enter your birthdate (YYYY-MM-DD)."
 
-#: bot/scenes/registration.py:204
+#: bot/scenes/profile.py:208
 msgid "invite to send photo"
 msgstr "Please upload your photo."
 
-#: bot/scenes/registration.py:216
+#: bot/scenes/profile.py:220
 msgid "invite to send city"
 msgstr "Please enter your city."
 
-#: bot/scenes/registration.py:222
+#: bot/scenes/profile.py:226
 msgid "wrong date format"
 msgstr "Invalid date format. Please use YYYY-MM-DD."
 
-#: bot/scenes/registration.py:250
+#: bot/scenes/profile.py:254
 msgid "registration complete"
 msgstr "Registration complete."
 
-#: bot/scenes/registration.py:263
+#: bot/scenes/profile.py:267
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/registration.py:274
+#: bot/scenes/profile.py:278
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
 
-#: bot/scenes/registration.py:276
+#: bot/scenes/profile.py:280
 msgid "sex_male"
 msgstr "Male"
 
-#: bot/scenes/registration.py:276
+#: bot/scenes/profile.py:280
 msgid "sex_female"
 msgstr "Female"
+
+#: bot/scenes/profile.py:342
+#, fuzzy
+msgid "user does not exist"
+msgstr "A user with this information already exists. You can update it with /edit."
+
+#: bot/scenes/profile.py:351
+#, fuzzy
+msgid "starting editing message {name}"
+msgstr "Starting to edit your profile, {name}!"
 
