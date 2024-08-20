@@ -4,13 +4,19 @@ import os
 __version__ = '0.1.0'
 
 
-def setup_logger():
-    logger = logging.getLogger(__name__)
+def setup_logger(name):
+    logger = logging.getLogger(name)
+
     log_format = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
     formatter = logging.Formatter(log_format)
+
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
+
+    debug = os.getenv('DEBUG', 'false')
+
+    logger.setLevel(logging.DEBUG if debug.lower() == 'true' else logging.INFO)
     return logger
 
 
@@ -38,4 +44,4 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
 AWS_BUCKET = os.getenv('AWS_BUCKET', '')
 
-LOGGER = setup_logger()
+LOGGER = setup_logger(__name__)
