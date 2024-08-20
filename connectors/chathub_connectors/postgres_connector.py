@@ -221,12 +221,16 @@ class AsyncPgConnector:
         )
         LOGGER.debug(f'New image for {owner_id} was created in postgres')
 
+    async def get_latest_image_by_owner(self, owner_id: int) -> Optional[Record]:
+        images = await self.get_images_by_owner(owner_id)
+        return images[:-1] if images else None
+
     async def get_images_by_owner(self, owner_id: int) -> Optional[list[Record]]:
         """
         :param owner_id: ID of the owner to fetch images for.
         :return: A list of images belonging to the specified owner.
         """
-        query = 'SELECT * FROM images WHERE owner = $1;'
+        query = 'SELECT * FROM images WHERE owner = $1 ORDER BY upload_dttm DESC;'
         data = await self.client.fetch(query, owner_id)
         LOGGER.debug(f'Found {len(data)} images for owner {owner_id} in postgres')
         return data
