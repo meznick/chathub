@@ -27,7 +27,7 @@ msgstr "Please enter your name."
 
 #: bot/scenes/registration.py:64
 msgid "user already exists"
-msgstr "A user with this information already exists."
+msgstr "A user with this information already exists. You can update it with \edit."
 
 #: bot/scenes/registration.py:81
 msgid "invite to enter sex"

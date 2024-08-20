@@ -29,7 +29,7 @@ msgstr "Пожалуйста, введите ваше имя."
 
 #: bot/scenes/registration.py:64
 msgid "user already exists"
-msgstr "Пользователь с такими данными уже существует."
+msgstr "Пользователь с такими данными уже существует. Можно обновить его при помощи \edit."
 
 #: bot/scenes/registration.py:81
 msgid "invite to enter sex"
