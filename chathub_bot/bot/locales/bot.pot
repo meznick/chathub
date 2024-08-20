@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-08-19 20:34+0300\n"
+"POT-Creation-Date: 2024-08-20 19:13+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,55 +18,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:44
-msgid "welcome message {name}"
-msgstr ""
-
-#: bot/scenes/registration.py:48
-msgid "invite to enter name"
-msgstr ""
-
-#: bot/scenes/registration.py:64
+#: bot/scenes/registration.py:62
 msgid "user already exists"
 msgstr ""
 
-#: bot/scenes/registration.py:81
+#: bot/scenes/registration.py:152
+msgid "welcome message {name}"
+msgstr ""
+
+#: bot/scenes/registration.py:156
+msgid "invite to enter name"
+msgstr ""
+
+#: bot/scenes/registration.py:174
 msgid "invite to enter sex"
 msgstr ""
 
-#: bot/scenes/registration.py:90
+#: bot/scenes/registration.py:184
 msgid "wrong sex"
 msgstr ""
 
-#: bot/scenes/registration.py:96
+#: bot/scenes/registration.py:196
 msgid "invite to enter birthday"
 msgstr ""
 
-#: bot/scenes/registration.py:106
-msgid "invite to send city"
-msgstr ""
-
-#: bot/scenes/registration.py:112
-msgid "wrong date format"
-msgstr ""
-
-#: bot/scenes/registration.py:119
+#: bot/scenes/registration.py:204
 msgid "invite to send photo"
 msgstr ""
 
-#: bot/scenes/registration.py:158
+#: bot/scenes/registration.py:216
+msgid "invite to send city"
+msgstr ""
+
+#: bot/scenes/registration.py:222
+msgid "wrong date format"
+msgstr ""
+
+#: bot/scenes/registration.py:250
 msgid "registration complete"
 msgstr ""
 
-#: bot/scenes/registration.py:178
+#: bot/scenes/registration.py:263
+msgid "internal error"
+msgstr ""
+
+#: bot/scenes/registration.py:274
 msgid "your profile {name} {sex} {age} {city}"
 msgstr ""
 
-#: bot/scenes/registration.py:180
+#: bot/scenes/registration.py:276
 msgid "sex_male"
 msgstr ""
 
-#: bot/scenes/registration.py:180
+#: bot/scenes/registration.py:276
 msgid "sex_female"
 msgstr ""
 

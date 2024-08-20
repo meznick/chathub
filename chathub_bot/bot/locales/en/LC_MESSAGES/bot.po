@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-19 20:34+0300\n"
+"POT-Creation-Date: 2024-08-20 19:13+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,57 +14,64 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/registration.py:44
+#: bot/scenes/registration.py:62
+msgid "user already exists"
+msgstr ""
+"A user with this information already exists. You can update it with "
+"\\edit."
+
+#: bot/scenes/registration.py:152
 msgid "welcome message {name}"
 msgstr ""
-"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To "
-"get started, please enter your name so we can register you for the "
+"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
+" get started, please enter your name so we can register you for the "
 "event. Looking forward to helping you find your perfect match!"
 
-#: bot/scenes/registration.py:48
+#: bot/scenes/registration.py:156
 msgid "invite to enter name"
 msgstr "Please enter your name."
 
-#: bot/scenes/registration.py:64
-msgid "user already exists"
-msgstr "A user with this information already exists. You can update it with \edit."
-
-#: bot/scenes/registration.py:81
+#: bot/scenes/registration.py:174
 msgid "invite to enter sex"
 msgstr "Please enter your gender (m or f)."
 
-#: bot/scenes/registration.py:90
+#: bot/scenes/registration.py:184
 msgid "wrong sex"
 msgstr "Invalid gender selection. Please choose 'Male' or 'Female'."
 
-#: bot/scenes/registration.py:96
+#: bot/scenes/registration.py:196
 msgid "invite to enter birthday"
 msgstr "Please enter your birthdate (YYYY-MM-DD)."
 
-#: bot/scenes/registration.py:106
-msgid "invite to send city"
-msgstr "Please enter your city."
-
-#: bot/scenes/registration.py:112
-msgid "wrong date format"
-msgstr "Invalid date format. Please use YYYY-MM-DD."
-
-#: bot/scenes/registration.py:119
+#: bot/scenes/registration.py:204
 msgid "invite to send photo"
 msgstr "Please upload your photo."
 
-#: bot/scenes/registration.py:158
+#: bot/scenes/registration.py:216
+msgid "invite to send city"
+msgstr "Please enter your city."
+
+#: bot/scenes/registration.py:222
+msgid "wrong date format"
+msgstr "Invalid date format. Please use YYYY-MM-DD."
+
+#: bot/scenes/registration.py:250
 msgid "registration complete"
 msgstr "Registration complete."
 
-#: bot/scenes/registration.py:178
+#: bot/scenes/registration.py:263
+msgid "internal error"
+msgstr ""
+
+#: bot/scenes/registration.py:274
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
 
-#: bot/scenes/registration.py:180
+#: bot/scenes/registration.py:276
 msgid "sex_male"
 msgstr "Male"
 
-#: bot/scenes/registration.py:180
+#: bot/scenes/registration.py:276
 msgid "sex_female"
 msgstr "Female"
+
