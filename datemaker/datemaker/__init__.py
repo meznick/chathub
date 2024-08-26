@@ -22,14 +22,14 @@ def setup_logger(name):
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
 MESSAGE_BROKER_PORT = int(os.getenv('RABBITMQ_PORT', '5672'))
 MESSAGE_BROKER_VIRTUAL_HOST = os.getenv('RABBITMQ_VIRTUAL_HOST', '/')
-MESSAGE_BROKER_EXCHANGE = os.getenv('DATEMAKER_RABBITMQ_EXCHANGE', 'default_exchange')
+MESSAGE_BROKER_EXCHANGE = os.getenv('RABBITMQ_EXCHANGE', 'default_exchange')
 MESSAGE_BROKER_QUEUE = os.getenv('DATEMAKER_RABBITMQ_QUEUE', 'default_queue')
 MESSAGE_BROKER_ROUTING_KEY = os.getenv(
     'DATEMAKER_RABBITMQ_ROUTING_KEY',
     'default_routing_key'
 )
-MESSAGE_BROKER_USERNAME = os.getenv('RABBITMQ_USERNAME', 'guest')
-MESSAGE_BROKER_PASSWORD = os.getenv('RABBITMQ_PASSWORD', 'guest')
+MESSAGE_BROKER_USERNAME = os.getenv('DATEMAKER_RABBITMQ_USERNAME', 'guest')
+MESSAGE_BROKER_PASSWORD = os.getenv('DATEMAKER_RABBITMQ_PASSWORD', 'guest')
 # all parameters from GoogleMeetApiController
 
 # all parameters for AsyncPgConnector
