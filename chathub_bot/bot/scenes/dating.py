@@ -3,6 +3,7 @@ from typing import Any
 
 from aiogram import Router
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
@@ -15,6 +16,7 @@ from magic_filter import F
 
 from bot import setup_logger
 from bot.scenes.base import BaseSpeedDatingScene
+from server import logger
 
 LOGGER = setup_logger(__name__)
 
@@ -75,10 +77,13 @@ async def test_set_callback_handler(query: CallbackQuery, callback_data: TestCal
     # Bad Request: message is not modified: specified new message content
     # and reply markup are exactly the same as a current content and reply
     # markup of the message
-    await query.bot.edit_message_text(
-        chat_id=query.message.chat.id,
-        message_id=query.message.message_id,
-        text=f'You selected {callback_data.value}',
-        parse_mode=ParseMode.HTML,
-        reply_markup=builder.as_markup()
-    )
+    try:
+        await query.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=f'You selected {callback_data.value}',
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup()
+        )
+    except TelegramBadRequest as e:
+        LOGGER.warning(f'Got exception while processing callback: {e}')
