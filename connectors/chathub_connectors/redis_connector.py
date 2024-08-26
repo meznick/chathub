@@ -3,11 +3,10 @@ from typing import Optional
 
 import redis
 
-LOGGER = logging.getLogger(__name__)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-LOGGER.addHandler(stream_handler)
+from chathub_connectors import setup_logger
+
+LOGGER = setup_logger(__name__)
+LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
 
 
 class RedisConnector:
