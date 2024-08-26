@@ -1,13 +1,18 @@
 """
 Class and setting for main class for managing date-making logic.
 """
+import asyncio
 import logging
-from typing import Optional, Callable
 
-from meet_api_controller import GoogleMeetApiController
-from chathub_connectors import RabbitMQConnector
+from chathub_connectors.postgres_connector import AsyncPgConnector
+from chathub_connectors.rabbitmq_connector import RabbitMQConnector
+from datemaker import setup_logger
+from .meet_api_controller import GoogleMeetApiController
+
 # also, we probably will need connector to DB, user management, authentication
 # these things already exist as separate modules in this repo
+
+LOGGER = setup_logger(__name__)
 
 
 class DateMakerService:
@@ -27,8 +32,14 @@ class DateMakerService:
             message_broker_routing_key: str,
             message_broker_username: str,
             message_broker_password: str,
-            message_broker_host: str = 'localhost',
-            message_broker_port: int = 5672,
+            message_broker_host: str,
+            message_broker_port: int,
+            # all parameters for AsyncPgConnector
+            postgres_host: str,
+            postgres_port: int,
+            postgres_db: str,
+            postgres_user: str,
+            postgres_password: str,
             # other
             debug: bool = False,
     ):
@@ -46,8 +57,16 @@ class DateMakerService:
             caller_service='datemaker',
             loglevel=logging.DEBUG if debug else logging.INFO,
         )
+        self.postgres_controller = AsyncPgConnector(
+            host=postgres_host,
+            port=postgres_port,
+            db=postgres_db,
+            username=postgres_user,
+            password=postgres_password,
+        )
+        LOGGER.info('DateMaker service initialized')
 
-    def run(self):
+    async def run(self):
         """
         Method that runs for managing date-making logic.
         Most likely, here you should only schedule regular actions: creating
@@ -56,7 +75,16 @@ class DateMakerService:
         work as well. In a bad scenario you will have to create separate thread
         or make this class asynchronous or something else.
         """
-        ...
+        LOGGER.info('Running DateMakerService...')
+        try:
+            loop = asyncio.get_running_loop()
+            self.message_broker_controller.run(custom_loop=loop)
+            await self.postgres_controller.connect()
+            while True:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            LOGGER.info('Stopping DateMakerService...')
+            self.message_broker_controller.disconnect()
 
     def process_incoming_message(self, channel, method, properties, body):
         """
