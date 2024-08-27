@@ -2,6 +2,7 @@
 Class and setting for main class for managing date-making logic.
 """
 import asyncio
+import json
 import logging
 
 from pika.spec import BasicProperties
@@ -123,7 +124,7 @@ class DateMakerService:
             if not user:
                 raise Exception('No user found')
             if 'events_list' in message:
-                self.list_events(user)
+                self.list_events(user, message_params, loop)
             elif 'event_register' in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
@@ -152,7 +153,7 @@ class DateMakerService:
                 properties=BasicProperties(headers=message_params)
             )
 
-    def list_events(self, user, include_finished: bool = False, limit: int = 10):
+    def list_events(self, user, message_params: dict, loop: asyncio.AbstractEventLoop):
         """
         Method for "listing" events by user request.
         See readme for more info:
@@ -161,12 +162,29 @@ class DateMakerService:
         Method puts a message into queue for bot (or mini-app), containing
         events in a some format readable by recipient.
 
-        :param user: On developer's decision.
-        :param include_finished: Include all events in the result.
-                    It can be potentially useful for debugging.
-        :param limit: Limit the number of events to return.
+        :param user: Database user object.
+        :param message_params: Dictionary of received parameters.
+        :param loop: Loop object for executing asynchronous code.
         """
-        ...
+        task = loop.create_task(
+            self.postgres_controller.get_dating_events()
+        )
+        loop.run_until_complete(task)
+        events = task.result()
+        events_list = [
+            {
+                event.get('id'): {
+                    'start_time': event.get('start_dttm').strftime('%Y-%m-%d %H:%M:%S'),
+                    'users_limit': event.get('users_limit'),
+                }
+            } for event in events
+        ]
+        self.message_broker_controller.publish(
+            json.dumps(events_list),
+            routing_key='tg_bot_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(headers=message_params)
+        )
 
     def register_user_to_event(self, user):
         """
