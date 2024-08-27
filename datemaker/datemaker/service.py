@@ -131,7 +131,7 @@ class DateMakerService:
                     LOGGER.error(
                         f'No event_id got with registration request for user {user}: {message}'
                     )
-                self.register_user_to_event(user)
+                self.register_user_to_event(user, message_params, loop)
             elif 'event_registration_confirmation' in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
@@ -186,7 +186,7 @@ class DateMakerService:
             properties=BasicProperties(headers=message_params)
         )
 
-    def register_user_to_event(self, user):
+    def register_user_to_event(self, user, message_params: dict, loop: asyncio.AbstractEventLoop):
         """
         Method for completing user registration request.
         See readme for more info:
@@ -194,11 +194,44 @@ class DateMakerService:
 
         Method must put a success message into the queue for bot/mini-app.
 
-        :param user: On developer's decision.
+        :param loop: Loop object for executing asynchronous code.
+        :param message_params: Dictionary of received parameters.
+        :param user: Database user object.
         :return:
         """
+        event_id = int(message_params['event_id'])
+        is_registered = False
 
-    def confirm_user_event_registration(self, user):
+        task = loop.create_task(self.postgres_controller.get_event_registrations(event_id))
+        loop.run_until_complete(task)
+
+        registered_users = [
+            user.get('id') for user in task.result()
+        ]
+
+        if user.get('id') not in registered_users:
+            self.postgres_controller.register_for_event(
+                user=user,
+                event_id=event_id
+            )
+            is_registered = True
+
+        result = {
+            'user_registered': is_registered
+        }
+        self.message_broker_controller.publish(
+            json.dumps(result),
+            routing_key='tg_bot_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(headers=message_params)
+        )
+
+    def confirm_user_event_registration(
+            self,
+            user,
+            message_params: dict,
+            loop: asyncio.AbstractEventLoop
+    ):
         """
         Method for confirmation sequence start.
         See readme for more info:
@@ -209,9 +242,36 @@ class DateMakerService:
         After user responds, new message will appear in incoming queue and it
         should be parsed correctly with `process_incoming_message` method.
 
+        :param loop:
+        :param message_params:
         :param user: On developer's decision.
         """
-        ...
+        event_id = int(message_params['event_id'])
+        is_confirmed = False
+
+        task = loop.create_task(self.postgres_controller.get_event_registrations(event_id))
+        loop.run_until_complete(task)
+
+        registered_users = [
+            user.get('id') for user in task.result()
+        ]
+
+        if user.get('id') in registered_users:
+            self.postgres_controller.confirm_registration(
+                user=user,
+                event_id=event_id
+            )
+            is_confirmed = True
+
+        result = {
+            'registration_confirmed': is_confirmed
+        }
+        self.message_broker_controller.publish(
+            json.dumps(result),
+            routing_key='tg_bot_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(headers=message_params)
+        )
 
     def generate_events(self):
         """
