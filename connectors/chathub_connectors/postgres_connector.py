@@ -1,9 +1,10 @@
 import asyncio
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import asyncpg
 from asyncpg import Record
+from oauthlib.uri_validate import query
 
 from chathub_connectors import setup_logger
 
@@ -50,7 +51,7 @@ class AsyncPgConnector:
 
         query = 'SELECT * FROM users WHERE id = $1;'
         data = await self.client.fetchrow(query, user_id)
-        LOGGER.debug(f'User found in postgres: {data}')
+        LOGGER.debug(f'User found: {data}')
         return data
 
     async def add_user(
@@ -97,7 +98,7 @@ class AsyncPgConnector:
         await self.client.execute(
             query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
         )
-        LOGGER.debug(f'User created in postgres: {username} [{user_id}]')
+        LOGGER.debug(f'User created: {username} [{user_id}]')
 
     async def update_user(
         self,
@@ -219,7 +220,7 @@ class AsyncPgConnector:
         await self.client.execute(
             query, owner_id, s3_bucket, s3_path
         )
-        LOGGER.debug(f'New image for {owner_id} was created in postgres')
+        LOGGER.debug(f'New image for {owner_id} was created')
 
     async def get_latest_image_by_owner(self, owner_id: int) -> Optional[Record]:
         images = await self.get_images_by_owner(owner_id)
@@ -232,8 +233,97 @@ class AsyncPgConnector:
         """
         query = 'SELECT * FROM images WHERE owner = $1 ORDER BY upload_dttm DESC;'
         data = await self.client.fetch(query, owner_id)
-        LOGGER.debug(f'Found {len(data)} images for owner {owner_id} in postgres')
+        LOGGER.debug(f'Found {len(data)} images for owner {owner_id}')
         return data
+
+    async def get_dating_events(
+            self,
+            user: Record = None,
+            include_finished: bool = False,
+            limit: int = 10
+    ) -> List[Record]:
+        """
+        List Dating Events
+
+        Retrieve a list of dating events based on the provided parameters.
+
+        :param user: The user for whom the dating events are being listed.
+        :param include_finished: A flag indicating if finished events should be
+                    included in the result. Defaults to False.
+        :param limit: The maximum number of events to retrieve. Defaults to 10.
+        :return: A list of dating events.
+        """
+        filter_finished = 'WHERE start_dttm > NOW()' if not include_finished else ''
+        limit = f'LIMIT {limit}'
+        query = f"""
+            SELECT *
+            FROM public.dating_events
+            {filter_finished}
+            ORDER BY start_dttm ASC
+            {limit}
+            ;
+        """
+        data = await self.client.fetch(query)
+        LOGGER.debug(f'Found {len(data)} dating events')
+        return data
+
+    async def get_event_registrations(
+            self,
+            event_id: int
+    ) -> List[Record]:
+        """
+        List Event Registrations.
+        :param event_id:
+        :return:
+        """
+        query = """
+            SELECT user_id
+            FROM public.dating_registrations
+            WHERE event_id = $1;
+        """
+        data = await self.client.execute(query, event_id)
+        LOGGER.debug(f'Found {len(data)} event registrations')
+        return data
+
+    async def register_for_event(
+            self,
+            user: Record,
+            event_id: int
+    ):
+        """
+        Method for adding new member to event.
+        Remember to check if user already registered!
+
+        :param user:
+        :param event_id:
+        :return:
+        """
+        query = """
+            INSERT INTO public.dating_registrations (user_id, event_id)
+            VALUES ($1, $2);
+        """
+        await self.client.execute(
+            query, user.get('id'), event_id
+        )
+        LOGGER.debug(f'User {user.get("id")} registered for event {event_id}')
+
+    async def confirm_registration(self, user: Record, event_id: int):
+        """
+        Method for registration confirmation.
+
+        :param user:
+        :param event_id:
+        :return:
+        """
+        query = """
+            UPDATE public.dating_registrations
+            SET confirmed_on_dttm = NOW()
+            WHERE user_id = $1 AND event_id = $2;
+        """
+        await self.client.execute(
+            query, user.get('id'), event_id
+        )
+        LOGGER.debug(f'User {user.get("id")} confirmed registration for event {event_id}')
 
     def __del__(self):
         loop = asyncio.new_event_loop()
