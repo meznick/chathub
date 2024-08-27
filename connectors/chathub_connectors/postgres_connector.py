@@ -236,9 +236,10 @@ class AsyncPgConnector:
         return data
 
     def __del__(self):
+        loop = asyncio.new_event_loop()
         if self.client:
             # it looks like it cannot close properly
-            asyncio.new_event_loop().run_until_complete(self.client.close())
+            loop.run_until_complete(self.client.close())
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
 
         LOGGER.debug('PG connector deleted')
