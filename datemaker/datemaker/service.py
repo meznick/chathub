@@ -4,6 +4,8 @@ Class and setting for main class for managing date-making logic.
 import asyncio
 import logging
 
+from pika.spec import BasicProperties
+
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 from datemaker import setup_logger
@@ -102,18 +104,53 @@ class DateMakerService:
         :param properties: message properties
         :param body: message body
         """
-
-        # high-level logic something like this?
-        user = None  # from message get info about user to respond?
-        if 'registration request' in body:
-            # check if user already registered?
-            self.list_events(user)  # this sends available events to user
-        elif 'event selection' in body:
-            self.register_user_to_event(user)
-        elif 'registration confirmation' in body:
-            self.confirm_user_event_registration(user)
-
-        ...
+        LOGGER.debug(
+            f'Got message on channel {channel}: {body}. '
+            f'Method: {method}, properties: {properties}.'
+        )
+        # properties should contain data to return answer to right user:
+        # - chat id (from tg bot)?
+        # user should be in headers as well, because its ID is necessary for processing
+        message_params = properties.headers
+        loop = asyncio.get_running_loop()
+        message = body.decode('utf-8')
+        try:
+            task = loop.create_task(
+                self.postgres_controller.get_user(int(message_params['user_id']))
+            )
+            loop.run_until_complete(task)
+            user = task.result()
+            if not user:
+                raise Exception('No user found')
+            if 'events_list' in message:
+                self.list_events(user)
+            elif 'event_register' in message:
+                event_id = message_params.get('event_id', None)
+                if not event_id:
+                    LOGGER.error(
+                        f'No event_id got with registration request for user {user}: {message}'
+                    )
+                self.register_user_to_event(user)
+            elif 'event_registration_confirmation' in message:
+                event_id = message_params.get('event_id', None)
+                if not event_id:
+                    LOGGER.error(
+                        f'No event_id got with registration confirmation for user {user}: {message}'
+                    )
+                self.confirm_user_event_registration(user)
+        except Exception as e:
+            LOGGER.error(
+                f'Error in processing message "{message}" '
+                f'with params {message_params} '
+                f'from {method.routing_key}. '
+                f'Error: {e}'
+            )
+            self.message_broker_controller.publish(
+                'error in processing message',
+                routing_key='tg_bot_dev',
+                exchange='chathub_direct_main',
+                properties=BasicProperties(headers=message_params)
+            )
 
     def list_events(self, user, include_finished: bool = False, limit: int = 10):
         """
