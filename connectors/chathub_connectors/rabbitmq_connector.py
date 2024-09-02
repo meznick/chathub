@@ -4,6 +4,7 @@ from typing import Optional, Callable
 
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
+from pika.spec import BasicProperties
 
 from chathub_connectors import setup_logger
 
@@ -130,6 +131,7 @@ class RabbitMQConnector:
                 retry_delay=2,
             ),
             on_open_callback=self._on_connection_open,
+            on_close_callback=self._on_connection_closed,
             on_open_error_callback=self._on_connection_open_error,
             custom_ioloop=custom_loop
         )
@@ -145,11 +147,22 @@ class RabbitMQConnector:
                 self._connection.close()
                 self._connection.close()
 
-    def publish(self, message: str, routing_key: str, exchange: str):
+    def publish(
+            self,
+            message: str,
+            routing_key: str,
+            exchange: str,
+            properties: BasicProperties = None
+    ):
         if self._channel.is_open:
-            self._channel.basic_publish(exchange=exchange, routing_key=routing_key, body=message)
+            self._channel.basic_publish(
+                exchange=exchange,
+                routing_key=routing_key,
+                body=message,
+                properties=properties
+            )
             LOGGER.debug(
-                f'Message {message[:10]} (RK {routing_key}) published to exchange {exchange}'
+                f'Message "{message[:10]}..." (RK {routing_key}) published to exchange {exchange}'
             )
         else:
             LOGGER.warning('Cannot publish message because channel is not open')
@@ -157,6 +170,10 @@ class RabbitMQConnector:
     def _on_connection_open(self, _):
         LOGGER.debug('RMQ connection opened')
         self._connection.channel(on_open_callback=self._on_channel_open)
+
+    def _on_connection_closed(self, _, reason):
+        LOGGER.debug(f'RMQ connection closed because of {reason}')
+        self._connection.ioloop.stop()
 
     def _on_channel_open(self, channel):
         LOGGER.debug('RMQ channel opened')
