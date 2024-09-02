@@ -44,7 +44,7 @@ Frontend
 # PG migrations
 ```shell
 sudo pacman -S dbmate
-export DATABASE_URL=postgres://migrations_user:migrations_pass@pg_host:pg_port/chathub_dev?sslmode=disable
+source ~/.env
 # new migration
 dbmate new "migration_name" # do not forget grants!
 # use sqlfluff on created migration before making commit!
