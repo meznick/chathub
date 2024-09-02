@@ -1,0 +1,91 @@
+# Russian translations for SpeedDatingBot.
+msgid ""
+msgstr ""
+"Project-Id-Version: SpeedDatingBot 0.1\n"
+"Report-Msgid-Bugs-To: mezhng@gmail.com\n"
+"POT-Creation-Date: 2024-08-20 20:17+0300\n"
+"PO-Revision-Date: 2024-08-18 15:35+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: bot/scenes/profile.py:62
+msgid "user already exists"
+msgstr ""
+"Пользователь с такими данными уже существует. Можно обновить его при "
+"помощи /edit."
+
+#: bot/scenes/profile.py:156
+msgid "welcome message {name}"
+msgstr ""
+"Добро пожаловать в Speed Dating Bot, {name}! 💕Мы рады видеть вас здесь! "
+"Чтобы начать, пожалуйста, введите ваше имя, чтобы мы могли "
+"зарегистрировать вас на мероприятие. С нетерпением ждем возможности "
+"помочь вам найти вашу идеальную пару!"
+
+#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
+msgid "invite to enter name"
+msgstr "Пожалуйста, введите ваше имя."
+
+#: bot/scenes/profile.py:178
+msgid "invite to enter sex"
+msgstr "Пожалуйста, укажите ваш пол (м или ж)."
+
+#: bot/scenes/profile.py:188
+msgid "wrong sex"
+msgstr "Неправильный выбор пола. Пожалуйста, выберите 'Мужской' или 'Женский'."
+
+#: bot/scenes/profile.py:200
+msgid "invite to enter birthday"
+msgstr "Пожалуйста, введите вашу дату рождения (ГГГГ-ММ-ВВ)."
+
+#: bot/scenes/profile.py:208
+msgid "invite to send photo"
+msgstr "Пожалуйста, загрузите вашу фотографию."
+
+#: bot/scenes/profile.py:220
+msgid "invite to send city"
+msgstr "Пожалуйста, укажите ваш город."
+
+#: bot/scenes/profile.py:226
+msgid "wrong date format"
+msgstr "Неправильный формат даты. Используйте ГГГГ-ММ-ВВ."
+
+#: bot/scenes/profile.py:254
+msgid "registration complete"
+msgstr "Регистрация завершена."
+
+#: bot/scenes/profile.py:267
+msgid "internal error"
+msgstr ""
+
+#: bot/scenes/profile.py:278
+msgid "your profile {name} {sex} {age} {city}"
+msgstr "Ваш профиль: Имя: {name}, Пол: {sex}, Возраст: {age}, Город: {city}."
+
+#: bot/scenes/profile.py:280
+msgid "sex_male"
+msgstr "Мужской"
+
+#: bot/scenes/profile.py:280
+msgid "sex_female"
+msgstr "Женский"
+
+#: bot/scenes/profile.py:342
+#, fuzzy
+msgid "user does not exist"
+msgstr ""
+"Пользователь с такими данными уже существует. Можно обновить его при "
+"помощи /edit."
+
+#: bot/scenes/profile.py:351
+#, fuzzy
+msgid "starting editing message {name}"
+msgstr "Начинаем редактирование твоего профиля, {name}!"
+

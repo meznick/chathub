@@ -1,0 +1,84 @@
+# Translations template for SpeedDatingBot.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the SpeedDatingBot
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: SpeedDatingBot 0.1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-08-20 20:17+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: bot/scenes/profile.py:62
+msgid "user already exists"
+msgstr ""
+
+#: bot/scenes/profile.py:156
+msgid "welcome message {name}"
+msgstr ""
+
+#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
+msgid "invite to enter name"
+msgstr ""
+
+#: bot/scenes/profile.py:178
+msgid "invite to enter sex"
+msgstr ""
+
+#: bot/scenes/profile.py:188
+msgid "wrong sex"
+msgstr ""
+
+#: bot/scenes/profile.py:200
+msgid "invite to enter birthday"
+msgstr ""
+
+#: bot/scenes/profile.py:208
+msgid "invite to send photo"
+msgstr ""
+
+#: bot/scenes/profile.py:220
+msgid "invite to send city"
+msgstr ""
+
+#: bot/scenes/profile.py:226
+msgid "wrong date format"
+msgstr ""
+
+#: bot/scenes/profile.py:254
+msgid "registration complete"
+msgstr ""
+
+#: bot/scenes/profile.py:267
+msgid "internal error"
+msgstr ""
+
+#: bot/scenes/profile.py:278
+msgid "your profile {name} {sex} {age} {city}"
+msgstr ""
+
+#: bot/scenes/profile.py:280
+msgid "sex_male"
+msgstr ""
+
+#: bot/scenes/profile.py:280
+msgid "sex_female"
+msgstr ""
+
+#: bot/scenes/profile.py:342
+msgid "user does not exist"
+msgstr ""
+
+#: bot/scenes/profile.py:351
+msgid "starting editing message {name}"
+msgstr ""
+
