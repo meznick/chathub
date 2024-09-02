@@ -50,7 +50,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
-        pg, *__ = self.get_connectors(kwargs)
+        pg, *__ = self.get_connectors_from_context(kwargs)
 
         user = await pg.get_user(message.from_user.id)
         if not user:
@@ -81,7 +81,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
-        pg, *__ = self.get_connectors(kwargs)
+        pg, *__ = self.get_connectors_from_context(kwargs)
 
         # processing registration steps
         if step_name == 'name':
@@ -108,7 +108,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         data = await state.get_data()
         step_name = data.get('step', '')
 
-        pg, __, s3, fm = self.get_connectors(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != 'photo':
             await message.answer(
@@ -143,7 +143,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         """
         data = await state.get_data()
         step_name = data.get('step', '')
-        pg, __, s3, fm = self.get_connectors(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != '':
             user, images = await self._get_user_profile_data(pg, message)
@@ -331,7 +331,7 @@ class ProfileEditingScene(RegistrationScene, state='profile_editing'):
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
-        pg, *__ = self.get_connectors(kwargs)
+        pg, *__ = self.get_connectors_from_context(kwargs)
 
         user = await pg.get_user(message.from_user.id)
         if user:

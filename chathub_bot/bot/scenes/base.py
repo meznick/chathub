@@ -12,10 +12,12 @@ from typing import Any, List
 
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.scene import Scene
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 
 class BaseSpeedDatingScene(Scene, abc.ABC):
+    connectors_list = ['pg', 'rmq', 's3', 'tfm']
+
     @abc.abstractmethod
     async def on_enter(self, message: Message, state: FSMContext) -> Any:
         ...
@@ -24,7 +26,10 @@ class BaseSpeedDatingScene(Scene, abc.ABC):
     async def on_exit(self, message: Message, state: FSMContext) -> None:
         ...
 
-    @staticmethod
-    def get_connectors(context: dict) -> List[object]:
-        connectors_list = ['pg', 'rmq', 's3', 'tfm']
-        return [getattr(context['bot'], connector) for connector in connectors_list]
+    @classmethod
+    def get_connectors_from_context(cls, context: dict) -> List[object]:
+        return [getattr(context['bot'], connector) for connector in cls.connectors_list]
+
+    @classmethod
+    def get_connectors_from_query(cls, query: CallbackQuery) -> List[object]:
+        return [getattr(query.bot, connector) for connector in cls.connectors_list]
