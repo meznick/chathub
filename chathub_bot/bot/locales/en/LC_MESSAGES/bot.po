@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-09-03 13:16+0300\n"
+"POT-Creation-Date: 2024-09-03 16:17+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,19 +14,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/dating.py:51
+#: bot/scenes/dating.py:61 bot/scenes/dating.py:132
 msgid "dating rules"
 msgstr "⚠️ rules"
 
-#: bot/scenes/dating.py:55
+#: bot/scenes/dating.py:65
 msgid "list events"
 msgstr "🗓 events"
 
-#: bot/scenes/dating.py:59
+#: bot/scenes/dating.py:69
 msgid "cancel event registration"
 msgstr "❌ cancel registration"
 
-#: bot/scenes/dating.py:63
+#: bot/scenes/dating.py:78
 msgid "welcome to dating platform {name}"
 msgstr ""
 "Hello! 👋 Welcome to our dating platform! We're excited to help you "
@@ -40,6 +40,35 @@ msgstr ""
 " plans change.\n"
 "\n"
 "Enjoy your time here, and happy connecting! ❤️"
+
+#: bot/scenes/dating.py:122 bot/scenes/dating.py:183 bot/scenes/dating.py:221
+#: bot/scenes/dating.py:262 bot/scenes/dating.py:294
+msgid "back button"
+msgstr "🔙 back"
+
+#: bot/scenes/dating.py:190
+#, fuzzy
+msgid "here is list of events"
+msgstr "🗓 events"
+
+#: bot/scenes/dating.py:230
+msgid "registering you to the event {event}"
+msgstr "You are about to be registered for the event: {event}! 🎉"
+"If you change your mind, you can always cancel your registration before "
+"the event starts. We look forward to seeing you there!"
+
+#: bot/scenes/dating.py:267
+#, fuzzy
+msgid "cancel registration"
+msgstr "❌ cancel registration"
+
+#: bot/scenes/dating.py:280
+msgid "are you sure you want to cancel registration to event {event}"
+msgstr "Are you sure you want to cancel your registration for this event: {event}?"
+
+#: bot/scenes/dating.py:304
+msgid "your registration will be cancelled"
+msgstr "Your registration will be canceled. ❌"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"

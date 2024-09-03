@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-09-03 13:16+0300\n"
+"POT-Creation-Date: 2024-09-03 16:17+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,20 +18,45 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/dating.py:51
+#: bot/scenes/dating.py:61 bot/scenes/dating.py:132
 msgid "dating rules"
 msgstr ""
 
-#: bot/scenes/dating.py:55
+#: bot/scenes/dating.py:65
 msgid "list events"
 msgstr ""
 
-#: bot/scenes/dating.py:59
+#: bot/scenes/dating.py:69
 msgid "cancel event registration"
 msgstr ""
 
-#: bot/scenes/dating.py:63
+#: bot/scenes/dating.py:78
 msgid "welcome to dating platform {name}"
+msgstr ""
+
+#: bot/scenes/dating.py:122 bot/scenes/dating.py:183 bot/scenes/dating.py:221
+#: bot/scenes/dating.py:262 bot/scenes/dating.py:294
+msgid "back button"
+msgstr ""
+
+#: bot/scenes/dating.py:190
+msgid "here is list of events"
+msgstr ""
+
+#: bot/scenes/dating.py:230
+msgid "registering you to the event {event}"
+msgstr ""
+
+#: bot/scenes/dating.py:267
+msgid "cancel registration"
+msgstr ""
+
+#: bot/scenes/dating.py:280
+msgid "are you sure you want to cancel registration to event {event}"
+msgstr ""
+
+#: bot/scenes/dating.py:304
+msgid "your registration will be cancelled"
 msgstr ""
 
 #: bot/scenes/profile.py:62
