@@ -18,6 +18,13 @@ def setup_logger(name):
     return logger
 
 
+# same as chathub_bot/bot/__init__.py:23
+DATE_MAKER_COMMANDS = {
+    'list_events': 'list_events',
+    'register_user_to_event': 'register_event',
+    'confirm_user_event_registration': 'confirm_registration',
+}
+
 # all parameters from RabbitMQConnector (0.0.3)
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
 MESSAGE_BROKER_PORT = int(os.getenv('RABBITMQ_PORT', '5672'))

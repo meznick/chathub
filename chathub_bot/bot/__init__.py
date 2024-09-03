@@ -20,6 +20,13 @@ def setup_logger(name):
     return logger
 
 
+# same as datemaker/datemaker/__init__.py:22
+DATE_MAKER_COMMANDS = {
+    'list_events': 'list_events',
+    'register_user_to_event': 'register_event',
+    'confirm_user_event_registration': 'confirm_registration',
+}
+
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
 # Read RabbitMQ settings and credentials from environment
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
