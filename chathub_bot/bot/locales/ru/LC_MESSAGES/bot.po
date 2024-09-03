@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-20 20:17+0300\n"
+"POT-Creation-Date: 2024-09-02 20:32+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -14,6 +14,23 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
+
+#: bot/scenes/dating.py:51
+msgid "dating rules"
+msgstr "⚠️ правила"
+
+#: bot/scenes/dating.py:55
+msgid "list events"
+msgstr "🗓 список ивентов"
+
+#: bot/scenes/dating.py:59
+msgid "cancel event registration"
+msgstr "🚫 отменить регистрацию"
+
+#: bot/scenes/dating.py:63
+#, fuzzy
+msgid "dating main menu message {name}"
+msgstr "{name}!"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
@@ -29,7 +46,7 @@ msgstr ""
 "зарегистрировать вас на мероприятие. С нетерпением ждем возможности "
 "помочь вам найти вашу идеальную пару!"
 
-#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
+#: bot/scenes/profile.py:160 bot/scenes/profile.py:362
 msgid "invite to enter name"
 msgstr "Пожалуйста, введите ваше имя."
 
@@ -65,26 +82,26 @@ msgstr "Регистрация завершена."
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:278
+#: bot/scenes/profile.py:279
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Ваш профиль: Имя: {name}, Пол: {sex}, Возраст: {age}, Город: {city}."
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:281
 msgid "sex_male"
 msgstr "Мужской"
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:281
 msgid "sex_female"
 msgstr "Женский"
 
-#: bot/scenes/profile.py:342
+#: bot/scenes/profile.py:349
 #, fuzzy
 msgid "user does not exist"
 msgstr ""
 "Пользователь с такими данными уже существует. Можно обновить его при "
 "помощи /edit."
 
-#: bot/scenes/profile.py:351
+#: bot/scenes/profile.py:358
 #, fuzzy
 msgid "starting editing message {name}"
 msgstr "Начинаем редактирование твоего профиля, {name}!"

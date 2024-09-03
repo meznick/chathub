@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-20 20:17+0300\n"
+"POT-Creation-Date: 2024-09-02 20:32+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -13,6 +13,30 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
+
+#: bot/scenes/dating.py:51
+msgid "dating rules"
+msgstr "⚠️ rules"
+
+#: bot/scenes/dating.py:55
+msgid "list events"
+msgstr "🗓 list events"
+
+#: bot/scenes/dating.py:59
+msgid "cancel event registration"
+msgstr "🚫 cancel registration"
+
+#: bot/scenes/dating.py:63
+#, fuzzy
+msgid "dating main menu message {name}"
+msgstr ""
+"Hello {name}! 👋 Welcome to our dating platform! We're excited to help you"
+" connect with amazing people. To get started, you might want to update "
+"your profile so others can get to know you better. Just use the /edit "
+"command to make changes.Looking to meet new people in person? Check out "
+"upcoming events! You can view the events and register for them or cancel "
+"your registration if your plans change. Enjoy your time here, and happy "
+"connecting! ❤️"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
@@ -25,7 +49,7 @@ msgstr ""
 " get started, please enter your name so we can register you for the "
 "event. Looking forward to helping you find your perfect match!"
 
-#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
+#: bot/scenes/profile.py:160 bot/scenes/profile.py:362
 msgid "invite to enter name"
 msgstr "Please enter your name."
 
@@ -61,24 +85,24 @@ msgstr "Registration complete."
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:278
+#: bot/scenes/profile.py:279
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:281
 msgid "sex_male"
 msgstr "Male"
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:281
 msgid "sex_female"
 msgstr "Female"
 
-#: bot/scenes/profile.py:342
+#: bot/scenes/profile.py:349
 #, fuzzy
 msgid "user does not exist"
 msgstr "A user with this information already exists. You can update it with /edit."
 
-#: bot/scenes/profile.py:351
+#: bot/scenes/profile.py:358
 #, fuzzy
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
