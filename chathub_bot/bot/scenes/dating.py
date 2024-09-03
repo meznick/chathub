@@ -12,8 +12,9 @@ from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from magic_filter import F
+from pika import BasicProperties
 
-from bot import setup_logger
+from bot import setup_logger, DATE_MAKER_COMMANDS
 from bot.scenes.base import BaseSpeedDatingScene
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
@@ -49,7 +50,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
 
         builder.button(
             text=_('dating rules'),
-            callback_data=TestCallbackData(action='action', value='edit_profile'),
+            callback_data=TestCallbackData(action='action', value='show_rules'),
         )
         builder.button(
             text=_('list events'),
@@ -69,7 +70,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
 
     @on.message.exit()
     async def on_exit(self, message: Message, state: FSMContext) -> None:
-        pass
+        LOGGER.debug(f'User {message.from_user.id} left dating scene')
 
 
 dating_router = Router(name='__name__')
@@ -111,10 +112,10 @@ async def test_set_callback_handler(query: CallbackQuery, callback_data: TestCal
 @dating_router.callback_query(TestCallbackData.filter(F.action == 'action'))
 async def actions_callback_handler(query: CallbackQuery, callback_data: TestCallbackData) -> None:
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
+    rmq: RabbitMQConnector
     pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
     if callback_data.value == 'list_events':
-        # send message to datemaker
-        pass
+        await _handle_listing_events(query, rmq)
 
     elif callback_data.value == 'event_register':
         # send message to datemaker
@@ -123,3 +124,59 @@ async def actions_callback_handler(query: CallbackQuery, callback_data: TestCall
     elif callback_data.value == 'cancel_event_registration':
         # send message to datemaker
         pass
+
+    elif callback_data.value == 'show_rules':
+        # show rules and controls to return to main menu
+        pass
+
+
+async def _handle_listing_events(query, rmq):
+    """
+    This method logic:
+    - update message text to be suitable for showing a list of events
+    - send request to date maker to get the list
+
+    Then bot.bot.DatingBot.process_rmq_message:
+    - wait for response
+    - update message and reply markup for selecting event
+
+    For the second method and date maker to be able to process the response,
+    need to pass additional headers:
+    - user_id - for checking user's event registrations
+    - chat_id - for updating menu
+    - message_id - for updating menu
+
+    :param query:
+    :param rmq:
+    :return:
+    """
+    try:
+        builder = InlineKeyboardBuilder()
+
+        builder.button(
+            text=_('back button'),
+            callback_data=TestCallbackData(action='action', value='go_dating_main_menu'),
+        )
+
+        await query.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=_('here is list of events'),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
+        rmq.publish(
+            message=DATE_MAKER_COMMANDS['list_events'],
+            routing_key='date_maker_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(
+                headers={
+                    'user_id': str(query.from_user.id),
+                    'chat_id': str(query.message.chat.id),
+                    'message_id': str(query.message.message_id),
+                }
+            ),
+        )
+
+    except TelegramBadRequest as e:
+        LOGGER.warning(f'Got exception while processing callback: {e}')
