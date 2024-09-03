@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-09-02 20:32+0300\n"
+"POT-Creation-Date: 2024-09-03 13:16+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgid "cancel event registration"
 msgstr ""
 
 #: bot/scenes/dating.py:63
-msgid "dating main menu message {name}"
+msgid "welcome to dating platform {name}"
 msgstr ""
 
 #: bot/scenes/profile.py:62

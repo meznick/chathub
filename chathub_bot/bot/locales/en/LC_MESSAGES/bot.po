@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-09-02 20:32+0300\n"
+"POT-Creation-Date: 2024-09-03 13:16+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -20,23 +20,26 @@ msgstr "⚠️ rules"
 
 #: bot/scenes/dating.py:55
 msgid "list events"
-msgstr "🗓 list events"
+msgstr "🗓 events"
 
 #: bot/scenes/dating.py:59
 msgid "cancel event registration"
-msgstr "🚫 cancel registration"
+msgstr "❌ cancel registration"
 
 #: bot/scenes/dating.py:63
-#, fuzzy
-msgid "dating main menu message {name}"
+msgid "welcome to dating platform {name}"
 msgstr ""
-"Hello {name}! 👋 Welcome to our dating platform! We're excited to help you"
-" connect with amazing people. To get started, you might want to update "
-"your profile so others can get to know you better. Just use the /edit "
-"command to make changes.Looking to meet new people in person? Check out "
-"upcoming events! You can view the events and register for them or cancel "
-"your registration if your plans change. Enjoy your time here, and happy "
-"connecting! ❤️"
+"Hello! 👋 Welcome to our dating platform! We're excited to help you "
+"connect with amazing people.\n"
+"\n"
+"To get started, you might want to update your profile so others can get "
+"to know you better. Just use the /edit command to make changes.\n"
+"\n"
+"Looking to meet new people in person? Check out upcoming events! You can "
+"view the events and register for them or cancel your registration if your"
+" plans change.\n"
+"\n"
+"Enjoy your time here, and happy connecting! ❤️"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
@@ -106,4 +109,3 @@ msgstr "A user with this information already exists. You can update it with /edi
 #, fuzzy
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
-

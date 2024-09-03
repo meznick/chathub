@@ -60,7 +60,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
             callback_data=TestCallbackData(action='action', value='cancel_event_registration'),
         )
         await message.answer(
-            _('dating main menu message {name}').format(
+            _('welcome to dating platform {name}').format(
                 name=user.get('name')
             ),
             parse_mode=ParseMode.HTML,
