@@ -18,6 +18,7 @@ from bot import (
     AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET, setup_logger
 )
 from bot.dev_router import dev_router
+from bot.middlewares import CallbackI18nMiddleware
 from bot.scenes import scenes_router, RegistrationScene, ProfileEditingScene
 from bot.scenes.dating import DatingScene
 from bot.tmp_files_manager import TempFileManager
@@ -119,6 +120,13 @@ class DatingBot:
                 default_locale="ru",
                 domain="bot"
             ),
+        ))
+        self._dp.callback_query.middleware(CallbackI18nMiddleware(
+            i18n=I18n(
+                path="bot/locales",
+                default_locale="ru",
+                domain="bot"
+            )
         ))
 
     def process_rmq_message(self, *args, **kwargs):

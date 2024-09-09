@@ -8,12 +8,10 @@ from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.scene import on
-from aiogram.loggers import event
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from magic_filter import F
 from pika import BasicProperties
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
