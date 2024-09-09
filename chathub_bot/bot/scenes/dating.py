@@ -54,31 +54,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         # show an entry message with inline controls.
         # inline handler will process further actions
         try:
-            builder = InlineKeyboardBuilder()
-            builder.button(
-                text=_('dating rules'),
-                callback_data=DatingMenuActionsCallbackData(action='action', value='show_rules'),
-            )
-            builder.button(
-                text=_('list events'),
-                callback_data=DatingMenuActionsCallbackData(action='action', value='list_events'),
-            )
-            builder.button(
-                text=_('cancel event registration'),
-                callback_data=DatingEventCallbackData(
-                    action='cancel',
-                    event_id=0,
-                    user_id=message.from_user.id,
-                ),
-            )
-
-            await message.answer(
-                _('welcome to dating platform {name}').format(
-                    name=user.get('name')
-                ),
-                parse_mode=ParseMode.HTML,
-                reply_markup=builder.as_markup(),
-            )
+            await _display_main_menu(message, pg, edit=False)
 
         except TelegramBadRequest as e:
             LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -100,6 +76,7 @@ async def dating_main_menu_actions_callback_handler(
 ):
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
 
+    pg: AsyncPgConnector
     rmq: RabbitMQConnector
     pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
 
@@ -110,6 +87,10 @@ async def dating_main_menu_actions_callback_handler(
     elif callback_data.value == 'show_rules':
         # triggered from the main menu
         await _display_dating_rules(query)
+
+    elif callback_data.value == 'go_dating_main_menu':
+        # triggered from anywhere
+        await _display_main_menu(user_id=query.from_user.id, query=query, edit=True, pg=pg)
 
 
 @dating_router.callback_query(DatingEventCallbackData.filter())
@@ -129,6 +110,57 @@ async def dating_event_callback_handler(
     elif callback_data.value == 'cancel_event_registration':
         # triggered from the main menu
         await _handle_cancelling_event_registration(query, rmq, callback_data)
+
+
+async def _display_main_menu(
+        pg: AsyncPgConnector,
+        user_id: int = None,
+        edit: bool = False,
+        query: CallbackQuery = None,
+        message: Message = None,
+):
+    LOGGER.debug(f'Displaying main menu for user {query.from_user.id}')
+
+    user_id = user_id or query.from_user.id or message.from_user.id
+
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=_('dating rules'),
+        callback_data=DatingMenuActionsCallbackData(action='action', value='show_rules'),
+    )
+    builder.button(
+        text=_('list events'),
+        callback_data=DatingMenuActionsCallbackData(action='action', value='list_events'),
+    )
+    builder.button(
+        text=_('cancel event registration'),
+        callback_data=DatingEventCallbackData(
+            action='cancel',
+            event_id=0,
+            user_id=user_id,
+        ),
+    )
+
+    user = await pg.get_user(user_id)
+
+    if not edit:
+        await message.answer(
+            _('welcome to dating platform {name}').format(
+                name=user.get('name')
+            ),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
+    else:
+        await query.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=_('welcome to dating platform {name}').format(
+                name=user.get('name')
+            ),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
 
 
 async def _display_dating_rules(query):
