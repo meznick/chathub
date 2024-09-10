@@ -54,7 +54,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         # show an entry message with inline controls.
         # inline handler will process further actions
         try:
-            await _display_main_menu(message, pg, edit=False)
+            await _display_main_menu(message=message, pg=pg, edit=False)
 
         except TelegramBadRequest as e:
             LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -119,9 +119,19 @@ async def _display_main_menu(
         query: CallbackQuery = None,
         message: Message = None,
 ):
-    LOGGER.debug(f'Displaying main menu for user {query.from_user.id}')
+    if query:
+        query_uid = query.from_user.id
+    else:
+        query_uid = None
 
-    user_id = user_id or query.from_user.id or message.from_user.id
+    if message:
+        message_uid = message.from_user.id
+    else:
+        message_uid = None
+
+    user_id = user_id or query_uid or message_uid
+
+    LOGGER.debug(f'Displaying main menu for user {user_id}')
 
     builder = InlineKeyboardBuilder()
     builder.button(
