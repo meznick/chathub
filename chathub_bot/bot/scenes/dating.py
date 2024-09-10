@@ -150,6 +150,7 @@ async def _display_main_menu(
             user_id=user_id,
         ),
     )
+    builder.adjust(1)
 
     user = await pg.get_user(user_id)
 
