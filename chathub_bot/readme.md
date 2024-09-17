@@ -67,3 +67,11 @@ make update_templates
 будет вписать переводы для каждого из языков.
 
 В коммит включаем только файлы `.po`, `.pot`.
+
+## Deploy
+```shell
+pip install -r requirements.txt
+make compile
+source ~/.env
+python -m bot --debug --long-polling
+```
