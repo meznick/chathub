@@ -1,2 +1,3 @@
 aiogram[i18n]
 chathub_connectors==0.2.3
+pybabel
