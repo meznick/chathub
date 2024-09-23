@@ -26,7 +26,7 @@ class AsyncPgConnector:
         self._db = db
         self._username = username
         self._password = password
-        self.client = None
+        self.client: asyncpg.connection.Connection = None
         LOGGER.info('PG connector initialized')
 
     async def connect(self):
@@ -329,7 +329,10 @@ class AsyncPgConnector:
         loop = asyncio.new_event_loop()
         if self.client:
             # it looks like it cannot close properly
-            loop.run_until_complete(self.client.close())
+            try:
+                loop.run_until_complete(self.client.close())
+            except Exception as e:
+                LOGGER.warning(f'Fail on closing connection: {e}')
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
 
         LOGGER.debug('PG connector deleted')
