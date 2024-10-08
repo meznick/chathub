@@ -8,6 +8,9 @@ from oauthlib.uri_validate import query
 
 from chathub_connectors import setup_logger
 
+import psycopg2
+from psycopg2 import sql, Error
+
 LOGGER = setup_logger(__name__)
 LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
 
@@ -26,8 +29,8 @@ class AsyncPgConnector:
         self._db = db
         self._username = username
         self._password = password
-        self.client: asyncpg.connection.Connection = None
-        LOGGER.info('PG connector initialized')
+        self.client: asyncpg.connection.Connection | None = None
+        LOGGER.info('Async PG connector initialized')
 
     async def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to PG: {self._host}:{self._port}/{self._db}')
@@ -51,8 +54,8 @@ class AsyncPgConnector:
         if not self.client:
             await self.connect()
 
-        query = 'SELECT * FROM users WHERE id = $1;'
-        data = await self.client.fetchrow(query, user_id)
+        request_query = 'SELECT * FROM users WHERE id = $1;'
+        data = await self.client.fetchrow(request_query, user_id)
         LOGGER.debug(f'User found: {data}')
         return data
 
@@ -82,7 +85,7 @@ class AsyncPgConnector:
         :param rating: The rating of the user. (Optional, default is 0.0)
         :return: None
         """
-        query = '''
+        request_query = '''
             INSERT INTO users
             (
                 id,
@@ -98,7 +101,7 @@ class AsyncPgConnector:
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
         '''
         await self.client.execute(
-            query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
+            request_query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
         )
         LOGGER.debug(f'User created: {username} [{user_id}]')
 
@@ -183,15 +186,15 @@ class AsyncPgConnector:
             return
 
         set_queries = ", ".join(set_clauses)
-        query = f'''
+        request_query = f'''
             UPDATE users
             SET {set_queries}
             WHERE id = $1;
         '''
-        LOGGER.debug(f'update_user query: {query}, params: {values}')
+        LOGGER.debug(f'update_user query: {request_query}, params: {values}')
 
         await self.client.execute(
-            query, user_id, *values
+            request_query, user_id, *values
         )
         LOGGER.debug(f'User altered in postgres: {username} [{user_id}]')
 
@@ -209,7 +212,7 @@ class AsyncPgConnector:
         :param s3_path: A string representing the path of the image within the S3 bucket.
         :return: None
         """
-        query = '''
+        request_query = '''
                 INSERT INTO images
                 (
                     owner,
@@ -220,7 +223,7 @@ class AsyncPgConnector:
                 VALUES ($1, $2, $3, NOW());
             '''
         await self.client.execute(
-            query, owner_id, s3_bucket, s3_path
+            request_query, owner_id, s3_bucket, s3_path
         )
         LOGGER.debug(f'New image for {owner_id} was created')
 
@@ -233,8 +236,8 @@ class AsyncPgConnector:
         :param owner_id: ID of the owner to fetch images for.
         :return: A list of images belonging to the specified owner.
         """
-        query = 'SELECT * FROM images WHERE owner = $1 ORDER BY upload_dttm DESC;'
-        data = await self.client.fetch(query, owner_id)
+        request_query = 'SELECT * FROM images WHERE owner = $1 ORDER BY upload_dttm DESC;'
+        data = await self.client.fetch(request_query, owner_id)
         LOGGER.debug(f'Found {len(data)} images for owner {owner_id}')
         return data
 
@@ -255,17 +258,29 @@ class AsyncPgConnector:
         :param limit: The maximum number of events to retrieve. Defaults to 10.
         :return: A list of dating events.
         """
-        filter_finished = 'WHERE start_dttm > NOW()' if not include_finished else ''
+
+        user_id = user.get("id") if user else None
+        only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
+        for_user = 'WHERE r.user_id = $1' if user else ''
         limit = f'LIMIT {limit}'
-        query = f"""
-            SELECT *
-            FROM public.dating_events
-            {filter_finished}
+        request_query = f"""
+            SELECT DISTINCT 
+                e.id, 
+                e.start_dttm, 
+                CASE WHEN r.user_id THEN TRUE ELSE FALSE END AS registered
+            FROM public.dating_events as e
+            LEFT JOIN (
+                SELECT *
+                FROM public.dating_registrations
+                {for_user}
+            ) AS r ON e.id = r.event_id
+            WHERE 1=1
+                {only_finished}
             ORDER BY start_dttm ASC
             {limit}
             ;
         """
-        data = await self.client.fetch(query)
+        data = await self.client.fetch(request_query, (user_id,))
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
 
@@ -278,12 +293,12 @@ class AsyncPgConnector:
         :param event_id:
         :return:
         """
-        query = """
-            SELECT user_id
+        request_query = """
+            SELECT user_id, registered_on_dttm, confirmed_on_dttm
             FROM public.dating_registrations
             WHERE event_id = $1;
         """
-        data = await self.client.execute(query, event_id)
+        data = await self.client.execute(request_query, event_id)
         LOGGER.debug(f'Found {len(data)} event registrations')
         return data
 
@@ -300,12 +315,12 @@ class AsyncPgConnector:
         :param event_id:
         :return:
         """
-        query = """
+        request_query = """
             INSERT INTO public.dating_registrations (user_id, event_id)
             VALUES ($1, $2);
         """
         await self.client.execute(
-            query, user.get('id'), event_id
+            request_query, user.get('id'), event_id
         )
         LOGGER.debug(f'User {user.get("id")} registered for event {event_id}')
 
@@ -317,13 +332,13 @@ class AsyncPgConnector:
         :param event_id:
         :return:
         """
-        query = """
+        request_query = """
             UPDATE public.dating_registrations
             SET confirmed_on_dttm = NOW()
             WHERE user_id = $1 AND event_id = $2;
         """
         await self.client.execute(
-            query, user.get('id'), event_id
+            request_query, user.get('id'), event_id
         )
         LOGGER.debug(f'User {user.get("id")} confirmed registration for event {event_id}')
 
@@ -338,3 +353,175 @@ class AsyncPgConnector:
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
 
         LOGGER.debug('PG connector deleted')
+
+
+class PostgresConnection:
+    def __init__(
+            self,
+            host: str = 'localhost',
+            port: int = 5432,
+            db: str = 'chathub_dev',
+            username: Optional[str] = None,
+            password: Optional[str] = None,
+    ):
+        self._host = host
+        self._port = port
+        self._db = db
+        self._username = username
+        self._password = password
+        self.client: psycopg2.extensions.connection | None = None
+        LOGGER.info('Synchronous PG connector initialized')
+
+    def connect(self):
+        try:
+            self.client = psycopg2.connect(
+                host=self._host,
+                dbname=self._db,
+                user=self._username,
+                password=self._password,
+                port=self._port,
+            )
+            LOGGER.info("Connection to PostgreSQL DB successful")
+        except Error as e:
+            LOGGER.error(f"Error: {e}")
+
+    def get_user(self, user_id: int) -> Optional[Record]:
+        """
+        :param user_id: ID of the user to fetch.
+        :return: The user data fetched from the database.
+        """
+        if not self.client:
+            self.connect()
+
+        request_query = 'SELECT * FROM users WHERE id = %s;'
+        data = self._fetch_results(request_query, (user_id,))
+        LOGGER.debug(f'Fetched user: {data}')
+        return data
+
+    def get_dating_events(
+            self,
+            user: Record = None,
+            include_finished: bool = False,
+            limit: int = 10
+    ):
+        """
+        List Dating Events
+
+        Retrieve a list of dating events based on the provided parameters.
+
+        :param user: The user for whom the dating events are being listed.
+        :param include_finished: A flag indicating if finished events should be
+                    included in the result. Defaults to False.
+        :param limit: The maximum number of events to retrieve. Defaults to 10.
+        :return: A list of dating events.
+        """
+        user_id = user.get("id") if user else None
+        only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
+        for_user = f'WHERE r.user_id = %s' if user else ''
+        limit = f'LIMIT {limit}'
+        request_query = f"""
+            SELECT DISTINCT
+                e.id,
+                e.start_dttm,
+                CASE WHEN r.user_id THEN TRUE ELSE FALSE END AS registered
+            FROM public.dating_events as e
+            LEFT JOIN (
+                SELECT *
+                FROM public.dating_registrations
+                {for_user}
+            ) AS r ON e.id = r.event_id
+            WHERE 1=1
+                {only_finished}
+            ORDER BY start_dttm ASC
+            {limit}
+            ;
+        """
+        data = self._fetch_results(request_query, (user_id, ))
+        LOGGER.debug(f'Found {len(data)} dating events')
+        return data
+
+    def get_event_registrations(
+            self,
+            event_id: int
+    ) -> List[Record]:
+        """
+        List Event Registrations.
+        :param event_id:
+        :return:
+        """
+        request_query = """
+            SELECT user_id, registered_on_dttm, confirmed_on_dttm
+            FROM public.dating_registrations
+            WHERE event_id = %s;
+        """
+        data = self._fetch_results(request_query, (event_id,))
+        LOGGER.debug(f'Found {len(data)} event registrations')
+        return data
+
+    def register_for_event(
+            self,
+            user: Record,
+            event_id: int
+    ):
+        """
+        Method for adding new member to event.
+        Remember to check if user already registered!
+
+        :param user:
+        :param event_id:
+        :return:
+        """
+        request_query = """
+            INSERT INTO public.dating_registrations (user_id, event_id)
+            VALUES (%s, %s);
+        """
+        self._execute_query(request_query, (user.get('id'), event_id))
+        LOGGER.debug(f'User {user.get("id")} registered for event {event_id}')
+
+    def confirm_registration(self, user: Record, event_id: int):
+        """
+        Method for registration confirmation.
+
+        :param user:
+        :param event_id:
+        :return:
+        """
+        request_query = """
+            UPDATE public.dating_registrations
+            SET confirmed_on_dttm = NOW()
+            WHERE user_id = %s AND event_id = %s;
+        """
+        self._execute_query(request_query, (user.get('id'), event_id))
+        LOGGER.debug(
+            f'User {user.get("id")} confirmed registration for event {event_id}'
+        )
+
+    def _execute_query(self, request_query, params=None):
+        if self.client is None:
+            print("No connection to database.")
+            return
+        try:
+            with self.client.cursor() as cursor:
+                cursor.execute(request_query, params)
+                self.client.commit()
+                print("Query executed successfully")
+        except Error as e:
+            print(f"Error: {e}")
+
+    def _fetch_results(self, request_query, params=None):
+        if self.client is None:
+            print("No connection to database.")
+            return
+        try:
+            with self.client.cursor() as cursor:
+                cursor.execute(request_query, params)
+                results = cursor.fetchall()
+                return results
+        except Error as e:
+            print(f"Error: {e}")
+            return None
+
+    def close(self):
+        if self.client:
+            self.client.close()
+            print("Connection closed")
