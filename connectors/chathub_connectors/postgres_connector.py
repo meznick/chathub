@@ -29,7 +29,7 @@ class AsyncPgConnector:
         self.client: asyncpg.connection.Connection = None
         LOGGER.info('PG connector initialized')
 
-    async def connect(self):
+    async def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to PG: {self._host}:{self._port}/{self._db}')
         self.client = await asyncpg.connect(
             host=self._host,
@@ -37,7 +37,8 @@ class AsyncPgConnector:
             database=self._db,
             user=self._username,
             password=self._password,
-            timeout=10
+            timeout=10,
+            loop=custom_loop
         )
         LOGGER.info(f'PG connected to {self._host}:{self._port}/{self._db}')
 
@@ -46,6 +47,7 @@ class AsyncPgConnector:
         :param user_id: ID of the user to fetch.
         :return: The user data fetched from the database.
         """
+        LOGGER.debug('getting')
         if not self.client:
             await self.connect()
 

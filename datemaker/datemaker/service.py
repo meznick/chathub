@@ -4,12 +4,15 @@ Class and setting for main class for managing date-making logic.
 import asyncio
 import json
 import logging
+from Tools.scripts.make_ctype import method
+from functools import wraps
 
 from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
 from datemaker import setup_logger, DATE_MAKER_COMMANDS
+from server import logger
 from .meet_api_controller import GoogleMeetApiController
 
 # also, we probably will need connector to DB, user management, authentication
@@ -48,7 +51,7 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
-        self.meet_api_controller = GoogleMeetApiController()
+        # self.meet_api_controller = GoogleMeetApiController()
         self.message_broker_controller = RabbitMQConnector(
             host=message_broker_host,
             port=message_broker_port,
@@ -69,9 +72,10 @@ class DateMakerService:
             username=postgres_user,
             password=postgres_password,
         )
+        self.loop = None
         LOGGER.info('DateMaker service initialized')
 
-    async def run(self):
+    def run(self):
         """
         Method that runs for managing date-making logic.
         Most likely, here you should only schedule regular actions: creating
@@ -82,16 +86,53 @@ class DateMakerService:
         """
         LOGGER.info('Running DateMakerService...')
         try:
-            loop = asyncio.get_running_loop()
-            self.message_broker_controller.run(custom_loop=loop)
-            await self.postgres_controller.connect()
-            while True:
-                await asyncio.sleep(1)
+            self.loop = asyncio.get_event_loop()
+            self.message_broker_controller.run(custom_loop=self.loop)
+            self.loop.run_forever()
+            asyncio.run(self.postgres_controller.connect(custom_loop=self.loop))
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
             self.message_broker_controller.disconnect()
 
-    def process_incoming_message(self, channel, method, properties, body):
+    def prepare_for_processing(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            channel = args[0]
+            method = args[1]
+            properties = args[2]
+            body = args[3]
+
+            LOGGER.debug(
+                f'Got message on channel {channel}: {body}. '
+                f'Method: {method}, properties: {properties}.'
+            )
+            # properties should contain data to return answer to right user:
+            # - chat id (from tg bot)?
+            # user should be in headers as well, because its ID is necessary for processing
+            message_params = properties.headers
+            message = body.decode('utf-8')
+            loop = asyncio.get_running_loop()
+
+            user = loop.create_task(
+                self.postgres_controller.get_user(int(message_params['user_id']))
+            )
+            # loop.run_until_complete(task)
+            # user = asyncio.run_coroutine_threadsafe(
+            #     self.postgres_controller.get_user(int(message_params['user_id'])),
+            #     loop
+            # )
+            # user = asyncio.ensure_future(
+            #     self.postgres_controller.get_user(int(message_params['user_id'])),
+            #     loop=self.loop
+            # )
+            user.result()
+
+            result = func(*args, **kwargs)
+            return result
+
+        return wrapper
+
+    async def process_incoming_message(self, channel, method, properties, body):
         """
         Method for processing incoming message from RabbitMQ broker.
         Possible messages can be:
@@ -115,14 +156,9 @@ class DateMakerService:
         # - chat id (from tg bot)?
         # user should be in headers as well, because its ID is necessary for processing
         message_params = properties.headers
-        loop = asyncio.get_running_loop()
         message = body.decode('utf-8')
         try:
-            task = loop.create_task(
-                self.postgres_controller.get_user(int(message_params['user_id']))
-            )
-            loop.run_until_complete(task)
-            user = task.result()
+            user = await self.postgres_controller.get_user(int(message_params['user_id']))
             if not user:
                 raise Exception('No user found')
             if self.supported_commands['list_events'] in message:

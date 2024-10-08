@@ -4,6 +4,7 @@ from typing import Optional, Callable
 
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
+from pika.adapters.blocking_connection import BlockingConnection
 from pika.spec import BasicProperties
 
 from chathub_connectors import setup_logger
@@ -115,7 +116,7 @@ class RabbitMQConnector:
             f'Event loop state is running: {self._connection.ioloop.is_running}'
         )
 
-    def connect(self, custom_loop=None):
+    def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to RabbitMQ server {self.host}')
         connection = AsyncioConnection(
             parameters=ConnectionParameters(
