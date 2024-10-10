@@ -5,6 +5,7 @@ from typing import Optional, List
 import asyncpg
 from asyncpg import Record
 from oauthlib.uri_validate import query
+from psycopg2.extras import RealDictCursor
 
 from chathub_connectors import setup_logger
 
@@ -513,7 +514,7 @@ class PostgresConnection:
             print("No connection to database.")
             return
         try:
-            with self.client.cursor() as cursor:
+            with self.client.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(request_query, params)
                 results = cursor.fetchall()
                 return results
