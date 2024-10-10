@@ -267,7 +267,7 @@ class AsyncPgConnector:
             SELECT DISTINCT 
                 e.id, 
                 e.start_dttm, 
-                CASE WHEN r.user_id THEN TRUE ELSE FALSE END AS registered
+                CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
             LEFT JOIN (
                 SELECT *
@@ -423,7 +423,7 @@ class PostgresConnection:
             SELECT DISTINCT
                 e.id,
                 e.start_dttm,
-                CASE WHEN r.user_id THEN TRUE ELSE FALSE END AS registered
+                CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
             LEFT JOIN (
                 SELECT *
