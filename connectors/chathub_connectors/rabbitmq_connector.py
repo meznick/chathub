@@ -2,6 +2,9 @@ import asyncio
 import logging
 from typing import Optional, Callable
 
+import aio_pika
+from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection
+from kombu import Connection, Queue, Consumer
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
 from pika.adapters.blocking_connection import BlockingConnection
@@ -199,3 +202,49 @@ class RabbitMQConnector:
     @staticmethod
     def _default_on_message_callback(channel, method, properties, body):
         LOGGER.debug(f'Processed message by default method: {body.decode()}')
+
+
+class AIORabbitMQConnector:
+    def __init__(
+            self,
+            host: str = 'localhost',
+            port: int = 5672,
+            virtual_host: str = '',
+            exchange: str = '',
+            routing_key: str = '',
+            username: Optional[str] = None,
+            password: Optional[str] = None,
+            caller_service: str = 'standalone',
+            loglevel: Optional[int] = logging.DEBUG,
+    ):
+        LOGGER.setLevel(loglevel)
+        self.host = host
+        self.port = port
+        self.virtual_host = virtual_host
+        self._username = username
+        self._password = password
+        self.exchange = exchange
+        self.routing_key = routing_key
+        self.connection: AbstractRobustConnection | None = None
+        self.tag = f'python-aio-rmq-connector-{caller_service}'
+        self.channel: AbstractRobustChannel | None = None
+
+    async def connect(self, custom_loop: Optional[asyncio.AbstractEventLoop] = None):
+        self.connection = await aio_pika.connect_robust(
+            host=self.host,
+            port=self.port,
+            virtualhost=self.virtual_host,
+            login=self._username,
+            password=self._password,
+            loop=custom_loop,
+        )
+        LOGGER.info(f'RabbitMQ connection to {self.host}/{self.virtual_host} established')
+
+        self.channel = await self.connection.channel()
+        await self.channel.set_qos(prefetch_count=10)
+        LOGGER.debug(f'RabbitMQ channel {self.channel} opened')
+
+    async def listen_queue(self, queue_name: str, callback: Callable):
+        queue = await self.channel.get_queue(queue_name)
+        LOGGER.info(f'Listening for queue {queue_name}...')
+        await queue.consume(callback=callback, consumer_tag=self.tag)
