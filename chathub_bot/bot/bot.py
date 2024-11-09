@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+import aio_pika
 from aiogram import Bot
 from aiogram import Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -24,7 +25,7 @@ from bot.scenes.dating import DatingScene
 from bot.tmp_files_manager import TempFileManager
 from chathub_connectors.aws_connectors import S3Client
 from chathub_connectors.postgres_connector import AsyncPgConnector
-from chathub_connectors.rabbitmq_connector import RabbitMQConnector
+from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
 
 LOGGER = setup_logger(__name__)
 
@@ -68,18 +69,29 @@ class DatingBot:
             password=POSTGRES_PASSWORD,
         )
 
-        self._bot.rmq = RabbitMQConnector(
+        # self._bot.rmq = RabbitMQConnector(
+        #     host=MESSAGE_BROKER_HOST,
+        #     port=MESSAGE_BROKER_PORT,
+        #     virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
+        #     exchange=MESSAGE_BROKER_EXCHANGE,
+        #     queue=MESSAGE_BROKER_QUEUE,
+        #     routing_key=MESSAGE_BROKER_ROUTING_KEY,
+        #     username=MESSAGE_BROKER_USERNAME,
+        #     password=MESSAGE_BROKER_PASSWORD,
+        #     message_callback=self.process_rmq_message,
+        #     caller_service='tg-bot',
+        #     loglevel=logging.INFO,
+        # )
+
+        self._bot.rmq = AIORabbitMQConnector(
             host=MESSAGE_BROKER_HOST,
             port=MESSAGE_BROKER_PORT,
             virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
             exchange=MESSAGE_BROKER_EXCHANGE,
-            queue=MESSAGE_BROKER_QUEUE,
-            routing_key=MESSAGE_BROKER_ROUTING_KEY,
             username=MESSAGE_BROKER_USERNAME,
             password=MESSAGE_BROKER_PASSWORD,
-            message_callback=self.process_rmq_message,
             caller_service='tg-bot',
-            loglevel=logging.INFO,
+
         )
 
         self._bot.s3 = S3Client(
@@ -101,7 +113,6 @@ class DatingBot:
         self._setup_routing()
 
         LOGGER.setLevel(logging.DEBUG if debug else logging.INFO)
-        self._bot.rmq.set_log_level(logging.DEBUG if debug else logging.INFO)
 
     def _setup_routing(self):
         # include order makes sense!
@@ -129,17 +140,23 @@ class DatingBot:
             )
         ))
 
-    def process_rmq_message(self, *args, **kwargs):
-        # this method should be synchronous
-        ...
+    async def process_rmq_message(self, message: aio_pika.abc.AbstractIncomingMessage):
+        async with message.process():
+            print(message.body)
+            await asyncio.sleep(1)
 
     async def start_long_polling(self) -> None:
         LOGGER.debug('Starting long polling...')
         try:
             loop = asyncio.get_running_loop()
-            self._bot.rmq.run(custom_loop=loop)
-            await self._bot.pg.connect()
+            await self._bot.pg.connect(custom_loop=loop)
+            await self._bot.rmq.connect(custom_loop=loop)
+            await self._bot.rmq.listen_queue(
+                queue_name=MESSAGE_BROKER_QUEUE,
+                callback=self.process_rmq_message
+            )
             await self._dp.start_polling(self._bot)
+
         except KeyboardInterrupt:
             LOGGER.info('Shutting down...')
             self._bot.rmq.disconnect()
