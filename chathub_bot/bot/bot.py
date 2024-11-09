@@ -138,7 +138,13 @@ class DatingBot:
             chat_id = message.properties.headers["chat_id"]
             message_id = message.properties.headers["message_id"]
             key = f'{chat_id}_{message_id}'
-            self._bot.dh.waiting[key](self._bot, chat_id, message_id, json.loads(message.body))
+            if await self._bot.dh.waiting[key](
+                bot=self._bot,
+                chat_id=chat_id,
+                message_id=message_id,
+                data=json.loads(message.body)
+            ):
+                await message.ack()
 
     async def start_long_polling(self) -> None:
         LOGGER.debug('Starting long polling...')
