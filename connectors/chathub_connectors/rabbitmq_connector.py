@@ -3,7 +3,8 @@ import logging
 from typing import Optional, Callable
 
 import aio_pika
-from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection
+from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection, AbstractExchange, \
+    HeadersType
 from kombu import Connection, Queue, Consumer
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
@@ -248,3 +249,22 @@ class AIORabbitMQConnector:
         queue = await self.channel.get_queue(queue_name)
         LOGGER.info(f'Listening for queue {queue_name}...')
         await queue.consume(callback=callback, consumer_tag=self.tag)
+
+    async def publish(
+            self,
+            message: str,
+            routing_key: str,
+            exchange: str,
+            headers: Optional[HeadersType] = None
+    ):
+        exchange: AbstractExchange = await self.channel.get_exchange(exchange)
+        await exchange.publish(
+            routing_key=routing_key,
+            message=aio_pika.Message(
+                body=message.encode(),
+                headers=headers,
+            ),
+        )
+        LOGGER.debug(
+            f'Message "{message[:10]}..." (RK {routing_key}) published to exchange {exchange}'
+        )
