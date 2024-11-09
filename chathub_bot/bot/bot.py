@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 
 import aio_pika
@@ -21,6 +22,7 @@ from bot import (
 from bot.dev_router import dev_router
 from bot.middlewares import CallbackI18nMiddleware
 from bot.scenes import scenes_router, RegistrationScene, ProfileEditingScene
+from bot.scenes.data_handler import DataHandler
 from bot.scenes.dating import DatingScene
 from bot.tmp_files_manager import TempFileManager
 from chathub_connectors.aws_connectors import S3Client
@@ -36,6 +38,9 @@ class CustomBot(Bot):
     rmq = None
     s3 = None
     tfm = None
+
+    # class for processing data collected from message broker
+    dh = None
 
     # stats
     sent_messages = 0
@@ -61,6 +66,8 @@ class DatingBot:
             )
         )
 
+        self._bot.dh = DataHandler()
+
         self._bot.pg = AsyncPgConnector(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
@@ -68,20 +75,6 @@ class DatingBot:
             username=POSTGRES_USER,
             password=POSTGRES_PASSWORD,
         )
-
-        # self._bot.rmq = RabbitMQConnector(
-        #     host=MESSAGE_BROKER_HOST,
-        #     port=MESSAGE_BROKER_PORT,
-        #     virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
-        #     exchange=MESSAGE_BROKER_EXCHANGE,
-        #     queue=MESSAGE_BROKER_QUEUE,
-        #     routing_key=MESSAGE_BROKER_ROUTING_KEY,
-        #     username=MESSAGE_BROKER_USERNAME,
-        #     password=MESSAGE_BROKER_PASSWORD,
-        #     message_callback=self.process_rmq_message,
-        #     caller_service='tg-bot',
-        #     loglevel=logging.INFO,
-        # )
 
         self._bot.rmq = AIORabbitMQConnector(
             host=MESSAGE_BROKER_HOST,
@@ -91,7 +84,6 @@ class DatingBot:
             username=MESSAGE_BROKER_USERNAME,
             password=MESSAGE_BROKER_PASSWORD,
             caller_service='tg-bot',
-
         )
 
         self._bot.s3 = S3Client(
@@ -142,8 +134,11 @@ class DatingBot:
 
     async def process_rmq_message(self, message: aio_pika.abc.AbstractIncomingMessage):
         async with message.process():
-            print(message.body)
-            await asyncio.sleep(1)
+            print(message.body, message.properties.headers)
+            chat_id = message.properties.headers["chat_id"]
+            message_id = message.properties.headers["message_id"]
+            key = f'{chat_id}_{message_id}'
+            self._bot.dh.waiting[key](self._bot, chat_id, message_id, json.loads(message.body))
 
     async def start_long_polling(self) -> None:
         LOGGER.debug('Starting long polling...')

@@ -12,12 +12,12 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from pika import BasicProperties
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
 from bot.scenes.base import BaseSpeedDatingScene
+from bot.scenes.data_handler import DataHandler
 from chathub_connectors.postgres_connector import AsyncPgConnector
-from chathub_connectors.rabbitmq_connector import RabbitMQConnector
+from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
 LOGGER = setup_logger(__name__)
 
@@ -45,7 +45,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         LOGGER.debug(f'User {message.from_user.id} started dating')
 
         pg: AsyncPgConnector
-        rmq: RabbitMQConnector
+        rmq: AIORabbitMQConnector
 
         pg, rmq, s3, fm = self.get_connectors_from_context(kwargs)
 
@@ -77,12 +77,12 @@ async def dating_main_menu_actions_callback_handler(
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
 
     pg: AsyncPgConnector
-    rmq: RabbitMQConnector
-    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
     if callback_data.value == 'list_events':
         # triggered from the main menu
-        await _handle_listing_events(query, rmq)
+        await _handle_listing_events(query, rmq, dh)
 
     elif callback_data.value == 'show_rules':
         # triggered from the main menu
@@ -100,8 +100,8 @@ async def dating_event_callback_handler(
 ):
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
 
-    rmq: RabbitMQConnector
-    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
     if callback_data.value == 'event_register':
         # triggered from the event list
@@ -195,7 +195,11 @@ async def _display_dating_rules(query):
     )
 
 
-async def _handle_listing_events(query: CallbackQuery, rmq: RabbitMQConnector):
+async def _handle_listing_events(
+        query: CallbackQuery,
+        rmq: AIORabbitMQConnector,
+        dh: DataHandler
+):
     """
     This method logic:
     - update message text to be suitable for showing a list of events
@@ -222,7 +226,10 @@ async def _handle_listing_events(query: CallbackQuery, rmq: RabbitMQConnector):
 
         builder.button(
             text=_('back button'),
-            callback_data=DatingMenuActionsCallbackData(action='action', value='go_dating_main_menu'),
+            callback_data=DatingMenuActionsCallbackData(
+                action='action',
+                value='go_dating_main_menu'
+            ),
         )
 
         await query.bot.edit_message_text(
@@ -232,18 +239,17 @@ async def _handle_listing_events(query: CallbackQuery, rmq: RabbitMQConnector):
             parse_mode=ParseMode.HTML,
             reply_markup=builder.as_markup(),
         )
-        rmq.publish(
+        await rmq.publish(
             message=DATE_MAKER_COMMANDS['list_events'],
             routing_key='date_maker_dev',
             exchange='chathub_direct_main',
-            properties=BasicProperties(
-                headers={
-                    'user_id': str(query.from_user.id),
-                    'chat_id': str(query.message.chat.id),
-                    'message_id': str(query.message.message_id),
-                }
-            ),
+            headers={
+                'user_id': str(query.from_user.id),
+                'chat_id': str(query.message.chat.id),
+                'message_id': str(query.message.message_id),
+            },
         )
+        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.process_list_events)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -251,7 +257,7 @@ async def _handle_listing_events(query: CallbackQuery, rmq: RabbitMQConnector):
 
 async def _handle_event_registration(
         query: CallbackQuery,
-        rmq: RabbitMQConnector,
+        rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData
 ):
     LOGGER.debug(f'Registering user {query.from_user.id} to event {callback_data.event_id}')
@@ -272,17 +278,15 @@ async def _handle_event_registration(
             parse_mode=ParseMode.HTML,
             reply_markup=builder.as_markup(),
         )
-        rmq.publish(
+        await rmq.publish(
             message=DATE_MAKER_COMMANDS['register_user_to_event'],
             routing_key='date_maker_dev',
             exchange='chathub_direct_main',
-            properties=BasicProperties(
-                headers={
-                    'user_id': str(query.from_user.id),
-                    'chat_id': str(query.message.chat.id),
-                    'message_id': str(query.message.message_id),
-                }
-            ),
+            headers={
+                'user_id': str(query.from_user.id),
+                'chat_id': str(query.message.chat.id),
+                'message_id': str(query.message.message_id),
+            },
         )
 
     except TelegramBadRequest as e:
@@ -291,7 +295,7 @@ async def _handle_event_registration(
 
 async def _handle_cancelling_event_registration(
         query: CallbackQuery,
-        rmq: RabbitMQConnector,
+        rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData
 ):
     try:
@@ -347,17 +351,15 @@ async def _handle_cancelling_event_registration(
                 reply_markup=builder.as_markup(),
             )
 
-            rmq.publish(
+            await rmq.publish(
                 message=DATE_MAKER_COMMANDS['register_user_to_event'],
                 routing_key='date_maker_dev',
                 exchange='chathub_direct_main',
-                properties=BasicProperties(
-                    headers={
-                        'user_id': str(query.from_user.id),
-                        'chat_id': str(query.message.chat.id),
-                        'message_id': str(query.message.message_id),
-                    }
-                ),
+                headers={
+                    'user_id': str(query.from_user.id),
+                    'chat_id': str(query.message.chat.id),
+                    'message_id': str(query.message.message_id),
+                },
             )
 
     except TelegramBadRequest as e:

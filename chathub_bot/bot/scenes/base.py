@@ -16,7 +16,7 @@ from aiogram.types import Message, CallbackQuery
 
 
 class BaseSpeedDatingScene(Scene, abc.ABC):
-    connectors_list = ['pg', 'rmq', 's3', 'tfm']
+    connectors_list = ['pg', 'rmq', 's3', 'tfm', 'dh']
 
     @abc.abstractmethod
     async def on_enter(self, message: Message, state: FSMContext) -> Any:

@@ -124,3 +124,13 @@ GMeet для выявления того что мы можем сохранят
 `chathub_bot/bot/__init__.py:24` и `datemaker/datemaker/__init__.py:22`.
 Данные должны представлять собой json.
 [Пример](https://github.com/meznick/chathub/blob/0c20fb6ac3e50d8baede783df0bc452a577802fe/datemaker/datemaker/service.py#L170)
+
+[Пример](https://github.com/meznick/chathub/blob/0c20fb6ac3e50d8baede783df0bc452a577802fe/datemaker/datemaker/service.py#L119-L141) 
+обработки комманд.
+
+Механизм обработки данных:
+1. При отправке команды через брокер создается запись в DataHandler о том что
+ожидается обработка данных по ключу чат+сообщение.
+2. При чтении новых сообщений в брокере, они обрабатываются в соответствии с
+созданными записями.
+3. После обработки запись в DataHandler удаляется.
