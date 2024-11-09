@@ -15,19 +15,19 @@ from aiogram.utils.i18n import I18n, SimpleI18nMiddleware
 from bot import (
     MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT,
     MESSAGE_BROKER_VIRTUAL_HOST, MESSAGE_BROKER_EXCHANGE, MESSAGE_BROKER_QUEUE,
-    MESSAGE_BROKER_ROUTING_KEY, MESSAGE_BROKER_USERNAME, MESSAGE_BROKER_PASSWORD,
+    MESSAGE_BROKER_USERNAME, MESSAGE_BROKER_PASSWORD,
     POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
     AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, AWS_BUCKET, setup_logger
 )
+from bot.data_handler import DataHandler
 from bot.dev_router import dev_router
 from bot.middlewares import CallbackI18nMiddleware
 from bot.scenes import scenes_router, RegistrationScene, ProfileEditingScene
-from bot.scenes.data_handler import DataHandler
 from bot.scenes.dating import DatingScene
 from bot.tmp_files_manager import TempFileManager
 from chathub_connectors.aws_connectors import S3Client
 from chathub_connectors.postgres_connector import AsyncPgConnector
-from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
+from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
 LOGGER = setup_logger(__name__)
 

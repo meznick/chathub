@@ -14,8 +14,8 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
+from bot.data_handler import DataHandler
 from bot.scenes.base import BaseSpeedDatingScene
-from bot.scenes.data_handler import DataHandler
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
