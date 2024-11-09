@@ -47,7 +47,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         pg: AsyncPgConnector
         rmq: AIORabbitMQConnector
 
-        pg, rmq, s3, fm = self.get_connectors_from_context(kwargs)
+        pg, rmq, s3, fm, gh = self.get_connectors_from_context(kwargs)
 
         user = await pg.get_user(message.from_user.id)
 
