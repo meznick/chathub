@@ -117,29 +117,22 @@ class DatingBot:
 
     def _register_middlewares(self):
         # applying order makes sense!
+        self.i18n = I18n(path="bot/locales", default_locale="ru", domain="bot")
         self._dp.message.middleware(SimpleI18nMiddleware(
-            i18n=I18n(
-                path="bot/locales",
-                default_locale="ru",
-                domain="bot"
-            ),
+            i18n=self.i18n,
         ))
         self._dp.callback_query.middleware(CallbackI18nMiddleware(
-            i18n=I18n(
-                path="bot/locales",
-                default_locale="ru",
-                domain="bot"
-            )
+            i18n=self.i18n
         ))
 
     async def process_rmq_message(self, message: aio_pika.abc.AbstractIncomingMessage):
-        async with message.process():
+        async with message.process(ignore_processed=True):
             print(message.body, message.properties.headers)
             chat_id = message.properties.headers["chat_id"]
             message_id = message.properties.headers["message_id"]
             key = f'{chat_id}_{message_id}'
             if await self._bot.dh.waiting[key](
-                bot=self._bot,
+                bot=self,
                 chat_id=chat_id,
                 message_id=message_id,
                 data=json.loads(message.body)

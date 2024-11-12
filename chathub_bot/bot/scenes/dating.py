@@ -1,11 +1,9 @@
-from datetime import datetime
 from typing import Any
 
 from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.scene import on
 from aiogram.types import Message, CallbackQuery
@@ -14,24 +12,12 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
-from bot.data_handler import DataHandler
 from bot.scenes.base import BaseSpeedDatingScene
+from bot.scenes.callback_data import DatingMenuActionsCallbackData, DatingEventCallbackData
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
 LOGGER = setup_logger(__name__)
-
-
-class DatingMenuActionsCallbackData(CallbackData, sep=':', prefix='dating_main_menu'):
-    action: str
-    value: str
-
-
-class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
-    action: str
-    event_id: int
-    user_id: int
-    event_time: datetime = None
 
 
 class DatingScene(BaseSpeedDatingScene, state='dating'):
@@ -198,7 +184,7 @@ async def _display_dating_rules(query):
 async def _handle_listing_events(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
-        dh: DataHandler
+        dh,
 ):
     """
     This method logic:
@@ -217,6 +203,8 @@ async def _handle_listing_events(
 
     :param query:
     :param rmq:
+    :param dh:
+    :type dh: DataHandler
     :return:
     """
     LOGGER.debug(f'Listing events for user {query.from_user.id}')
