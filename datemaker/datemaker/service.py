@@ -9,7 +9,7 @@ from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
-from datemaker import setup_logger, DATE_MAKER_COMMANDS
+from datemaker import setup_logger, DATE_MAKER_COMMANDS, DateMakerCommands
 from .meet_api_controller import GoogleMeetApiController
 
 # also, we probably will need connector to DB, user management, authentication
@@ -23,8 +23,6 @@ class DateMakerService:
     # inside __init__.py
     meet_api_controller: GoogleMeetApiController = None
     message_broker_controller: RabbitMQConnector = None
-
-    supported_commands = DATE_MAKER_COMMANDS
 
     def __init__(
             self,
@@ -121,10 +119,10 @@ class DateMakerService:
             if not user:
                 raise Exception('No user found')
 
-            if self.supported_commands['list_events'] in message:
+            if DateMakerCommands.LIST_EVENTS.value in message:
                 self.list_events(user, message_params)
 
-            elif self.supported_commands['register_user_to_event'] in message:
+            elif DateMakerCommands.REGISTER_USER_TO_EVENT.value in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
                     LOGGER.error(
@@ -132,7 +130,7 @@ class DateMakerService:
                     )
                 self.register_user_to_event(user, message_params)
 
-            elif self.supported_commands['confirm_user_event_registration'] in message:
+            elif DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
                     LOGGER.error(
