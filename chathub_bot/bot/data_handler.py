@@ -6,7 +6,11 @@ from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import setup_logger
-from bot.scenes.callback_data import DatingMenuActionsCallbackData, DatingEventCallbackData
+from bot.scenes.callback_data import (
+    DatingMenuActionsCallbackData,
+    DatingEventCallbackData,
+    DatingEventActions, DatingMenuActions
+)
 
 LOGGER = setup_logger(__name__)
 
@@ -68,7 +72,7 @@ class DataHandler:
                 builder.button(
                     text=f'{event_id}: {start_time}',
                     callback_data=DatingEventCallbackData(
-                        action='register',
+                        action=DatingEventActions.REGISTER,
                         event_id=event_id,
                         user_id=chat_id,
                     ),
@@ -77,8 +81,7 @@ class DataHandler:
             builder.button(
                 text=_('back button'),
                 callback_data=DatingMenuActionsCallbackData(
-                    action='action',
-                    value='go_dating_main_menu'
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU
                 ),
             )
 
@@ -93,8 +96,7 @@ class DataHandler:
             builder.button(
                 text=_('back button'),
                 callback_data=DatingMenuActionsCallbackData(
-                    action='action',
-                    value='go_dating_main_menu'
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU
                 ),
             )
             builder.adjust(1)

@@ -4,9 +4,14 @@ from enum import Enum
 from aiogram.filters.callback_data import CallbackData
 
 
+class DatingMenuActions(Enum):
+    LIST_EVENTS = 'list_events'
+    SHOW_RULES = 'show_rules'
+    GO_DATING_MAIN_MENU = 'go_dating_main_menu'
+
+
 class DatingMenuActionsCallbackData(CallbackData, sep=':', prefix='dating_main_menu'):
     action: str
-    value: str
 
 
 class DatingEventActions(Enum):

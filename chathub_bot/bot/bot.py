@@ -127,7 +127,6 @@ class DatingBot:
 
     async def process_rmq_message(self, message: aio_pika.abc.AbstractIncomingMessage):
         async with message.process(ignore_processed=True):
-            print(message.body, message.properties.headers)
             chat_id = message.properties.headers["chat_id"]
             message_id = message.properties.headers["message_id"]
             key = f'{chat_id}_{message_id}'

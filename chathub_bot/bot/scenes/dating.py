@@ -13,8 +13,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
 from bot.scenes.base import BaseSpeedDatingScene
-from bot.scenes.callback_data import DatingMenuActionsCallbackData, DatingEventCallbackData, \
-    DatingEventActions
+from bot.scenes.callback_data import (
+    DatingMenuActionsCallbackData,
+    DatingEventCallbackData,
+    DatingEventActions, DatingMenuActions
+)
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
@@ -67,15 +70,15 @@ async def dating_main_menu_actions_callback_handler(
     rmq: AIORabbitMQConnector
     pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
-    if callback_data.value == 'list_events':
+    if callback_data.action == DatingMenuActions.LIST_EVENTS.value:
         # triggered from the main menu
         await _handle_listing_events(query, rmq, dh)
 
-    elif callback_data.value == 'show_rules':
+    elif callback_data.action == DatingMenuActions.SHOW_RULES.value:
         # triggered from the main menu
         await _display_dating_rules(query)
 
-    elif callback_data.value == 'go_dating_main_menu':
+    elif callback_data.action == DatingMenuActions.GO_DATING_MAIN_MENU.value:
         # triggered from anywhere
         await _display_main_menu(user_id=query.from_user.id, query=query, edit=True, pg=pg)
 
@@ -90,11 +93,11 @@ async def dating_event_callback_handler(
     rmq: AIORabbitMQConnector
     pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
-    if callback_data.value == 'event_register':
+    if callback_data.action == DatingEventActions.REGISTER.value:
         # triggered from the event list
         await _handle_event_registration(query, rmq, callback_data)
 
-    elif callback_data.value == 'cancel_event_registration':
+    elif callback_data.action == DatingEventActions.CANCEL.value:
         # triggered from the main menu
         await _handle_cancelling_event_registration(query, rmq, callback_data)
 
@@ -123,16 +126,16 @@ async def _display_main_menu(
     builder = InlineKeyboardBuilder()
     builder.button(
         text=_('dating rules'),
-        callback_data=DatingMenuActionsCallbackData(action='action', value='show_rules'),
+        callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.SHOW_RULES),
     )
     builder.button(
         text=_('list events'),
-        callback_data=DatingMenuActionsCallbackData(action='action', value='list_events'),
+        callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.LIST_EVENTS),
     )
     builder.button(
         text=_('cancel event registration'),
         callback_data=DatingEventCallbackData(
-            action='cancel',
+            action=DatingEventActions.CANCEL,
             event_id=0,
             user_id=user_id,
         ),
@@ -168,8 +171,7 @@ async def _display_dating_rules(query):
     builder.button(
         text=_('back button'),
         callback_data=DatingMenuActionsCallbackData(
-            action='action',
-            value='go_dating_main_menu'
+            action=DatingMenuActions.GO_DATING_MAIN_MENU
         ),
     )
 
@@ -216,8 +218,7 @@ async def _handle_listing_events(
         builder.button(
             text=_('back button'),
             callback_data=DatingMenuActionsCallbackData(
-                action='action',
-                value='go_dating_main_menu'
+                action=DatingMenuActions.GO_DATING_MAIN_MENU
             ),
         )
 
@@ -255,7 +256,9 @@ async def _handle_event_registration(
 
         builder.button(
             text=_('back button'),
-            callback_data=DatingMenuActionsCallbackData(action='action', value='go_dating_main_menu'),
+            callback_data=DatingMenuActionsCallbackData(
+                action=DatingMenuActions.GO_DATING_MAIN_MENU
+            ),
         )
 
         dating_event = f'Event #{callback_data.event_id}: {callback_data.event_time}'
@@ -294,8 +297,9 @@ async def _handle_cancelling_event_registration(
             builder = InlineKeyboardBuilder()
             builder.button(
                 text=_('back button'),
-                callback_data=DatingMenuActionsCallbackData(action='action',
-                                                            value='go_dating_main_menu'),
+                callback_data=DatingMenuActionsCallbackData(
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU
+                ),
             )
             builder.button(
                 text=_('cancel registration'),
@@ -327,8 +331,7 @@ async def _handle_cancelling_event_registration(
             builder.button(
                 text=_('back button'),
                 callback_data=DatingMenuActionsCallbackData(
-                    action='action',
-                    value='go_dating_main_menu'
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU
                 ),
             )
 
