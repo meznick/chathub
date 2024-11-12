@@ -13,7 +13,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import setup_logger, DATE_MAKER_COMMANDS
 from bot.scenes.base import BaseSpeedDatingScene
-from bot.scenes.callback_data import DatingMenuActionsCallbackData, DatingEventCallbackData
+from bot.scenes.callback_data import DatingMenuActionsCallbackData, DatingEventCallbackData, \
+    DatingEventActions
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
@@ -299,7 +300,7 @@ async def _handle_cancelling_event_registration(
             builder.button(
                 text=_('cancel registration'),
                 callback_data=DatingEventCallbackData(
-                    action='cancel',
+                    action=DatingEventActions.CANCEL,
                     event_id=callback_data.event_id,
                     user_id=query.from_user.id,
                 ),
