@@ -122,6 +122,8 @@ class DataHandler:
         Processing result of an operation that returns just a status:
         success or failure.
         """
+        _ = bot.i18n.gettext
+        bot = bot._bot
         command_name = [key for key in data.keys()][0]
         succeed = data[command_name]
         if succeed:
