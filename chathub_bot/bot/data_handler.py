@@ -72,7 +72,7 @@ class DataHandler:
                 builder.button(
                     text=f'{event_id}: {start_time}',
                     callback_data=DatingEventCallbackData(
-                        action=DatingEventActions.REGISTER,
+                        action=DatingEventActions.REGISTER.value,
                         event_id=event_id,
                         user_id=chat_id,
                     ),
@@ -81,7 +81,7 @@ class DataHandler:
             builder.button(
                 text=_('back button'),
                 callback_data=DatingMenuActionsCallbackData(
-                    action=DatingMenuActions.GO_DATING_MAIN_MENU
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU.value
                 ),
             )
 
@@ -96,7 +96,7 @@ class DataHandler:
             builder.button(
                 text=_('back button'),
                 callback_data=DatingMenuActionsCallbackData(
-                    action=DatingMenuActions.GO_DATING_MAIN_MENU
+                    action=DatingMenuActions.GO_DATING_MAIN_MENU.value
                 ),
             )
             builder.adjust(1)

@@ -3,6 +3,8 @@ import os
 
 __version__ = '0.1.0'
 
+from enum import Enum
+
 
 def setup_logger(name):
     logger = logging.getLogger(name)
@@ -21,11 +23,11 @@ def setup_logger(name):
 
 
 # same as datemaker/datemaker/__init__.py:22
-DATE_MAKER_COMMANDS = {
-    'list_events': 'list_events',
-    'register_user_to_event': 'register_event',
-    'confirm_user_event_registration': 'confirm_registration',
-}
+class DateMakerCommands(Enum):
+    LIST_EVENTS = 'list_events'
+    REGISTER_USER_TO_EVENT = 'register_event'
+    CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
+
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
 # Read RabbitMQ settings and credentials from environment

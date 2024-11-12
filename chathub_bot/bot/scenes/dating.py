@@ -11,7 +11,7 @@ from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot import setup_logger, DATE_MAKER_COMMANDS
+from bot import setup_logger, DateMakerCommands
 from bot.scenes.base import BaseSpeedDatingScene
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
@@ -135,7 +135,7 @@ async def _display_main_menu(
     builder.button(
         text=_('cancel event registration'),
         callback_data=DatingEventCallbackData(
-            action=DatingEventActions.CANCEL,
+            action=DatingEventActions.CANCEL.value,
             event_id=0,
             user_id=user_id,
         ),
@@ -230,7 +230,7 @@ async def _handle_listing_events(
             reply_markup=builder.as_markup(),
         )
         await rmq.publish(
-            message=DATE_MAKER_COMMANDS['list_events'],
+            message=DateMakerCommands.LIST_EVENTS.value,
             routing_key='date_maker_dev',
             exchange='chathub_direct_main',
             headers={
@@ -271,7 +271,7 @@ async def _handle_event_registration(
             reply_markup=builder.as_markup(),
         )
         await rmq.publish(
-            message=DATE_MAKER_COMMANDS['register_user_to_event'],
+            message=DateMakerCommands.REGISTER_USER_TO_EVENT.value,
             routing_key='date_maker_dev',
             exchange='chathub_direct_main',
             headers={
@@ -304,7 +304,7 @@ async def _handle_cancelling_event_registration(
             builder.button(
                 text=_('cancel registration'),
                 callback_data=DatingEventCallbackData(
-                    action=DatingEventActions.CANCEL,
+                    action=DatingEventActions.CANCEL.value,
                     event_id=callback_data.event_id,
                     user_id=query.from_user.id,
                 ),
@@ -344,7 +344,7 @@ async def _handle_cancelling_event_registration(
             )
 
             await rmq.publish(
-                message=DATE_MAKER_COMMANDS['register_user_to_event'],
+                message=DateMakerCommands.REGISTER_USER_TO_EVENT.value,
                 routing_key='date_maker_dev',
                 exchange='chathub_direct_main',
                 headers={
