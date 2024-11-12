@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-09-03 16:17+0300\n"
+"POT-Creation-Date: 2024-11-12 17:07+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,19 +14,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/scenes/dating.py:61 bot/scenes/dating.py:132
+#: bot/data_handler.py:78 bot/data_handler.py:94 bot/scenes/dating.py:169
+#: bot/scenes/dating.py:217 bot/scenes/dating.py:257 bot/scenes/dating.py:296
+#: bot/scenes/dating.py:328
+msgid "back button"
+msgstr "🔙 back"
+
+#: bot/data_handler.py:105
+msgid "there are no events"
+msgstr "Sorry, there are no events available now 😢"
+
+#: bot/data_handler.py:128
+msgid "operation was succeeded"
+msgstr "Oops😢"
+
+#: bot/data_handler.py:134
+msgid "operation failed"
+msgstr "Done!😊"
+
+#: bot/scenes/dating.py:125 bot/scenes/dating.py:179
 msgid "dating rules"
 msgstr "⚠️ rules"
 
-#: bot/scenes/dating.py:65
+#: bot/scenes/dating.py:129
 msgid "list events"
 msgstr "🗓 events"
 
-#: bot/scenes/dating.py:69
+#: bot/scenes/dating.py:133
 msgid "cancel event registration"
 msgstr "❌ cancel registration"
 
-#: bot/scenes/dating.py:78
+#: bot/scenes/dating.py:146 bot/scenes/dating.py:156
 msgid "welcome to dating platform {name}"
 msgstr ""
 "Hello! 👋 Welcome to our dating platform! We're excited to help you "
@@ -41,32 +59,27 @@ msgstr ""
 "\n"
 "Enjoy your time here, and happy connecting! ❤️"
 
-#: bot/scenes/dating.py:122 bot/scenes/dating.py:183 bot/scenes/dating.py:221
-#: bot/scenes/dating.py:262 bot/scenes/dating.py:294
-msgid "back button"
-msgstr "🔙 back"
-
-#: bot/scenes/dating.py:190
-#, fuzzy
+#: bot/scenes/dating.py:227
 msgid "here is list of events"
-msgstr "🗓 events"
+msgstr "Here's event list"
 
-#: bot/scenes/dating.py:230
+#: bot/scenes/dating.py:266
 msgid "registering you to the event {event}"
-msgstr "You are about to be registered for the event: {event}! 🎉"
-"If you change your mind, you can always cancel your registration before "
-"the event starts. We look forward to seeing you there!"
+msgstr ""
+"You are about to be registered for the event: {event}! 🎉If you change "
+"your mind, you can always cancel your registration before the event "
+"starts. We look forward to seeing you there!"
 
-#: bot/scenes/dating.py:267
+#: bot/scenes/dating.py:301
 #, fuzzy
 msgid "cancel registration"
 msgstr "❌ cancel registration"
 
-#: bot/scenes/dating.py:280
+#: bot/scenes/dating.py:314
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr "Are you sure you want to cancel your registration for this event: {event}?"
 
-#: bot/scenes/dating.py:304
+#: bot/scenes/dating.py:338
 msgid "your registration will be cancelled"
 msgstr "Your registration will be canceled. ❌"
 
