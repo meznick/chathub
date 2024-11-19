@@ -95,11 +95,11 @@ async def dating_event_callback_handler(
 
     if callback_data.action == DatingEventActions.REGISTER:
         # triggered from the event list
-        await _handle_event_registration(query, rmq, callback_data)
+        await _handle_event_registration(query, rmq, callback_data, dh)
 
     elif callback_data.action == DatingEventActions.CANCEL:
         # triggered from the main menu
-        await _handle_cancelling_event_registration(query, rmq, callback_data)
+        await _handle_cancelling_event_registration(query, rmq, callback_data, dh)
 
 
 async def _display_main_menu(
@@ -248,7 +248,8 @@ async def _handle_listing_events(
 async def _handle_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
-        callback_data: DatingEventCallbackData
+        callback_data: DatingEventCallbackData,
+        dh,
 ):
     LOGGER.debug(f'Registering user {query.from_user.id} to event {callback_data.event_id}')
     try:
@@ -261,7 +262,7 @@ async def _handle_event_registration(
             ),
         )
 
-        dating_event = f'Event #{callback_data.event_id}: {callback_data.event_time}'
+        dating_event = f'Event #{callback_data.event_id}'
 
         await query.bot.edit_message_text(
             chat_id=query.message.chat.id,
@@ -278,8 +279,10 @@ async def _handle_event_registration(
                 'user_id': str(query.from_user.id),
                 'chat_id': str(query.message.chat.id),
                 'message_id': str(query.message.message_id),
+                'event_id': str(callback_data.event_id),
             },
         )
+        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -288,7 +291,8 @@ async def _handle_event_registration(
 async def _handle_cancelling_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
-        callback_data: DatingEventCallbackData
+        callback_data: DatingEventCallbackData,
+        dh,
 ):
     try:
         if callback_data.event_id == 0:
@@ -353,6 +357,7 @@ async def _handle_cancelling_event_registration(
                     'message_id': str(query.message.message_id),
                 },
             )
+        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')

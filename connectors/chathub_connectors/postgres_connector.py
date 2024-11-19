@@ -3,14 +3,12 @@ from datetime import datetime
 from typing import Optional, List
 
 import asyncpg
+import psycopg2
 from asyncpg import Record
-from oauthlib.uri_validate import query
-from psycopg2.extras import RealDictCursor
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor, RealDictRow
 
 from chathub_connectors import setup_logger
-
-import psycopg2
-from psycopg2 import sql, Error
 
 LOGGER = setup_logger(__name__)
 LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
@@ -386,7 +384,7 @@ class PostgresConnection:
         except Error as e:
             LOGGER.error(f"Error: {e}")
 
-    def get_user(self, user_id: int) -> Optional[Record]:
+    def get_user(self, user_id: int) -> Optional[RealDictRow]:
         """
         :param user_id: ID of the user to fetch.
         :return: The user data fetched from the database.
@@ -395,7 +393,7 @@ class PostgresConnection:
             self.connect()
 
         request_query = 'SELECT * FROM users WHERE id = %s;'
-        data = self._fetch_results(request_query, (user_id,))
+        data = self._fetch_results(request_query, (user_id,))[0]
         LOGGER.debug(f'Fetched user: {data}')
         return data
 
@@ -404,7 +402,7 @@ class PostgresConnection:
             user: Record = None,
             include_finished: bool = False,
             limit: int = 10
-    ):
+    ) -> List[RealDictRow]:
         """
         List Dating Events
 
@@ -444,7 +442,7 @@ class PostgresConnection:
     def get_event_registrations(
             self,
             event_id: int
-    ) -> List[Record]:
+    ) -> List[RealDictRow]:
         """
         List Event Registrations.
         :param event_id:

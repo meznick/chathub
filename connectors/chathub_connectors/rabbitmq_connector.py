@@ -167,7 +167,7 @@ class RabbitMQConnector:
                 properties=properties
             )
             LOGGER.debug(
-                f'Message "{message[:10]}..." (RK {routing_key}) published to exchange {exchange}'
+                f'Message "{message[:30]}..." (RK {routing_key}) published to exchange {exchange}'
             )
         else:
             LOGGER.warning('Cannot publish message because channel is not open')
@@ -266,5 +266,5 @@ class AIORabbitMQConnector:
             ),
         )
         LOGGER.debug(
-            f'Message "{message[:10]}..." (RK {routing_key}) published to exchange {exchange}'
+            f'Message "{message[:30]}..." (RK {routing_key}) published to exchange {exchange}'
         )

@@ -200,7 +200,7 @@ class DateMakerService:
         )
 
         registered_users = [
-            user.get('id') for user in event_registrations
+            user.get('user_id') for user in event_registrations
         ]
 
         if user.get('id') not in registered_users:

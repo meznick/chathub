@@ -9,7 +9,8 @@ from bot import setup_logger
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
     DatingEventCallbackData,
-    DatingEventActions, DatingMenuActions
+    DatingEventActions,
+    DatingMenuActions
 )
 
 LOGGER = setup_logger(__name__)
@@ -127,12 +128,14 @@ class DataHandler:
         command_name = [key for key in data.keys()][0]
         succeed = data[command_name]
         if succeed:
+            LOGGER.debug(f'Operation {command_name} was succeeded for {chat_id}')
             await bot.send_message(
                 chat_id=chat_id,
                 text=_('operation was succeeded'),
                 parse_mode=ParseMode.HTML,
             )
         else:
+            LOGGER.debug(f'Operation {command_name} was failed for {chat_id}')
             await bot.send_message(
                 chat_id=chat_id,
                 text=_('operation failed'),
