@@ -11,7 +11,7 @@ class DatingMenuActions(Enum):
 
 
 class DatingMenuActionsCallbackData(CallbackData, sep=':', prefix='dating_main_menu'):
-    action: str
+    action: DatingMenuActions
 
 
 class DatingEventActions(Enum):
@@ -20,7 +20,7 @@ class DatingEventActions(Enum):
 
 
 class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
-    action: str
+    action: DatingEventActions
     event_id: int
     user_id: int
     event_time: datetime = None

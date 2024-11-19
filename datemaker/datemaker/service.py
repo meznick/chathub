@@ -9,7 +9,7 @@ from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
-from datemaker import setup_logger, DATE_MAKER_COMMANDS, DateMakerCommands
+from datemaker import setup_logger, DateMakerCommands
 from .meet_api_controller import GoogleMeetApiController
 
 # also, we probably will need connector to DB, user management, authentication

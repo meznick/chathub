@@ -70,15 +70,15 @@ async def dating_main_menu_actions_callback_handler(
     rmq: AIORabbitMQConnector
     pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
-    if callback_data.action == DatingMenuActions.LIST_EVENTS.value:
+    if callback_data.action == DatingMenuActions.LIST_EVENTS:
         # triggered from the main menu
         await _handle_listing_events(query, rmq, dh)
 
-    elif callback_data.action == DatingMenuActions.SHOW_RULES.value:
+    elif callback_data.action == DatingMenuActions.SHOW_RULES:
         # triggered from the main menu
         await _display_dating_rules(query)
 
-    elif callback_data.action == DatingMenuActions.GO_DATING_MAIN_MENU.value:
+    elif callback_data.action == DatingMenuActions.GO_DATING_MAIN_MENU:
         # triggered from anywhere
         await _display_main_menu(user_id=query.from_user.id, query=query, edit=True, pg=pg)
 
@@ -93,11 +93,11 @@ async def dating_event_callback_handler(
     rmq: AIORabbitMQConnector
     pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
 
-    if callback_data.action == DatingEventActions.REGISTER.value:
+    if callback_data.action == DatingEventActions.REGISTER:
         # triggered from the event list
         await _handle_event_registration(query, rmq, callback_data)
 
-    elif callback_data.action == DatingEventActions.CANCEL.value:
+    elif callback_data.action == DatingEventActions.CANCEL:
         # triggered from the main menu
         await _handle_cancelling_event_registration(query, rmq, callback_data)
 
