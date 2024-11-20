@@ -140,6 +140,10 @@ class DatingBot:
                     await message.ack()
             except KeyError:
                 LOGGER.warning(f'Cannot find {key} in waiting list, skipping processing')
+            except json.decoder.JSONDecodeError:
+                LOGGER.error(
+                    f'Got badly structured response from message broker: {message.body[:30]}'
+                )
 
     async def start_long_polling(self) -> None:
         LOGGER.debug('Starting long polling...')

@@ -138,6 +138,7 @@ async def _display_main_menu(
             action=DatingEventActions.CANCEL.value,
             event_id=0,
             user_id=user_id,
+            confirmed=False,
         ),
     )
     builder.adjust(1)
@@ -294,70 +295,63 @@ async def _handle_cancelling_event_registration(
         callback_data: DatingEventCallbackData,
         dh,
 ):
+    LOGGER.debug(f'User {query.from_user.id} is cancelling registrations')
+
     try:
-        if callback_data.event_id == 0:
-            LOGGER.debug(f'User {query.from_user.id} is cancelling registration')
-
-            builder = InlineKeyboardBuilder()
-            builder.button(
-                text=_('back button'),
-                callback_data=DatingMenuActionsCallbackData(
-                    action=DatingMenuActions.GO_DATING_MAIN_MENU
-                ),
-            )
-            builder.button(
-                text=_('cancel registration'),
-                callback_data=DatingEventCallbackData(
-                    action=DatingEventActions.CANCEL.value,
-                    event_id=callback_data.event_id,
-                    user_id=query.from_user.id,
-                ),
-            )
-
-            dating_event = f'Event #{callback_data.event_id}: {callback_data.event_time}'
-
-            await query.bot.edit_message_text(
-                chat_id=query.message.chat.id,
-                message_id=query.message.message_id,
-                text=_('are you sure you want to cancel registration to event {event}').format(
-                    event=dating_event
-                ),
-                parse_mode=ParseMode.HTML,
-                reply_markup=builder.as_markup(),
-            )
+        if not callback_data.confirmed:
+            await _ask_for_cancelling_confirmation(callback_data, query)
         else:
-            LOGGER.debug(
-                f'User {query.from_user.id} is cancelling '
-                f'registration to event {callback_data.event_id}'
-            )
-
-            builder = InlineKeyboardBuilder()
-            builder.button(
-                text=_('back button'),
-                callback_data=DatingMenuActionsCallbackData(
-                    action=DatingMenuActions.GO_DATING_MAIN_MENU
-                ),
-            )
-
-            await query.bot.edit_message_text(
-                chat_id=query.message.chat.id,
-                message_id=query.message.message_id,
-                text=_('your registration will be cancelled'),
-                parse_mode=ParseMode.HTML,
-                reply_markup=builder.as_markup(),
-            )
-
-            await rmq.publish(
-                message=DateMakerCommands.REGISTER_USER_TO_EVENT.value,
-                routing_key='date_maker_dev',
-                exchange='chathub_direct_main',
-                headers={
-                    'user_id': str(query.from_user.id),
-                    'chat_id': str(query.message.chat.id),
-                    'message_id': str(query.message.message_id),
-                },
-            )
-        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+            await _cancel_registration(callback_data, dh, query, rmq)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
+
+
+async def _cancel_registration(callback_data, dh, query, rmq):
+    await rmq.publish(
+        message=DateMakerCommands.CANCEL_REGISTRATION.value,
+        routing_key='date_maker_dev',
+        exchange='chathub_direct_main',
+        headers={
+            'user_id': str(query.from_user.id),
+            'chat_id': str(query.message.chat.id),
+            'message_id': str(query.message.message_id),
+            'event_id': str(callback_data.event_id),
+        },
+    )
+    dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+
+
+async def _ask_for_cancelling_confirmation(callback_data, query):
+    if callback_data.event_id == 0:
+        # user wants to cancel all registrations
+        message_text = _('are you sure you want to cancel all registrations?')
+    else:
+        # user wants to cancel one registration
+        dating_event = f'Event #{callback_data.event_id}'
+        message_text = _('are you sure you want to cancel registration to event {event}').format(
+            event=dating_event
+        )
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=_('back button'),
+        callback_data=DatingMenuActionsCallbackData(
+            action=DatingMenuActions.GO_DATING_MAIN_MENU
+        ),
+    )
+    builder.button(
+        text=_('cancel registration'),
+        callback_data=DatingEventCallbackData(
+            action=DatingEventActions.CANCEL.value,
+            event_id=callback_data.event_id,
+            user_id=query.from_user.id,
+            confirmed=True,
+        ),
+    )
+    await query.bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=message_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=builder.as_markup(),
+    )

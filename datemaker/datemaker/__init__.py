@@ -23,6 +23,7 @@ def setup_logger(name):
 class DateMakerCommands(Enum):
     LIST_EVENTS = 'list_events'
     REGISTER_USER_TO_EVENT = 'register_event'
+    CANCEL_REGISTRATION = 'cancel_registration'
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 

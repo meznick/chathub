@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 
+from kombu.pools import reset
 from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection
@@ -106,8 +107,8 @@ class DateMakerService:
         :param body: message body
         """
         LOGGER.debug(
-            f'Got message on channel {channel}: {body}. '
-            f'Method: {method}, properties: {properties}.'
+            f'Got message on channel {channel.channel_number}: {body}. '
+            f'Method: {method}. Headers: {properties.headers}.'
         )
         # properties should contain data to return answer to right user:
         # - chat id (from tg bot)?
@@ -136,7 +137,21 @@ class DateMakerService:
                     LOGGER.error(
                         f'No event_id got with registration confirmation for user {user}: {message}'
                     )
-                self.confirm_user_event_registration(user)
+                self.confirm_user_event_registration(user, message_params)
+
+            elif DateMakerCommands.CANCEL_REGISTRATION.value in message:
+                event_id = int(message_params.get('event_id', -1))
+                if event_id != 0:
+                    self.cancel_event_registration(user, message_params)
+                elif event_id == 0:
+                    events = self.postgres_controller.get_event_registrations_for_user(user)
+                    for event_id in [event['event_id'] for event in events]:
+                        message_params.update({'event_id': event_id})
+                        self.cancel_event_registration(user, message_params)
+                else:
+                    LOGGER.error(
+                        f'No event_id got with registration cancellation for user {user}: {message}'
+                    )
 
         except Exception as e:
             LOGGER.error(
@@ -146,7 +161,7 @@ class DateMakerService:
                 f'Error: {e}'
             )
             self.message_broker_controller.publish(
-                'error in processing message',
+                json.dumps({'success': False}),
                 routing_key='tg_bot_dev',
                 exchange='chathub_direct_main',
                 properties=BasicProperties(headers=message_params)
@@ -259,6 +274,31 @@ class DateMakerService:
         result = {
             'registration_confirmed': is_confirmed
         }
+        self.message_broker_controller.publish(
+            json.dumps(result),
+            routing_key='tg_bot_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(headers=message_params)
+        )
+
+    def cancel_event_registration(self, user, message_params: dict):
+        event_id = int(message_params['event_id'])
+        is_cancelled = False
+        event_registrations = self.postgres_controller.get_event_registrations(
+            event_id
+        )
+        registered_users = [
+            user.get('user_id') for user in event_registrations
+        ]
+
+        if user.get('id') in registered_users:
+            self.postgres_controller.cancel_registration(
+                user=user,
+                event_id=event_id
+            )
+            is_cancelled = True
+
+        result = {'registration_cancelled': is_cancelled}
         self.message_broker_controller.publish(
             json.dumps(result),
             routing_key='tg_bot_dev',

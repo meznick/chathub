@@ -454,7 +454,17 @@ class PostgresConnection:
             WHERE event_id = %s;
         """
         data = self._fetch_results(request_query, (event_id,))
-        LOGGER.debug(f'Found {len(data)} event registrations')
+        LOGGER.debug(f'Found {len(data)} event registrations for event {event_id}')
+        return data
+
+    def get_event_registrations_for_user(self, user: RealDictRow):
+        request_query = """
+            SELECT DISTINCT event_id
+            FROM public.dating_registrations
+            WHERE user_id = %s;
+        """
+        data = self._fetch_results(request_query, (user.get('id'),))
+        LOGGER.debug(f'Found {len(data)} event registrations for user {user.get("id")}')
         return data
 
     def register_for_event(
@@ -494,6 +504,21 @@ class PostgresConnection:
         LOGGER.debug(
             f'User {user.get("id")} confirmed registration for event {event_id}'
         )
+
+    def cancel_registration(self, user: Record, event_id: int):
+        """
+        Method for registration cancellation.
+
+        :param user:
+        :param event_id:
+        :return:
+        """
+        cancel_query = """
+            DELETE FROM public.dating_registrations
+            WHERE user_id = %s AND event_id = %s;
+        """
+        self._execute_query(cancel_query, (user.get('id'), event_id))
+        LOGGER.debug(f'User {user.get("id")} cancelled registration for event {event_id}')
 
     def _execute_query(self, request_query, params=None):
         if self.client is None:

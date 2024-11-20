@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from click import confirm
 
 from bot import setup_logger
 from bot.scenes.callback_data import (
@@ -76,6 +77,7 @@ class DataHandler:
                         action=DatingEventActions.REGISTER.value,
                         event_id=event_id,
                         user_id=chat_id,
+                        confirmed=False,
                     ),
                 )
 

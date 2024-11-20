@@ -23,4 +23,4 @@ class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
     action: DatingEventActions
     event_id: int
     user_id: int
-    # event_time: datetime = None
+    confirmed: bool
