@@ -43,4 +43,4 @@ if __name__ == "__main__":
         debug=getattr(args, 'debug', False)
     )
 
-    asyncio.run(service.run())
+    service.run()

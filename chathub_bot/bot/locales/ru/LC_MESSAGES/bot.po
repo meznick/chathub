@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-08-20 20:17+0300\n"
+"POT-Creation-Date: 2024-11-21 12:47+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -15,13 +15,82 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
+#: bot/data_handler.py:85 bot/data_handler.py:100 bot/scenes/dating.py:173
+#: bot/scenes/dating.py:220 bot/scenes/dating.py:260 bot/scenes/dating.py:337
+msgid "back button"
+msgstr "🔙 назад"
+
+#: bot/data_handler.py:110
+msgid "there are no events"
+msgstr "Сейчас нет доступных мероприятий😢"
+
+#: bot/data_handler.py:136
+msgid "operation was succeeded"
+msgstr "Успешно!😊"
+
+#: bot/data_handler.py:143
+msgid "operation failed"
+msgstr "Не получилось😢"
+
+#: bot/scenes/dating.py:128 bot/scenes/dating.py:182
+msgid "dating rules"
+msgstr "⚠️ правила"
+
+#: bot/scenes/dating.py:132
+msgid "list events"
+msgstr "🗓 мероприятия"
+
+#: bot/scenes/dating.py:136
+msgid "cancel event registration"
+msgstr "❌ отменить регистрацию"
+
+#: bot/scenes/dating.py:150 bot/scenes/dating.py:160
+msgid "welcome to dating platform {name}"
+msgstr ""
+"Привет! 👋 Добро пожаловать на нашу платформу знакомств! Мы рады помочь "
+"вам познакомиться с замечательными людьми.\n"
+"\n"
+"Для начала, вы можете обновить свой профиль, чтобы другие могли лучше "
+"узнать вас. Просто используйте команду /edit для внесения изменений.\n"
+"\n"
+"Хотите встретиться с новыми людьми лично? Ознакомьтесь с предстоящими "
+"событиями! Вы можете просмотреть мероприятия и зарегистрироваться на них "
+"или отменить регистрацию, если ваши планы изменились.\n"
+"\n"
+"Желаем вам хорошо провести время и удачных знакомств! ❤️"
+
+#: bot/scenes/dating.py:229
+msgid "here is list of events"
+msgstr "Вот список мероприятий"
+
+#: bot/scenes/dating.py:271
+msgid "registering you to the event {event}"
+msgstr ""
+"Вы скоро будете зарегистрированы на мероприятие: {event}! 🎉Если вы "
+"передумаете, вы всегда можете отменить свою регистрацию до начала "
+"мероприятия. Ждём вас на встрече!"
+
+#: bot/scenes/dating.py:328
+#, fuzzy
+msgid "are you sure you want to cancel all registrations?"
+msgstr "Вы уверены, что хотите отменить регистрацию на это мероприятие: {event}?"
+
+#: bot/scenes/dating.py:332
+msgid "are you sure you want to cancel registration to event {event}"
+msgstr "Вы уверены, что хотите отменить регистрацию на это мероприятие: {event}?"
+
+#: bot/scenes/dating.py:343
+#, fuzzy
+msgid "cancel registration"
+msgstr "❌ отменить регистрацию"
+
 #: bot/scenes/profile.py:62
 msgid "user already exists"
 msgstr ""
 "Пользователь с такими данными уже существует. Можно обновить его при "
 "помощи /edit."
 
-#: bot/scenes/profile.py:156
+#: bot/scenes/profile.py:159
 msgid "welcome message {name}"
 msgstr ""
 "Добро пожаловать в Speed Dating Bot, {name}! 💕Мы рады видеть вас здесь! "
@@ -29,63 +98,68 @@ msgstr ""
 "зарегистрировать вас на мероприятие. С нетерпением ждем возможности "
 "помочь вам найти вашу идеальную пару!"
 
-#: bot/scenes/profile.py:160 bot/scenes/profile.py:355
+#: bot/scenes/profile.py:163 bot/scenes/profile.py:365
 msgid "invite to enter name"
 msgstr "Пожалуйста, введите ваше имя."
 
-#: bot/scenes/profile.py:178
+#: bot/scenes/profile.py:181
 msgid "invite to enter sex"
 msgstr "Пожалуйста, укажите ваш пол (м или ж)."
 
-#: bot/scenes/profile.py:188
+#: bot/scenes/profile.py:191
 msgid "wrong sex"
 msgstr "Неправильный выбор пола. Пожалуйста, выберите 'Мужской' или 'Женский'."
 
-#: bot/scenes/profile.py:200
+#: bot/scenes/profile.py:203
 msgid "invite to enter birthday"
 msgstr "Пожалуйста, введите вашу дату рождения (ГГГГ-ММ-ВВ)."
 
-#: bot/scenes/profile.py:208
+#: bot/scenes/profile.py:211
 msgid "invite to send photo"
 msgstr "Пожалуйста, загрузите вашу фотографию."
 
-#: bot/scenes/profile.py:220
+#: bot/scenes/profile.py:223
 msgid "invite to send city"
 msgstr "Пожалуйста, укажите ваш город."
 
-#: bot/scenes/profile.py:226
+#: bot/scenes/profile.py:229
 msgid "wrong date format"
 msgstr "Неправильный формат даты. Используйте ГГГГ-ММ-ВВ."
 
-#: bot/scenes/profile.py:254
+#: bot/scenes/profile.py:257
 msgid "registration complete"
-msgstr "Регистрация завершена."
+msgstr "Регистрация завершена. Чтобы начать знакомиться нажмите: /date."
 
-#: bot/scenes/profile.py:267
+#: bot/scenes/profile.py:270
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:278
+#: bot/scenes/profile.py:282
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Ваш профиль: Имя: {name}, Пол: {sex}, Возраст: {age}, Город: {city}."
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:284
 msgid "sex_male"
 msgstr "Мужской"
 
-#: bot/scenes/profile.py:280
+#: bot/scenes/profile.py:284
 msgid "sex_female"
 msgstr "Женский"
 
-#: bot/scenes/profile.py:342
+#: bot/scenes/profile.py:352
 #, fuzzy
 msgid "user does not exist"
 msgstr ""
 "Пользователь с такими данными уже существует. Можно обновить его при "
 "помощи /edit."
 
-#: bot/scenes/profile.py:351
+#: bot/scenes/profile.py:361
 #, fuzzy
 msgid "starting editing message {name}"
 msgstr "Начинаем редактирование твоего профиля, {name}!"
 
+#~ msgid "dating main menu message {name}"
+#~ msgstr "Начинаем редактирование твоего профиля, {name}!"
+
+#~ msgid "your registration will be cancelled"
+#~ msgstr "Ваша регистрация будет отменена. ❌"

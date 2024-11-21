@@ -1,29 +1,27 @@
-from sys import prefix
 from typing import Any
 
 from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.scene import on
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from magic_filter import F
 
-from bot import setup_logger
+from bot import setup_logger, DateMakerCommands
 from bot.scenes.base import BaseSpeedDatingScene
-from server import logger
+from bot.scenes.callback_data import (
+    DatingMenuActionsCallbackData,
+    DatingEventCallbackData,
+    DatingEventActions, DatingMenuActions
+)
+from chathub_connectors.postgres_connector import AsyncPgConnector
+from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 
 LOGGER = setup_logger(__name__)
-
-
-class TestCallbackData(CallbackData, sep=':', prefix='test'):
-    action: str
-    value: str
 
 
 class DatingScene(BaseSpeedDatingScene, state='dating'):
@@ -33,28 +31,27 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
     Keep in mind that some interactions can be made via mini-app.
     """
     @on.message.enter()
-    async def on_enter(self, message: Message, state: FSMContext) -> Any:
+    async def on_enter(self, message: Message, state: FSMContext, **kwargs) -> Any:
         LOGGER.debug(f'User {message.from_user.id} started dating')
+
+        pg: AsyncPgConnector
+        rmq: AIORabbitMQConnector
+
+        pg, rmq, s3, fm, gh = self.get_connectors_from_context(kwargs)
+
+        user = await pg.get_user(message.from_user.id)
+
         # show an entry message with inline controls.
         # inline handler will process further actions
-        builder = InlineKeyboardBuilder()
+        try:
+            await _display_main_menu(message=message, pg=pg, edit=False)
 
-        builder.button(text="translatable btn 1",
-                       callback_data=TestCallbackData(action='set', value='1'))
-        builder.button(text="translatable btn 2",
-                       callback_data=TestCallbackData(action='set', value='2'))
-
-        await message.answer(
-            _('dating welcome message {name}').format(
-                name='John Doe'  # get from DB
-            ),
-            parse_mode=ParseMode.HTML,
-            reply_markup=builder.as_markup(),
-        )
+        except TelegramBadRequest as e:
+            LOGGER.warning(f'Got exception while processing callback: {e}')
 
     @on.message.exit()
     async def on_exit(self, message: Message, state: FSMContext) -> None:
-        pass
+        LOGGER.debug(f'User {message.from_user.id} left dating scene')
 
 
 dating_router = Router(name='__name__')
@@ -62,28 +59,299 @@ dating_router.message.register(DatingScene.as_handler(), Command('date'))
 dating_router.callback_query.middleware(CallbackAnswerMiddleware())
 
 
-@dating_router.callback_query(TestCallbackData.filter(F.action == 'set'))
-async def test_set_callback_handler(query: CallbackQuery, callback_data: TestCallbackData) -> None:
+@dating_router.callback_query(DatingMenuActionsCallbackData.filter())
+async def dating_main_menu_actions_callback_handler(
+        query: CallbackQuery,
+        callback_data: DatingMenuActionsCallbackData
+):
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
+
+    pg: AsyncPgConnector
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+
+    if callback_data.action == DatingMenuActions.LIST_EVENTS:
+        # triggered from the main menu
+        await _handle_listing_events(query, rmq, dh)
+
+    elif callback_data.action == DatingMenuActions.SHOW_RULES:
+        # triggered from the main menu
+        await _display_dating_rules(query)
+
+    elif callback_data.action == DatingMenuActions.GO_DATING_MAIN_MENU:
+        # triggered from anywhere
+        await _display_main_menu(user_id=query.from_user.id, query=query, edit=True, pg=pg)
+
+
+@dating_router.callback_query(DatingEventCallbackData.filter())
+async def dating_event_callback_handler(
+        query: CallbackQuery,
+        callback_data: DatingEventCallbackData
+):
+    LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
+
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+
+    if callback_data.action == DatingEventActions.REGISTER:
+        # triggered from the event list
+        await _handle_event_registration(query, rmq, callback_data, dh)
+
+    elif callback_data.action == DatingEventActions.CANCEL:
+        # triggered from the main menu
+        await _handle_cancelling_event_registration(query, rmq, callback_data, dh)
+
+
+async def _display_main_menu(
+        pg: AsyncPgConnector,
+        user_id: int = None,
+        edit: bool = False,
+        query: CallbackQuery = None,
+        message: Message = None,
+):
+    if query:
+        query_uid = query.from_user.id
+    else:
+        query_uid = None
+
+    if message:
+        message_uid = message.from_user.id
+    else:
+        message_uid = None
+
+    user_id = user_id or query_uid or message_uid
+
+    LOGGER.debug(f'Displaying main menu for user {user_id}')
+
     builder = InlineKeyboardBuilder()
+    builder.button(
+        text=_('dating rules'),
+        callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.SHOW_RULES),
+    )
+    builder.button(
+        text=_('list events'),
+        callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.LIST_EVENTS),
+    )
+    builder.button(
+        text=_('cancel event registration'),
+        callback_data=DatingEventCallbackData(
+            action=DatingEventActions.CANCEL.value,
+            event_id=0,
+            user_id=user_id,
+            confirmed=False,
+        ),
+    )
+    builder.adjust(1)
 
-    builder.button(text="translatable btn 1",
-                   callback_data=TestCallbackData(action='set', value='1'))
-    builder.button(text="translatable btn 2",
-                   callback_data=TestCallbackData(action='set', value='2'))
+    user = await pg.get_user(user_id)
 
-    # if an edited text equals the previous one, you will get an error:
-    # aiogram.exceptions.TelegramBadRequest: Telegram server says -
-    # Bad Request: message is not modified: specified new message content
-    # and reply markup are exactly the same as a current content and reply
-    # markup of the message
-    try:
+    if not edit:
+        await message.answer(
+            _('welcome to dating platform {name}').format(
+                name=user.get('name')
+            ),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
+    else:
         await query.bot.edit_message_text(
             chat_id=query.message.chat.id,
             message_id=query.message.message_id,
-            text=f'You selected {callback_data.value}',
+            text=_('welcome to dating platform {name}').format(
+                name=user.get('name')
+            ),
             parse_mode=ParseMode.HTML,
-            reply_markup=builder.as_markup()
+            reply_markup=builder.as_markup(),
         )
+
+
+async def _display_dating_rules(query):
+    LOGGER.debug(f'Displaying rules for user {query.from_user.id}')
+
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=_('back button'),
+        callback_data=DatingMenuActionsCallbackData(
+            action=DatingMenuActions.GO_DATING_MAIN_MENU
+        ),
+    )
+
+    await query.bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=_('dating rules'),
+        parse_mode=ParseMode.HTML,
+        reply_markup=builder.as_markup(),
+    )
+
+
+async def _handle_listing_events(
+        query: CallbackQuery,
+        rmq: AIORabbitMQConnector,
+        dh,
+):
+    """
+    This method logic:
+    - update message text to be suitable for showing a list of events
+    - send request to date maker to get the list
+
+    Then bot.bot.DatingBot.process_rmq_message:
+    - wait for response
+    - update message and reply markup for selecting event
+
+    For the second method and date maker to be able to process the response,
+    need to pass additional headers:
+    - user_id - for checking user's event registrations
+    - chat_id - for updating menu
+    - message_id - for updating menu
+
+    :param query:
+    :param rmq:
+    :param dh:
+    :type dh: DataHandler
+    :return:
+    """
+    LOGGER.debug(f'Listing events for user {query.from_user.id}')
+
+    try:
+        builder = InlineKeyboardBuilder()
+
+        builder.button(
+            text=_('back button'),
+            callback_data=DatingMenuActionsCallbackData(
+                action=DatingMenuActions.GO_DATING_MAIN_MENU
+            ),
+        )
+
+        await query.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=_('here is list of events'),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
+        await rmq.publish(
+            message=DateMakerCommands.LIST_EVENTS.value,
+            routing_key='date_maker_dev',
+            exchange='chathub_direct_main',
+            headers={
+                'user_id': str(query.from_user.id),
+                'chat_id': str(query.message.chat.id),
+                'message_id': str(query.message.message_id),
+            },
+        )
+        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.process_list_events)
+
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
+
+
+async def _handle_event_registration(
+        query: CallbackQuery,
+        rmq: AIORabbitMQConnector,
+        callback_data: DatingEventCallbackData,
+        dh,
+):
+    LOGGER.debug(f'Registering user {query.from_user.id} to event {callback_data.event_id}')
+    try:
+        builder = InlineKeyboardBuilder()
+
+        builder.button(
+            text=_('back button'),
+            callback_data=DatingMenuActionsCallbackData(
+                action=DatingMenuActions.GO_DATING_MAIN_MENU
+            ),
+        )
+
+        dating_event = f'Event #{callback_data.event_id}'
+
+        await query.bot.edit_message_text(
+            chat_id=query.message.chat.id,
+            message_id=query.message.message_id,
+            text=_('registering you to the event {event}').format(event=dating_event),
+            parse_mode=ParseMode.HTML,
+            reply_markup=builder.as_markup(),
+        )
+        await rmq.publish(
+            message=DateMakerCommands.REGISTER_USER_TO_EVENT.value,
+            routing_key='date_maker_dev',
+            exchange='chathub_direct_main',
+            headers={
+                'user_id': str(query.from_user.id),
+                'chat_id': str(query.message.chat.id),
+                'message_id': str(query.message.message_id),
+                'event_id': str(callback_data.event_id),
+            },
+        )
+        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+
+    except TelegramBadRequest as e:
+        LOGGER.warning(f'Got exception while processing callback: {e}')
+
+
+async def _handle_cancelling_event_registration(
+        query: CallbackQuery,
+        rmq: AIORabbitMQConnector,
+        callback_data: DatingEventCallbackData,
+        dh,
+):
+    LOGGER.debug(f'User {query.from_user.id} is cancelling registrations')
+
+    try:
+        if not callback_data.confirmed:
+            await _ask_for_cancelling_confirmation(callback_data, query)
+        else:
+            await _cancel_registration(callback_data, dh, query, rmq)
+
+    except TelegramBadRequest as e:
+        LOGGER.warning(f'Got exception while processing callback: {e}')
+
+
+async def _cancel_registration(callback_data, dh, query, rmq):
+    await rmq.publish(
+        message=DateMakerCommands.CANCEL_REGISTRATION.value,
+        routing_key='date_maker_dev',
+        exchange='chathub_direct_main',
+        headers={
+            'user_id': str(query.from_user.id),
+            'chat_id': str(query.message.chat.id),
+            'message_id': str(query.message.message_id),
+            'event_id': str(callback_data.event_id),
+        },
+    )
+    dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+
+
+async def _ask_for_cancelling_confirmation(callback_data, query):
+    if callback_data.event_id == 0:
+        # user wants to cancel all registrations
+        message_text = _('are you sure you want to cancel all registrations?')
+    else:
+        # user wants to cancel one registration
+        dating_event = f'Event #{callback_data.event_id}'
+        message_text = _('are you sure you want to cancel registration to event {event}').format(
+            event=dating_event
+        )
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=_('back button'),
+        callback_data=DatingMenuActionsCallbackData(
+            action=DatingMenuActions.GO_DATING_MAIN_MENU
+        ),
+    )
+    builder.button(
+        text=_('cancel registration'),
+        callback_data=DatingEventCallbackData(
+            action=DatingEventActions.CANCEL.value,
+            event_id=callback_data.event_id,
+            user_id=query.from_user.id,
+            confirmed=True,
+        ),
+    )
+    await query.bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=message_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=builder.as_markup(),
+    )

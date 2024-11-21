@@ -1,5 +1,6 @@
 import logging
 import os
+from enum import Enum
 
 
 def setup_logger(name):
@@ -16,6 +17,14 @@ def setup_logger(name):
 
     logger.setLevel(logging.DEBUG if debug.lower() == 'true' else logging.INFO)
     return logger
+
+
+# same as chathub_bot/bot/__init__.py:23
+class DateMakerCommands(Enum):
+    LIST_EVENTS = 'list_events'
+    REGISTER_USER_TO_EVENT = 'register_event'
+    CANCEL_REGISTRATION = 'cancel_registration'
+    CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 
 # all parameters from RabbitMQConnector (0.0.3)

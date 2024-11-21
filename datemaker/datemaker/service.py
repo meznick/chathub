@@ -1,15 +1,16 @@
 """
-Class and setting for main class for managing date-making logic.
+Class and setting for the main class for managing date-making logic.
 """
 import asyncio
 import json
 import logging
 
+from kombu.pools import reset
 from pika.spec import BasicProperties
 
-from chathub_connectors.postgres_connector import AsyncPgConnector
+from chathub_connectors.postgres_connector import PostgresConnection
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector
-from datemaker import setup_logger
+from datemaker import setup_logger, DateMakerCommands
 from .meet_api_controller import GoogleMeetApiController
 
 # also, we probably will need connector to DB, user management, authentication
@@ -46,7 +47,7 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
-        self.meet_api_controller = GoogleMeetApiController()
+        # self.meet_api_controller = GoogleMeetApiController()
         self.message_broker_controller = RabbitMQConnector(
             host=message_broker_host,
             port=message_broker_port,
@@ -60,7 +61,7 @@ class DateMakerService:
             caller_service='datemaker',
             loglevel=logging.DEBUG if debug else logging.INFO,
         )
-        self.postgres_controller = AsyncPgConnector(
+        self.postgres_controller = PostgresConnection(
             host=postgres_host,
             port=postgres_port,
             db=postgres_db,
@@ -69,7 +70,7 @@ class DateMakerService:
         )
         LOGGER.info('DateMaker service initialized')
 
-    async def run(self):
+    def run(self):
         """
         Method that runs for managing date-making logic.
         Most likely, here you should only schedule regular actions: creating
@@ -80,18 +81,18 @@ class DateMakerService:
         """
         LOGGER.info('Running DateMakerService...')
         try:
-            loop = asyncio.get_running_loop()
-            self.message_broker_controller.run(custom_loop=loop)
-            await self.postgres_controller.connect()
-            while True:
-                await asyncio.sleep(1)
+            loop = asyncio.get_event_loop()
+            self.message_broker_controller.run()
+            self.postgres_controller.connect()
+            loop.run_forever()
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
             self.message_broker_controller.disconnect()
+            self.postgres_controller.close()
 
     def process_incoming_message(self, channel, method, properties, body):
         """
-        Method for processing incoming message from RabbitMQ broker.
+        Method for processing a incoming message from RabbitMQ broker.
         Possible messages can be:
         - event registration request
         - event selection
@@ -106,39 +107,52 @@ class DateMakerService:
         :param body: message body
         """
         LOGGER.debug(
-            f'Got message on channel {channel}: {body}. '
-            f'Method: {method}, properties: {properties}.'
+            f'Got message on channel {channel.channel_number}: {body}. '
+            f'Method: {method}. Headers: {properties.headers}.'
         )
         # properties should contain data to return answer to right user:
         # - chat id (from tg bot)?
         # user should be in headers as well, because its ID is necessary for processing
         message_params = properties.headers
-        loop = asyncio.get_running_loop()
         message = body.decode('utf-8')
         try:
-            task = loop.create_task(
-                self.postgres_controller.get_user(int(message_params['user_id']))
-            )
-            loop.run_until_complete(task)
-            user = task.result()
+            user = self.postgres_controller.get_user(int(message_params['user_id']))
             if not user:
                 raise Exception('No user found')
-            if 'events_list' in message:
-                self.list_events(user, message_params, loop)
-            elif 'event_register' in message:
+
+            if DateMakerCommands.LIST_EVENTS.value in message:
+                self.list_events(user, message_params)
+
+            elif DateMakerCommands.REGISTER_USER_TO_EVENT.value in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
                     LOGGER.error(
                         f'No event_id got with registration request for user {user}: {message}'
                     )
-                self.register_user_to_event(user, message_params, loop)
-            elif 'event_registration_confirmation' in message:
+                self.register_user_to_event(user, message_params)
+
+            elif DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value in message:
                 event_id = message_params.get('event_id', None)
                 if not event_id:
                     LOGGER.error(
                         f'No event_id got with registration confirmation for user {user}: {message}'
                     )
-                self.confirm_user_event_registration(user)
+                self.confirm_user_event_registration(user, message_params)
+
+            elif DateMakerCommands.CANCEL_REGISTRATION.value in message:
+                event_id = int(message_params.get('event_id', -1))
+                if event_id != 0:
+                    self.cancel_event_registration(user, message_params)
+                elif event_id == 0:
+                    events = self.postgres_controller.get_event_registrations_for_user(user)
+                    for event_id in [event['event_id'] for event in events]:
+                        message_params.update({'event_id': event_id})
+                        self.cancel_event_registration(user, message_params)
+                else:
+                    LOGGER.error(
+                        f'No event_id got with registration cancellation for user {user}: {message}'
+                    )
+
         except Exception as e:
             LOGGER.error(
                 f'Error in processing message "{message}" '
@@ -147,13 +161,13 @@ class DateMakerService:
                 f'Error: {e}'
             )
             self.message_broker_controller.publish(
-                'error in processing message',
+                json.dumps({'success': False}),
                 routing_key='tg_bot_dev',
                 exchange='chathub_direct_main',
                 properties=BasicProperties(headers=message_params)
             )
 
-    def list_events(self, user, message_params: dict, loop: asyncio.AbstractEventLoop):
+    def list_events(self, user, message_params: dict):
         """
         Method for "listing" events by user request.
         See readme for more info:
@@ -164,13 +178,8 @@ class DateMakerService:
 
         :param user: Database user object.
         :param message_params: Dictionary of received parameters.
-        :param loop: Loop object for executing asynchronous code.
         """
-        task = loop.create_task(
-            self.postgres_controller.get_dating_events()
-        )
-        loop.run_until_complete(task)
-        events = task.result()
+        events = self.postgres_controller.get_dating_events()
         events_list = [
             {
                 event.get('id'): {
@@ -186,7 +195,7 @@ class DateMakerService:
             properties=BasicProperties(headers=message_params)
         )
 
-    def register_user_to_event(self, user, message_params: dict, loop: asyncio.AbstractEventLoop):
+    def register_user_to_event(self, user, message_params: dict):
         """
         Method for completing user registration request.
         See readme for more info:
@@ -194,7 +203,6 @@ class DateMakerService:
 
         Method must put a success message into the queue for bot/mini-app.
 
-        :param loop: Loop object for executing asynchronous code.
         :param message_params: Dictionary of received parameters.
         :param user: Database user object.
         :return:
@@ -202,11 +210,12 @@ class DateMakerService:
         event_id = int(message_params['event_id'])
         is_registered = False
 
-        task = loop.create_task(self.postgres_controller.get_event_registrations(event_id))
-        loop.run_until_complete(task)
+        event_registrations = self.postgres_controller.get_event_registrations(
+            event_id
+        )
 
         registered_users = [
-            user.get('id') for user in task.result()
+            user.get('user_id') for user in event_registrations
         ]
 
         if user.get('id') not in registered_users:
@@ -230,7 +239,6 @@ class DateMakerService:
             self,
             user,
             message_params: dict,
-            loop: asyncio.AbstractEventLoop
     ):
         """
         Method for confirmation sequence start.
@@ -242,18 +250,18 @@ class DateMakerService:
         After user responds, new message will appear in incoming queue and it
         should be parsed correctly with `process_incoming_message` method.
 
-        :param loop:
         :param message_params:
         :param user: On developer's decision.
         """
         event_id = int(message_params['event_id'])
         is_confirmed = False
 
-        task = loop.create_task(self.postgres_controller.get_event_registrations(event_id))
-        loop.run_until_complete(task)
+        event_registrations = self.postgres_controller.get_event_registrations(
+            event_id
+        )
 
         registered_users = [
-            user.get('id') for user in task.result()
+            user.get('id') for user in event_registrations
         ]
 
         if user.get('id') in registered_users:
@@ -266,6 +274,31 @@ class DateMakerService:
         result = {
             'registration_confirmed': is_confirmed
         }
+        self.message_broker_controller.publish(
+            json.dumps(result),
+            routing_key='tg_bot_dev',
+            exchange='chathub_direct_main',
+            properties=BasicProperties(headers=message_params)
+        )
+
+    def cancel_event_registration(self, user, message_params: dict):
+        event_id = int(message_params['event_id'])
+        is_cancelled = False
+        event_registrations = self.postgres_controller.get_event_registrations(
+            event_id
+        )
+        registered_users = [
+            user.get('user_id') for user in event_registrations
+        ]
+
+        if user.get('id') in registered_users:
+            self.postgres_controller.cancel_registration(
+                user=user,
+                event_id=event_id
+            )
+            is_cancelled = True
+
+        result = {'registration_cancelled': is_cancelled}
         self.message_broker_controller.publish(
             json.dumps(result),
             routing_key='tg_bot_dev',
