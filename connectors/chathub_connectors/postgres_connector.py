@@ -228,7 +228,7 @@ class AsyncPgConnector:
 
     async def get_latest_image_by_owner(self, owner_id: int) -> Optional[Record]:
         images = await self.get_images_by_owner(owner_id)
-        return images[:-1] if images else None
+        return images[0] if images else None
 
     async def get_images_by_owner(self, owner_id: int) -> Optional[list[Record]]:
         """

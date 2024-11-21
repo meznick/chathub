@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-11-12 17:07+0300\n"
+"POT-Creation-Date: 2024-11-21 12:47+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,37 +14,36 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/data_handler.py:78 bot/data_handler.py:94 bot/scenes/dating.py:169
-#: bot/scenes/dating.py:217 bot/scenes/dating.py:257 bot/scenes/dating.py:296
-#: bot/scenes/dating.py:328
+#: bot/data_handler.py:85 bot/data_handler.py:100 bot/scenes/dating.py:173
+#: bot/scenes/dating.py:220 bot/scenes/dating.py:260 bot/scenes/dating.py:337
 msgid "back button"
 msgstr "🔙 back"
 
-#: bot/data_handler.py:105
+#: bot/data_handler.py:110
 msgid "there are no events"
 msgstr "Sorry, there are no events available now 😢"
 
-#: bot/data_handler.py:128
+#: bot/data_handler.py:136
 msgid "operation was succeeded"
 msgstr "Oops😢"
 
-#: bot/data_handler.py:134
+#: bot/data_handler.py:143
 msgid "operation failed"
 msgstr "Done!😊"
 
-#: bot/scenes/dating.py:125 bot/scenes/dating.py:179
+#: bot/scenes/dating.py:128 bot/scenes/dating.py:182
 msgid "dating rules"
 msgstr "⚠️ rules"
 
-#: bot/scenes/dating.py:129
+#: bot/scenes/dating.py:132
 msgid "list events"
 msgstr "🗓 events"
 
-#: bot/scenes/dating.py:133
+#: bot/scenes/dating.py:136
 msgid "cancel event registration"
 msgstr "❌ cancel registration"
 
-#: bot/scenes/dating.py:146 bot/scenes/dating.py:156
+#: bot/scenes/dating.py:150 bot/scenes/dating.py:160
 msgid "welcome to dating platform {name}"
 msgstr ""
 "Hello! 👋 Welcome to our dating platform! We're excited to help you "
@@ -59,95 +58,99 @@ msgstr ""
 "\n"
 "Enjoy your time here, and happy connecting! ❤️"
 
-#: bot/scenes/dating.py:227
+#: bot/scenes/dating.py:229
 msgid "here is list of events"
 msgstr "Here's event list"
 
-#: bot/scenes/dating.py:266
+#: bot/scenes/dating.py:271
 msgid "registering you to the event {event}"
 msgstr ""
 "You are about to be registered for the event: {event}! 🎉If you change "
 "your mind, you can always cancel your registration before the event "
 "starts. We look forward to seeing you there!"
 
-#: bot/scenes/dating.py:301
+#: bot/scenes/dating.py:328
 #, fuzzy
-msgid "cancel registration"
-msgstr "❌ cancel registration"
+msgid "are you sure you want to cancel all registrations?"
+msgstr "Are you sure you want to cancel your registration for this event: {event}?"
 
-#: bot/scenes/dating.py:314
+#: bot/scenes/dating.py:332
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr "Are you sure you want to cancel your registration for this event: {event}?"
 
-#: bot/scenes/dating.py:338
-msgid "your registration will be cancelled"
-msgstr "Your registration will be canceled. ❌"
+#: bot/scenes/dating.py:343
+#, fuzzy
+msgid "cancel registration"
+msgstr "❌ cancel registration"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
 msgstr "A user with this information already exists. You can update it with /edit."
 
-#: bot/scenes/profile.py:156
+#: bot/scenes/profile.py:159
 msgid "welcome message {name}"
 msgstr ""
 "Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
 " get started, please enter your name so we can register you for the "
 "event. Looking forward to helping you find your perfect match!"
 
-#: bot/scenes/profile.py:160 bot/scenes/profile.py:362
+#: bot/scenes/profile.py:163 bot/scenes/profile.py:365
 msgid "invite to enter name"
 msgstr "Please enter your name."
 
-#: bot/scenes/profile.py:178
+#: bot/scenes/profile.py:181
 msgid "invite to enter sex"
 msgstr "Please enter your gender (m or f)."
 
-#: bot/scenes/profile.py:188
+#: bot/scenes/profile.py:191
 msgid "wrong sex"
 msgstr "Invalid gender selection. Please choose 'Male' or 'Female'."
 
-#: bot/scenes/profile.py:200
+#: bot/scenes/profile.py:203
 msgid "invite to enter birthday"
 msgstr "Please enter your birthdate (YYYY-MM-DD)."
 
-#: bot/scenes/profile.py:208
+#: bot/scenes/profile.py:211
 msgid "invite to send photo"
 msgstr "Please upload your photo."
 
-#: bot/scenes/profile.py:220
+#: bot/scenes/profile.py:223
 msgid "invite to send city"
 msgstr "Please enter your city."
 
-#: bot/scenes/profile.py:226
+#: bot/scenes/profile.py:229
 msgid "wrong date format"
 msgstr "Invalid date format. Please use YYYY-MM-DD."
 
-#: bot/scenes/profile.py:254
+#: bot/scenes/profile.py:257
 msgid "registration complete"
-msgstr "Registration complete."
+msgstr "Registration complete. To start dating press: /date."
 
-#: bot/scenes/profile.py:267
+#: bot/scenes/profile.py:270
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:279
+#: bot/scenes/profile.py:282
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
 
-#: bot/scenes/profile.py:281
+#: bot/scenes/profile.py:284
 msgid "sex_male"
 msgstr "Male"
 
-#: bot/scenes/profile.py:281
+#: bot/scenes/profile.py:284
 msgid "sex_female"
 msgstr "Female"
 
-#: bot/scenes/profile.py:349
+#: bot/scenes/profile.py:352
 #, fuzzy
 msgid "user does not exist"
 msgstr "A user with this information already exists. You can update it with /edit."
 
-#: bot/scenes/profile.py:358
+#: bot/scenes/profile.py:361
 #, fuzzy
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
+
+#~ msgid "your registration will be cancelled"
+#~ msgstr "Your registration will be canceled. ❌"

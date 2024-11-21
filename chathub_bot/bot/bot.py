@@ -109,7 +109,7 @@ class DatingBot:
     def _setup_routing(self):
         # include order makes sense!
         self._dp.include_router(scenes_router)
-        self._dp.include_router(dev_router)
+        # self._dp.include_router(dev_router)
         sr = SceneRegistry(self._dp)
         sr.add(RegistrationScene)
         sr.add(ProfileEditingScene)

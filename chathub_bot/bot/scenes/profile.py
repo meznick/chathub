@@ -46,7 +46,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         data = await state.get_data()
         step_name = data.get('step', '')
         LOGGER.debug(
-            f'Registration Scene: '
+            f'User entered registration Scene: '
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
@@ -64,7 +64,6 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             )
             await self.wizard.exit()
 
-
     @on.message(F.text)
     async def on_message(self, message: Message, state: FSMContext, **kwargs):
         """
@@ -77,7 +76,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         data = await state.get_data()
         step_name = data.get('step', '')
         LOGGER.debug(
-            f'Registration Scene: '
+            f'Got a message in registration Scene: '
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
@@ -143,6 +142,10 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         """
         data = await state.get_data()
         step_name = data.get('step', '')
+        LOGGER.debug(
+            f'User left registration Scene: '
+            f'{message.from_user.id}[{step_name}]'
+        )
         pg, __, s3, fm, dh = self.get_connectors_from_context(kwargs)
 
         if step_name != '':
@@ -269,7 +272,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             )
             return
         # for now, showing only the latest image
-        images = await pg.get_latest_image_by_owner(message.from_user.id)
+        images = [await pg.get_latest_image_by_owner(message.from_user.id)]
 
         return user, images
 
@@ -327,7 +330,7 @@ class ProfileEditingScene(RegistrationScene, state='profile_editing'):
         data = await state.get_data()
         step_name = data.get('step', '')
         LOGGER.debug(
-            f'Profile editing Scene: '
+            f'User entered profile editing Scene: '
             f'{message.from_user.id}[{step_name}]: {message.text}'
         )
 
