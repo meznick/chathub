@@ -19,11 +19,23 @@ from .meet_api_controller import GoogleMeetApiController
 LOGGER = setup_logger(__name__)
 
 
+class DateRunner:
+    """
+    Class that encapsulates logic for running singe date event.
+    """
+    def __init__(self):
+        ...
+
+    def run_event(self):
+        ...
+
+
 class DateMakerService:
     # settings for controllers should be passed using env variables and read
     # inside __init__.py
     meet_api_controller: GoogleMeetApiController = None
     message_broker_controller: RabbitMQConnector = None
+    running_events = []
 
     def __init__(
             self,
@@ -82,13 +94,13 @@ class DateMakerService:
         LOGGER.info('Running DateMakerService...')
         try:
             loop = asyncio.get_event_loop()
-            self.message_broker_controller.run()
+            self.message_broker_controller.connect()
             self.postgres_controller.connect()
             loop.run_forever()
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
             self.message_broker_controller.disconnect()
-            self.postgres_controller.close()
+            self.postgres_controller.disconnect()
 
     def process_incoming_message(self, channel, method, properties, body):
         """
@@ -323,7 +335,9 @@ class DateMakerService:
         See readme for more info:
         https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
         """
-        ...
+        runner = DateRunner()
+        self.running_events.append(runner)
+        runner.run_event()
 
     def save_event_result(self, event):
         """

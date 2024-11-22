@@ -545,7 +545,7 @@ class PostgresConnection:
             print(f"Error: {e}")
             return None
 
-    def close(self):
+    def disconnect(self):
         if self.client:
             self.client.close()
             print("Connection closed")

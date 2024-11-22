@@ -100,27 +100,15 @@ class RabbitMQConnector:
     def set_log_level(loglevel):
         LOGGER.setLevel(loglevel)
 
-    def run(self, custom_loop: asyncio.AbstractEventLoop = None):
-        # --------------- standalone only ----------------------
-        # LOGGER.info(f'Running RabbitMQ connector {self.tag}')
-        # self._connection = self.connect()
-        # try:
-        #     if not self._connection.ioloop.is_running():
-        #         LOGGER.debug('Starting ioloop')
-        #         self._connection.ioloop.run_forever()
-        #     else:
-        #         LOGGER.debug('Ioloop is already running')
-        # except KeyboardInterrupt:
-        #     self.disconnect()
-        # ------------------------------------------------------
-        self._connection = self.connect(custom_loop)
+    def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
+        self._connection = self._create_connection(custom_loop)
         if not self._connection.ioloop.is_running:
             self._connection.ioloop.run_forever()
         LOGGER.debug(
             f'Event loop state is running: {self._connection.ioloop.is_running}'
         )
 
-    def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
+    def _create_connection(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to RabbitMQ server {self.host}')
         connection = AsyncioConnection(
             parameters=ConnectionParameters(
@@ -149,8 +137,8 @@ class RabbitMQConnector:
         else:
             LOGGER.info('Closing connection')
             if self._channel:
-                self._connection.close()
-                self._connection.close()
+                self._connection.disconnect()
+                self._connection.disconnect()
 
     def publish(
             self,
