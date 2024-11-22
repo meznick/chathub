@@ -2,15 +2,17 @@
 Class and setting for the main class for managing date-making logic.
 """
 import asyncio
+import copy
 import json
 import logging
+from asyncio import sleep
+from datetime import timedelta
 
-from kombu.pools import reset
 from pika.spec import BasicProperties
 
-from chathub_connectors.postgres_connector import PostgresConnection
-from chathub_connectors.rabbitmq_connector import RabbitMQConnector
-from datemaker import setup_logger, DateMakerCommands
+from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
+from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
+from datemaker import setup_logger, DateMakerCommands, EventTypes
 from .meet_api_controller import GoogleMeetApiController
 
 # also, we probably will need connector to DB, user management, authentication
@@ -23,11 +25,43 @@ class DateRunner:
     """
     Class that encapsulates logic for running singe date event.
     """
-    def __init__(self):
-        ...
+    def __init__(
+            self,
+            event_id: int,
+            meet_api_controller: GoogleMeetApiController,
+            postgres_controller: AsyncPgConnector,
+            rabbitmq_controller: AIORabbitMQConnector,
+    ):
+        self.event_id = event_id
+        LOGGER.info(f'DateRunner for event#{event_id} initialized')
 
-    def run_event(self):
-        ...
+    async def run_event(self):
+        """
+        Method for running actual dating event.
+        I'd recommend using a finite state machine pattern here.
+        See readme for more info:
+        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
+        """
+        LOGGER.info(f'Dating event#{self.event_id} has started')
+        await sleep(100)
+        LOGGER.info(f'Dating event#{self.event_id} has finished')
+
+
+class RegistrationConfirmationRunner:
+    def __init__(
+            self,
+            event_id: int,
+            meet_api_controller: GoogleMeetApiController,
+            postgres_controller: AsyncPgConnector,
+            rabbitmq_controller: AIORabbitMQConnector,
+    ):
+        self.event_id = event_id
+        LOGGER.info(f'RegistrationConfirmationRunner for event#{event_id} initialized')
+
+    async def collect_confirmations(self):
+        LOGGER.info(f'Registration confirmation for event#{self.event_id} has started')
+        await sleep(10)
+        LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
 
 
 class DateMakerService:
@@ -35,7 +69,6 @@ class DateMakerService:
     # inside __init__.py
     meet_api_controller: GoogleMeetApiController = None
     message_broker_controller: RabbitMQConnector = None
-    running_events = []
 
     def __init__(
             self,
@@ -96,6 +129,7 @@ class DateMakerService:
             loop = asyncio.get_event_loop()
             self.message_broker_controller.connect()
             self.postgres_controller.connect()
+            loop.create_task(self.run_date_making())
             loop.run_forever()
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
@@ -328,16 +362,57 @@ class DateMakerService:
         """
         ...
 
-    def run_event(self):
+    async def run_date_making(self):
         """
-        Method for running actual dating event.
-        I'd recommend using a finite state machine pattern here.
-        See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
+        Managing dating routines:
+        - checking event schedule
+        - managing DateRunner instances
         """
-        runner = DateRunner()
-        self.running_events.append(runner)
-        runner.run_event()
+        loop = asyncio.get_running_loop()
+        while True:
+            events = await self._collect_events()
+            await self._process_events(events, loop)
+            await sleep(59)
+
+    async def _process_events(self, events, loop):
+        # for event in events create processor and run
+        LOGGER.debug('Processing events')
+        for event in events:
+            if event['type'] == EventTypes.DATING:
+                runner = DateRunner(
+                    event_id=event['id'],
+                    meet_api_controller=None,
+                    postgres_controller=None,
+                    rabbitmq_controller=None,
+                )
+                loop.create_task(runner.run_event())
+                # when done -- delete instance
+            elif event['type'] == EventTypes.REGISTRATION_CONFIRMATION:
+                runner = RegistrationConfirmationRunner(
+                    event_id=event['id'],
+                    meet_api_controller=None,
+                    postgres_controller=None,
+                    rabbitmq_controller=None,
+                )
+                loop.create_task(runner.collect_confirmations())
+                # when done -- delete instance
+
+    async def _collect_events(self):
+        """
+        Collect events to process: registration confirmations and dating events.
+        :return:
+        """
+        LOGGER.debug('Collecting events')
+        dating_events = self.postgres_controller.get_dating_events(limit=10)
+        for event in dating_events:
+            event['type'] = EventTypes.DATING
+        confirmations = copy.deepcopy(dating_events)
+        for event in confirmations:
+            event['start_dttm'] = event.get('start_dttm') - timedelta(days=1)
+            event['type'] = EventTypes.REGISTRATION_CONFIRMATION
+        events = dating_events + confirmations
+        LOGGER.debug(f'Got {len(events)} events to process')
+        return events
 
     def save_event_result(self, event):
         """

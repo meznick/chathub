@@ -27,6 +27,11 @@ class DateMakerCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 
+class EventTypes(Enum):
+    DATING = 'dating'
+    REGISTRATION_CONFIRMATION = 'registration_confirmation'
+
+
 # all parameters from RabbitMQConnector (0.0.3)
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
 MESSAGE_BROKER_PORT = int(os.getenv('RABBITMQ_PORT', '5672'))
