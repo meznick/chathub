@@ -149,8 +149,8 @@ class DatingBot:
         LOGGER.debug('Starting long polling...')
         try:
             loop = asyncio.get_running_loop()
-            await self._bot.pg._create_connection(custom_loop=loop)
-            await self._bot.rmq._create_connection(custom_loop=loop)
+            await self._bot.pg.connect(custom_loop=loop)
+            await self._bot.rmq.connect(custom_loop=loop)
             await self._bot.rmq.listen_queue(
                 queue_name=MESSAGE_BROKER_QUEUE,
                 callback=self.process_rmq_message
