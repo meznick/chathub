@@ -27,9 +27,12 @@ class DateMakerCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 
-class EventTypes(Enum):
-    DATING = 'dating'
-    REGISTRATION_CONFIRMATION = 'registration_confirmation'
+class EventStates(Enum):
+    NOT_STARTED = 'NOT_STARTED'
+    REGISTRATION_CONFIRMATION = 'REG_CONFIRM'
+    READY = 'READY'
+    RUNNING = 'RUNNING'
+    FINISHED = 'FINISHED'
 
 
 # all parameters from RabbitMQConnector (0.0.3)

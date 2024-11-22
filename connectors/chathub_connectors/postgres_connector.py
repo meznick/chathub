@@ -401,7 +401,7 @@ class PostgresConnection:
             self,
             user: Record = None,
             include_finished: bool = False,
-            limit: int = 10
+            limit: int = 10,
     ) -> List[RealDictRow]:
         """
         List Dating Events
@@ -422,8 +422,10 @@ class PostgresConnection:
             SELECT DISTINCT
                 e.id,
                 e.start_dttm,
+                s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
+            LEFT JOIN event_states as s ON e.state_id = s.id
             LEFT JOIN (
                 SELECT *
                 FROM public.dating_registrations
