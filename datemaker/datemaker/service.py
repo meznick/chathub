@@ -45,7 +45,6 @@ class DatingFSM:
     async def run(self):
         ...
 
-
 class DateRunner:
     """
     Class that encapsulates logic for running singe date event.
@@ -77,9 +76,10 @@ class DateRunner:
         await self.set_event_state(EventStates.RUNNING)
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
-        for group in self.groups:
-            await self.run_dating_fsm(group)
-        # wait for all groups to finish and then set state to FINISHED
+        await asyncio.gather(*[
+            self.run_dating_fsm(group)
+            for group in self.groups
+        ])
         LOGGER.info(f'Dating event#{self.event_id} has finished')
 
     async def set_event_state(self, state: EventStates):
