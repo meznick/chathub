@@ -5,8 +5,9 @@ import asyncio
 import copy
 import json
 import logging
+import time
 from asyncio import sleep
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 
 from pika.spec import BasicProperties
@@ -14,36 +15,11 @@ from pika.spec import BasicProperties
 from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
 from datemaker import setup_logger, DateMakerCommands, EventStates
+from .finite_state_machine import FiniteStateMachine, State
 from .meet_api_controller import GoogleMeetApiController
-
-# also, we probably will need connector to DB, user management, authentication
-# these things already exist as separate modules in this repo
 
 LOGGER = setup_logger(__name__)
 
-
-class DatingFSM:
-    """
-    Finite state machine for performing dating event.
-    States:
-        - initial (waiting for all users, see dating event documentation: 2)
-        - dating
-        - break (dating event documentation: 4)
-        - final (dating event documentation: 6)
-        Transitions:
-        - initial -> dating
-        - dating -> break
-        - break -> dating
-        - dating -> final
-    """
-    def __init__(self, group):
-        """
-        :param group: Group of users that will be dating.
-        """
-        ...
-
-    async def run(self):
-        ...
 
 class DateRunner:
     """
@@ -62,6 +38,8 @@ class DateRunner:
         self.rabbitmq = rabbitmq_controller
         self.running = False
         self.groups: List = []  # data collected from RegistrationConfirmationRunner
+        self.state_start_time = None
+        self.is_ready_to_start = False  # flag when state machine is ready to start rounds
         LOGGER.info(f'DateRunner for event#{event_id} initialized')
 
     async def run_event(self):
@@ -97,11 +75,61 @@ class DateRunner:
     async def run_dating_fsm(self, group):
         """
         Running FSM that handles dating process.
+        States:
+            - initial (waiting for all users, see dating event documentation: 2)
+            - dating
+            - break (dating event documentation: 4)
+            - final (dating event documentation: 6)
+            Transitions:
+            - initial -> dating
+            - dating -> break
+            - break -> dating
+            - dating -> final
         """
+        # event loop for running tasks
         loop = asyncio.get_running_loop()
-        loop.create_task(
-            DatingFSM(group).run()
-        )
+
+        # states for fsm
+        initial_state = State('initial', action=self.run_initial_state)
+        round_state = State('round', action=self.run_dating_round)
+        break_state = State('break', action=self.run_dating_break)
+        final_state = State('final', action=self.run_dating_final)
+
+        # transitions
+        initial_state.add_transition('start', round_state)
+        round_state.add_transition('break', break_state)
+        round_state.add_transition('finish', final_state)
+        break_state.add_transition('next', round_state)
+
+        # initialize, start timer
+        fsm = FiniteStateMachine(initial_state)
+        # run transition to 1st round after timer ends or all users ready
+        while not self.is_ready_to_start:
+            await sleep(1)
+        await fsm.transition('start')
+        # after 5 min transition to pause
+        # after 1 min transition to next round
+        # repeat 2 prev steps to max round
+        # transition to final state
+
+    async def run_initial_state(self):
+        LOGGER.debug('State machine is in initial state')
+        self.state_start_time = time.time()
+        while time.time() - self.state_start_time < 30:
+            await sleep(10)
+        self.is_ready_to_start = True
+
+    @staticmethod
+    async def run_dating_round(round_num):
+        LOGGER.debug(f'State machine is running dating round #{round_num}')
+
+    @staticmethod
+    async def run_dating_break():
+        LOGGER.debug('State machine is in dating break')
+
+    @staticmethod
+    async def run_dating_final():
+        LOGGER.debug('State machine is finishing dating event')
 
     async def save_event_results(self):
         while self.running:
@@ -494,7 +522,7 @@ class DateMakerService:
         # for event in events create processor and run
         LOGGER.debug('Processing events')
         for event in events:
-            if event.get('state_name') == EventStates.READY:
+            if event.get('state_name') == EventStates.READY.value:
                 runner = DateRunner(
                     event_id=event['id'],
                     meet_api_controller=self.meet_api_controller,
@@ -503,8 +531,7 @@ class DateMakerService:
                 )
                 loop.create_task(runner.run_event())
                 loop.create_task(runner.save_event_results())
-                # when done -- delete instance
-            elif event.get('state_name') == EventStates.NOT_STARTED:
+            elif event.get('state_name') == EventStates.NOT_STARTED.value:
                 runner = RegistrationConfirmationRunner(
                     event_id=event['id'],
                     meet_api_controller=self.meet_api_controller,
@@ -512,7 +539,6 @@ class DateMakerService:
                     rabbitmq_controller=self.async_rmq_controller,
                 )
                 loop.create_task(runner.handle_preparations())
-                # when done -- delete instance
 
     async def _collect_events(self):
         """
@@ -530,7 +556,10 @@ class DateMakerService:
             e
             for e
             in self.postgres_controller.get_dating_events(limit=10)
-            if e.get('state_name', '') == EventStates.NOT_STARTED.value
+            if (
+                e.get('state_name', '') == EventStates.NOT_STARTED.value and
+                e.get('start_dttm') - datetime.now() < timedelta(days=1)
+            )
         ]
         # registration should start 1 day before the event starts
         for event in confirmations:
