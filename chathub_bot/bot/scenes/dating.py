@@ -37,9 +37,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         pg: AsyncPgConnector
         rmq: AIORabbitMQConnector
 
-        pg, rmq, s3, fm, gh = self.get_connectors_from_context(kwargs)
-
-        user = await pg.get_user(message.from_user.id)
+        pg, rmq, s3, fm = self.get_connectors_from_context(kwargs)
 
         # show an entry message with inline controls.
         # inline handler will process further actions
@@ -68,11 +66,11 @@ async def dating_main_menu_actions_callback_handler(
 
     pg: AsyncPgConnector
     rmq: AIORabbitMQConnector
-    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
 
     if callback_data.action == DatingMenuActions.LIST_EVENTS:
         # triggered from the main menu
-        await _handle_listing_events(query, rmq, dh)
+        await _handle_listing_events(query, rmq, query.bot)
 
     elif callback_data.action == DatingMenuActions.SHOW_RULES:
         # triggered from the main menu
@@ -91,15 +89,19 @@ async def dating_event_callback_handler(
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
 
     rmq: AIORabbitMQConnector
-    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
 
     if callback_data.action == DatingEventActions.REGISTER:
         # triggered from the event list
-        await _handle_event_registration(query, rmq, callback_data, dh)
+        await _handle_event_registration(query, rmq, callback_data, query.bot)
 
     elif callback_data.action == DatingEventActions.CANCEL:
         # triggered from the main menu
-        await _handle_cancelling_event_registration(query, rmq, callback_data, dh)
+        await _handle_cancelling_event_registration(query, rmq, callback_data, query.bot)
+
+    elif callback_data.action == DatingEventActions.CONFIRM:
+        # triggered from confirmation request message (commands handler)
+        await _confirm_registration(query, callback_data, rmq)
 
 
 async def _display_main_menu(
@@ -354,4 +356,27 @@ async def _ask_for_cancelling_confirmation(callback_data, query):
         text=message_text,
         parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(),
+    )
+
+
+async def _confirm_registration(query, callback_data, rmq):
+    LOGGER.debug(f'Confirming user {query.from_user.id} to event {callback_data.event_id}')
+    dating_event = f'Event #{callback_data.event_id}'
+
+    await query.bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=_('thanks for confirming registration for {event}').format(event=dating_event),
+        parse_mode=ParseMode.HTML,
+    )
+    await rmq.publish(
+        message=DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
+        routing_key='date_maker_dev',
+        exchange='chathub_direct_main',
+        headers={
+            'user_id': str(query.from_user.id),
+            'chat_id': str(query.message.chat.id),
+            'message_id': str(query.message.message_id),
+            'event_id': str(callback_data.event_id),
+        },
     )

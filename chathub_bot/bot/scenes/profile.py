@@ -107,7 +107,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         data = await state.get_data()
         step_name = data.get('step', '')
 
-        pg, __, s3, fm, dh = self.get_connectors_from_context(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != 'photo':
             await message.answer(
@@ -146,7 +146,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             f'User left registration Scene: '
             f'{message.from_user.id}[{step_name}]'
         )
-        pg, __, s3, fm, dh = self.get_connectors_from_context(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != '':
             user, images = await self._get_user_profile_data(pg, message)

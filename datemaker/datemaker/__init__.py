@@ -19,7 +19,7 @@ def setup_logger(name):
     return logger
 
 
-# same as chathub_bot/bot/__init__.py:23
+# same as chathub_bot/bot/__init__.py:25
 class DateMakerCommands(Enum):
     LIST_EVENTS = 'list_events'
     REGISTER_USER_TO_EVENT = 'register_event'
@@ -27,12 +27,25 @@ class DateMakerCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 
+# same as chathub_bot/bot/__init__.py:33
+class BotCommands(Enum):
+    CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
+
+
 class EventStates(Enum):
-    NOT_STARTED = 'NOT_STARTED'
-    REGISTRATION_CONFIRMATION = 'REG_CONFIRM'
-    READY = 'READY'
-    RUNNING = 'RUNNING'
-    FINISHED = 'FINISHED'
+    NOT_STARTED = 'NOT_STARTED'                 # 0
+    REGISTRATION_CONFIRMATION = 'REG_CONFIRM'   # 1
+    READY = 'READY'                             # 2
+    RUNNING = 'RUNNING'                         # 3
+    FINISHED = 'FINISHED'                       # 4
+
+
+class EventStateIDs(Enum):
+    NOT_STARTED = 0
+    REGISTRATION_CONFIRMATION = 1
+    READY = 2
+    RUNNING = 3
+    FINISHED = 4
 
 
 # all parameters from RabbitMQConnector (0.0.3)

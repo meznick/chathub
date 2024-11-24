@@ -7,6 +7,7 @@ import psycopg2
 from asyncpg import Record
 from psycopg2 import Error
 from psycopg2.extras import RealDictCursor, RealDictRow
+from urllib3 import request
 
 from chathub_connectors import setup_logger
 
@@ -49,7 +50,6 @@ class AsyncPgConnector:
         :param user_id: ID of the user to fetch.
         :return: The user data fetched from the database.
         """
-        LOGGER.debug('getting')
         if not self.client:
             await self.connect()
 
@@ -260,7 +260,7 @@ class AsyncPgConnector:
 
         user_id = user.get("id") if user else None
         only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
-        for_user = 'WHERE r.user_id = $1' if user else ''
+        for_user = 'WHERE user_id = $1' if user else ''
         limit = f'LIMIT {limit}'
         request_query = f"""
             SELECT DISTINCT 
@@ -279,7 +279,7 @@ class AsyncPgConnector:
             {limit}
             ;
         """
-        data = await self.client.fetch(request_query, (user_id,))
+        data = await self.client.fetch(request_query, user_id)
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
 
@@ -297,7 +297,7 @@ class AsyncPgConnector:
             FROM public.dating_registrations
             WHERE event_id = $1;
         """
-        data = await self.client.execute(request_query, event_id)
+        data = await self.client.fetch(request_query, event_id)
         LOGGER.debug(f'Found {len(data)} event registrations')
         return data
 
@@ -340,6 +340,17 @@ class AsyncPgConnector:
             request_query, user.get('id'), event_id
         )
         LOGGER.debug(f'User {user.get("id")} confirmed registration for event {event_id}')
+
+    async def set_event_state(self, event_id: int, state_id: int):
+        request_query = """
+            UPDATE public.dating_events
+            SET state_id = $2
+            WHERE id = $1;
+        """
+        await self.client.execute(
+            request_query, event_id, state_id
+        )
+        LOGGER.debug(f'Event state for event {event_id} set to {state_id}')
 
     def __del__(self):
         loop = asyncio.new_event_loop()

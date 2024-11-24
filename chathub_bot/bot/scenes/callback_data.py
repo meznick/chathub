@@ -17,6 +17,7 @@ class DatingMenuActionsCallbackData(CallbackData, sep=':', prefix='dating_main_m
 class DatingEventActions(Enum):
     REGISTER = 'register'
     CANCEL = 'cancel'
+    CONFIRM = 'confirm'
 
 
 class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
