@@ -162,6 +162,7 @@ class RegistrationConfirmationRunner:
         await self.trigger_bot_to_send_confirmation_requests()
         await self.wait_for_confirmations()
         await self.generate_user_groups()
+        await self.trigger_bot_to_send_confirmation_complete()
         await self.set_event_state(EventStateIDs.READY)
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
 
@@ -228,6 +229,9 @@ class RegistrationConfirmationRunner:
 
         # making groups based on rating data
         pass
+
+    async def trigger_bot_to_send_confirmation_complete(self):
+        ...
 
 
 class DateMakerService:
