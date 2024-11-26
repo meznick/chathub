@@ -190,7 +190,7 @@ async def _display_dating_rules(query):
 async def _handle_listing_events(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
-        dh,
+        bot,
 ):
     """
     This method logic:
@@ -209,8 +209,8 @@ async def _handle_listing_events(
 
     :param query:
     :param rmq:
-    :param dh:
-    :type dh: DataHandler
+    :param bot:
+    :type bot: DataHandler
     :return:
     """
     LOGGER.debug(f'Listing events for user {query.from_user.id}')
@@ -242,7 +242,7 @@ async def _handle_listing_events(
                 'message_id': str(query.message.message_id),
             },
         )
-        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.process_list_events)
+        bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.process_list_events)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -285,7 +285,7 @@ async def _handle_event_registration(
                 'event_id': str(callback_data.event_id),
             },
         )
-        bot.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+        bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
