@@ -497,7 +497,7 @@ class DateMakerService:
         )
 
         registered_users = [
-            user.get('id') for user in event_registrations
+            user.get('user_id') for user in event_registrations
         ]
 
         if user.get('id') in registered_users:
@@ -598,7 +598,10 @@ class DateMakerService:
             e
             for e
             in events
-            if e.get('state_name', '') == EventStates.READY.value
+            if (
+               e.get('state_name', '') == EventStates.READY.value and
+               e.get('start_dttm') - datetime.now() < timedelta(minutes=1)
+            )
         ]
         confirmations = [
             e

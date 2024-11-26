@@ -101,7 +101,7 @@ async def dating_event_callback_handler(
 
     elif callback_data.action == DatingEventActions.CONFIRM:
         # triggered from confirmation request message (commands handler)
-        await _confirm_registration(query, callback_data, rmq)
+        await _confirm_registration(query, callback_data, rmq, query.bot)
 
 
 async def _display_main_menu(
@@ -252,7 +252,7 @@ async def _handle_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData,
-        dh,
+        bot,
 ):
     LOGGER.debug(f'Registering user {query.from_user.id} to event {callback_data.event_id}')
     try:
@@ -285,7 +285,7 @@ async def _handle_event_registration(
                 'event_id': str(callback_data.event_id),
             },
         )
-        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+        bot.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -295,7 +295,7 @@ async def _handle_cancelling_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData,
-        dh,
+        bot,
 ):
     LOGGER.debug(f'User {query.from_user.id} is cancelling registrations')
 
@@ -303,13 +303,13 @@ async def _handle_cancelling_event_registration(
         if not callback_data.confirmed:
             await _ask_for_cancelling_confirmation(callback_data, query)
         else:
-            await _cancel_registration(callback_data, dh, query, rmq)
+            await _cancel_registration(callback_data, bot, query, rmq)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
 
 
-async def _cancel_registration(callback_data, dh, query, rmq):
+async def _cancel_registration(callback_data, bot, query, rmq):
     await rmq.publish(
         message=DateMakerCommands.CANCEL_REGISTRATION.value,
         routing_key='date_maker_dev',
@@ -321,7 +321,7 @@ async def _cancel_registration(callback_data, dh, query, rmq):
             'event_id': str(callback_data.event_id),
         },
     )
-    dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+    bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
 
 
 async def _ask_for_cancelling_confirmation(callback_data, query):
@@ -359,7 +359,7 @@ async def _ask_for_cancelling_confirmation(callback_data, query):
     )
 
 
-async def _confirm_registration(query, callback_data, rmq):
+async def _confirm_registration(query, callback_data, rmq, bot):
     LOGGER.debug(f'Confirming user {query.from_user.id} to event {callback_data.event_id}')
     dating_event = f'Event #{callback_data.event_id}'
 
@@ -380,3 +380,4 @@ async def _confirm_registration(query, callback_data, rmq):
             'event_id': str(callback_data.event_id),
         },
     )
+    bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
