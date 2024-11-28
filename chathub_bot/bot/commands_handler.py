@@ -13,6 +13,8 @@ class BotCommandsHandlerMixin:
     async def process_commands(self, message, headers: dict, user_id: int):
         if BotCommands.CONFIRM_USER_EVENT_REGISTRATION.value in message:
             await self.request_event_registration_confirmation(headers, user_id)
+        elif BotCommands.SEND_RULES.value in message:
+            await self.send_pre_event_rules(user_id)
         else:
             raise UnknownBotCommandError(f'Cannot process command, message: {message[:30]}')
         return True
@@ -43,7 +45,7 @@ class BotCommandsHandlerMixin:
             reply_markup=builder.as_markup(),
         )
 
-    async def send_pre_event_rules(self, message, headers: dict, user_id: int):
+    async def send_pre_event_rules(self, user_id: int):
         _ = self.i18n.gettext
 
         await self.send_message(
