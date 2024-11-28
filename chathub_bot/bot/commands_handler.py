@@ -24,7 +24,7 @@ class BotCommandsHandlerMixin:
 
         builder = InlineKeyboardBuilder()
         builder.button(
-            text=_('back button'),
+            text=_('confirm button'),
             callback_data=DatingEventCallbackData(
                 action=DatingEventActions.CONFIRM.value,
                 event_id=headers.get('event_id', 0),

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-11-28 18:26+0300\n"
+"POT-Creation-Date: 2024-11-28 18:47+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,10 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/commands_handler.py:27 bot/data_handler.py:83 bot/data_handler.py:98
-#: bot/scenes/dating.py:175 bot/scenes/dating.py:222 bot/scenes/dating.py:262
-#: bot/scenes/dating.py:339
-msgid "back button"
+#: bot/commands_handler.py:27
+msgid "confirm button"
 msgstr ""
 
 #: bot/commands_handler.py:37
@@ -34,6 +32,11 @@ msgstr ""
 
 #: bot/commands_handler.py:56 bot/scenes/dating.py:184
 msgid "dating rules"
+msgstr ""
+
+#: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:175
+#: bot/scenes/dating.py:222 bot/scenes/dating.py:262 bot/scenes/dating.py:339
+msgid "back button"
 msgstr ""
 
 #: bot/data_handler.py:108
