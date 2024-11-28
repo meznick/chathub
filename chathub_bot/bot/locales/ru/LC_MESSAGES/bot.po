@@ -114,7 +114,7 @@ msgstr "❌ отменить регистрацию"
 
 #: bot/scenes/dating.py:369
 msgid "thanks for confirming registration for {event}"
-msgstr ""
+msgstr "Спасибо что подтвердили регистрацию на событие {event}!"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
