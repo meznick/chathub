@@ -33,6 +33,7 @@ class DateMakerCommands(Enum):
 # same as datemaker/datemaker/__init__.py:30
 class BotCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
+    SEND_RULES = 'send_rules'
 
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')

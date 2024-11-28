@@ -39,6 +39,7 @@ class DateRunner:
         self.groups: List = []  # data collected from RegistrationConfirmationRunner
         self.state_start_time = None
         self.is_ready_to_start = False  # flag when state machine is ready to start rounds
+        self.participants = None
         LOGGER.info(f'DateRunner for event#{event_id} initialized')
 
     async def run_event(self):
@@ -51,6 +52,7 @@ class DateRunner:
         LOGGER.info(f'Dating event#{self.event_id} has started')
         self.running = True
         await self.set_event_state(EventStates.RUNNING)
+        await self.collect_registration()
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
         await asyncio.gather(*[
@@ -60,10 +62,31 @@ class DateRunner:
         LOGGER.info(f'Dating event#{self.event_id} has finished')
 
     async def set_event_state(self, state: EventStates):
-        ...
+        await self.postgres.set_event_state(self.event_id, state.value)
+
+    async def collect_registrations(self):
+        """
+        Collecting all users registered for event.
+        """
+        LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
+        registrations = await self.postgres.get_event_registrations(self.event_id)
+        self.participants = {
+            user for user in registrations if user.get('confirmed_on_dttm')
+        }
 
     async def trigger_bot_to_send_rules(self):
-        ...
+        for user in self.participants:
+            await self.rabbitmq.publish(
+                message=BotCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
+                routing_key='tg_bot_dev',
+                exchange='chathub_direct_main',
+                headers={
+                    'user_id': user.get('user_id'),
+                    'chat_id': user.get('user_id'),
+                    'event_id': self.event_id,
+                }
+            )
+            LOGGER.debug(f'Send confirmation request to {len(self.participants)} users')
 
     async def get_event_prepared_data(self):
         """

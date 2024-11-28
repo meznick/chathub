@@ -24,7 +24,7 @@ class BotCommandsHandlerMixin:
 
         builder = InlineKeyboardBuilder()
         builder.button(
-            text=_('confirm button'),
+            text=_('back button'),
             callback_data=DatingEventCallbackData(
                 action=DatingEventActions.CONFIRM.value,
                 event_id=headers.get('event_id', 0),
@@ -41,4 +41,18 @@ class BotCommandsHandlerMixin:
             ),
             parse_mode=ParseMode.HTML,
             reply_markup=builder.as_markup(),
+        )
+
+    async def send_pre_event_rules(self, message, headers: dict, user_id: int):
+        _ = self.i18n.gettext
+
+        await self.send_message(
+            chat_id=user_id,
+            text=_('event will start soon, heres rule remainder'),
+            parse_mode=ParseMode.HTML,
+        )
+        await self.send_message(
+            chat_id=user_id,
+            text=_('dating rules'),
+            parse_mode=ParseMode.HTML,
         )

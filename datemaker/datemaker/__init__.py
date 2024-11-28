@@ -30,6 +30,7 @@ class DateMakerCommands(Enum):
 # same as chathub_bot/bot/__init__.py:33
 class BotCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
+    SEND_RULES = 'send_rules'
 
 
 class EventStates(Enum):

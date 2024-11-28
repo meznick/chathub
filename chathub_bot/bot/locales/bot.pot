@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-11-21 12:47+0300\n"
+"POT-Creation-Date: 2024-11-28 18:26+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,57 +18,74 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/data_handler.py:85 bot/data_handler.py:100 bot/scenes/dating.py:173
-#: bot/scenes/dating.py:220 bot/scenes/dating.py:260 bot/scenes/dating.py:337
+#: bot/commands_handler.py:27 bot/data_handler.py:83 bot/data_handler.py:98
+#: bot/scenes/dating.py:175 bot/scenes/dating.py:222 bot/scenes/dating.py:262
+#: bot/scenes/dating.py:339
 msgid "back button"
 msgstr ""
 
-#: bot/data_handler.py:110
-msgid "there are no events"
+#: bot/commands_handler.py:37
+msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 
-#: bot/data_handler.py:136
-msgid "operation was succeeded"
+#: bot/commands_handler.py:51
+msgid "event will start soon, heres rule remainder"
 msgstr ""
 
-#: bot/data_handler.py:143
-msgid "operation failed"
-msgstr ""
-
-#: bot/scenes/dating.py:128 bot/scenes/dating.py:182
+#: bot/commands_handler.py:56 bot/scenes/dating.py:184
 msgid "dating rules"
 msgstr ""
 
-#: bot/scenes/dating.py:132
+#: bot/data_handler.py:108
+msgid "there are no events"
+msgstr ""
+
+#: bot/data_handler.py:132
+msgid "operation was succeeded"
+msgstr ""
+
+#: bot/data_handler.py:139
+msgid "operation failed"
+msgstr ""
+
+#: bot/scenes/dating.py:130
+msgid "dating rules button"
+msgstr ""
+
+#: bot/scenes/dating.py:134
 msgid "list events"
 msgstr ""
 
-#: bot/scenes/dating.py:136
+#: bot/scenes/dating.py:138
 msgid "cancel event registration"
 msgstr ""
 
-#: bot/scenes/dating.py:150 bot/scenes/dating.py:160
+#: bot/scenes/dating.py:152 bot/scenes/dating.py:162
 msgid "welcome to dating platform {name}"
 msgstr ""
 
-#: bot/scenes/dating.py:229
+#: bot/scenes/dating.py:231
 msgid "here is list of events"
 msgstr ""
 
-#: bot/scenes/dating.py:271
+#: bot/scenes/dating.py:273
 msgid "registering you to the event {event}"
 msgstr ""
 
-#: bot/scenes/dating.py:328
+#: bot/scenes/dating.py:330
 msgid "are you sure you want to cancel all registrations?"
 msgstr ""
 
-#: bot/scenes/dating.py:332
+#: bot/scenes/dating.py:334
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr ""
 
-#: bot/scenes/dating.py:343
+#: bot/scenes/dating.py:345
 msgid "cancel registration"
+msgstr ""
+
+#: bot/scenes/dating.py:369
+msgid "thanks for confirming registration for {event}"
 msgstr ""
 
 #: bot/scenes/profile.py:62

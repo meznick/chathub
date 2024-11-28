@@ -127,7 +127,7 @@ async def _display_main_menu(
 
     builder = InlineKeyboardBuilder()
     builder.button(
-        text=_('dating rules'),
+        text=_('dating rules button'),
         callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.SHOW_RULES),
     )
     builder.button(
@@ -182,7 +182,7 @@ async def _display_dating_rules(query):
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
         text=_('dating rules'),
-        parse_mode=ParseMode.HTML,
+        parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=builder.as_markup(),
     )
 
