@@ -9,6 +9,7 @@ from asyncio import sleep
 from datetime import timedelta, datetime
 from typing import List
 
+import pandas as pd
 from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
@@ -250,6 +251,12 @@ class RegistrationConfirmationRunner:
                 await self.postgres.get_user(user_id)
             )
 
+        df = pd.DataFrame(
+            confirmed_users,
+            columns=[
+                'user_id', 'username', 'password_hash', 'bio', 'birthday', 'sex', 'city', 'rating'
+            ]
+        )
         # making groups based on rating data
         pass
 
