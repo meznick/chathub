@@ -16,6 +16,7 @@ from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgCon
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
 from datemaker import setup_logger, DateMakerCommands, EventStates, EventStateIDs, BotCommands
 from .finite_state_machine import FiniteStateMachine, State
+from .intelligent_agent import IntelligentAgent
 from .meet_api_controller import GoogleMeetApiController
 
 LOGGER = setup_logger(__name__)
@@ -25,6 +26,8 @@ class DateRunner:
     """
     Class that encapsulates logic for running singe date event.
     """
+    intelligence_agent = IntelligentAgent()
+
     def __init__(
             self,
             event_id: int,
@@ -161,6 +164,11 @@ class DateRunner:
 
 
 class RegistrationConfirmationRunner:
+    """
+    Class that encapsulates logic for running preparation for an event.
+    """
+    intelligence_agent = IntelligentAgent()
+
     def __init__(
             self,
             event_id: int,
@@ -183,10 +191,10 @@ class RegistrationConfirmationRunner:
         self.running = True
         await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
         await self.collect_registrations()
-        await self.trigger_bot_to_send_confirmation_requests()
+        await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
         await self.wait_for_confirmations()
         await self.generate_user_groups()
-        await self.trigger_bot_to_send_confirmation_complete()
+        await self.trigger_bot_command(BotCommands.SEND_RULES)
         await self.set_event_state(EventStateIDs.READY)
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
 
@@ -200,13 +208,10 @@ class RegistrationConfirmationRunner:
         LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
         self.registrations = await self.postgres.get_event_registrations(self.event_id)
 
-    async def trigger_bot_to_send_confirmation_requests(self):
-        """
-        To participate in event users should send confirmation.
-        """
+    async def trigger_bot_command(self, command: BotCommands):
         for user in self.registrations:
             await self.rabbitmq.publish(
-                message=BotCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
+                message=command.value,
                 routing_key='tg_bot_dev',
                 exchange='chathub_direct_main',
                 headers={
@@ -215,7 +220,7 @@ class RegistrationConfirmationRunner:
                     'event_id': self.event_id,
                 }
             )
-        LOGGER.debug(f'Send confirmation request to {len(self.registrations)} users')
+            LOGGER.debug(f'Command {command} triggered for {len(self.registrations)} users')
 
     async def wait_for_confirmations(self):
         is_all_confirmed = False  # all users confirmed registrations
@@ -258,10 +263,10 @@ class RegistrationConfirmationRunner:
             ]
         )
         # making groups based on rating data
+        df_grouped = self.intelligence_agent.cluster_users_for_event(df)
+        # prepare data to put into dating_event_groups
+        # put data into DB
         pass
-
-    async def trigger_bot_to_send_confirmation_complete(self):
-        ...
 
 
 class DateMakerService:
