@@ -52,7 +52,7 @@ class DateRunner:
         LOGGER.info(f'Dating event#{self.event_id} has started')
         self.running = True
         await self.set_event_state(EventStates.RUNNING)
-        await self.collect_registration()
+        await self.collect_registrations()
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
         await asyncio.gather(*[
