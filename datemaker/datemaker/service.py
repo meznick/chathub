@@ -189,10 +189,10 @@ class RegistrationConfirmationRunner:
     async def handle_preparations(self):
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has started')
         self.running = True
-        await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
+        # await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
         await self.collect_registrations()
-        await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
-        await self.wait_for_confirmations()
+        # await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
+        # await self.wait_for_confirmations()
         await self.generate_user_groups()
         await self.trigger_bot_command(BotCommands.SEND_RULES)
         await self.set_event_state(EventStateIDs.READY)
