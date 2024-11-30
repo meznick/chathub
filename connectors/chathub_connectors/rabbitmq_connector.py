@@ -137,8 +137,7 @@ class RabbitMQConnector:
         else:
             LOGGER.info('Closing connection')
             if self._channel:
-                self._connection.disconnect()
-                self._connection.disconnect()
+                self._connection.close()
 
     def publish(
             self,
