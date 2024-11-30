@@ -246,7 +246,6 @@ class RegistrationConfirmationRunner:
         """
         LOGGER.debug(f'Generating user groups for event#{self.event_id}')
         # collect user data to make groups
-        self.registrations = await self.postgres.get_event_registrations(self.event_id)
         confirmed_user_ids = {
             user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
         }
@@ -256,17 +255,28 @@ class RegistrationConfirmationRunner:
                 await self.postgres.get_user(user_id)
             )
 
-        df = pd.DataFrame(
+        df_registrations = pd.DataFrame(
+            self.registrations,
+            columns=['user_id', 'registered_on_dttm', 'confirmed_on_dttm'],
+        )
+        df_users = pd.DataFrame(
             confirmed_users,
             columns=[
-                'user_id', 'username', 'password_hash', 'bio', 'birthday', 'sex', 'city', 'rating'
+                'user_id',
+                'username',
+                'password_hash',
+                'bio',
+                'birthday',
+                'sex',
+                'name',
+                'city',
+                'rating',
+                'manual_score',
             ]
         )
-        # making groups based on rating data
-        df_grouped = self.intelligence_agent.cluster_users_for_event(df)
-        # prepare data to put into dating_event_groups
-        # put data into DB
-        pass
+        df_users = df_users.merge(df_registrations, on='user_id')
+
+        df_grouped = self.intelligence_agent.cluster_users_for_event(df_users)
 
 
 class DateMakerService:
