@@ -278,11 +278,17 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
 
     @staticmethod
     async def _send_user_profile(fm, images, message, s3, user):
+        birth_date = user['birthday']
+        today = datetime.now().date()
         media_group = MediaGroupBuilder(
             caption=_('your profile {name} {sex} {age} {city}').format(
                 name=user['name'],
                 sex=_('sex_male') if user['sex'].upper() == 'M' else _('sex_female'),
-                age=datetime.now().year - user['birthday'].year,  # is it correct?
+                age=(
+                        today.year - birth_date.year - (
+                            (today.month, today.day) < (birth_date.month, birth_date.day)
+                        )
+                ),
                 city=user['city'],
             ),
         )
