@@ -1,6 +1,13 @@
-from typing import List
+from datetime import datetime
+from typing import List, Tuple
 
 import pandas as pd
+from more_itertools.more import partitions
+
+from datemaker import setup_logger, EVENT_IDEAL_USERS
+from chathub_connectors.postgres_connector import LOGGER
+
+LOGGER = setup_logger(__name__)
 
 
 class IntelligentAgent:
@@ -15,12 +22,24 @@ class IntelligentAgent:
         :param users: Dataframe with users and their features.
         :return: Dataframe with user IDs and groups.
         """
+        users = self.prepare_data(users)
         target_users, additive_users = self._split_into_genders(users)
-        target_users = self._split_by_age(target_users)
-        target_users = self._split_by_city(target_users)  # optional: if there are enough users?
-        target_users = self._split_by_rating(target_users)
-        additive_users = self._calculate_matchmaking_embedding(target_users, additive_users)
-        # target_users
+        # target_users = self._split_by_age(target_users)  # too difficult for now
+        # target_users = self._split_by_city(target_users)  # not implemented
+        # target_users = self._split_by_rating(target_users)  # rating not implemented
+        embedding_data = self._calculate_matchmaking_embedding(target_users, additive_users)
+        groups = self._split_into_groups(target_users, embedding_data)
+        # put the final dataframe into dating_event_groups
+
+    @staticmethod
+    def prepare_data(users: pd.DataFrame) -> pd.DataFrame:
+        today = datetime.now().date()
+        users['age'] = users['birthday'].apply(
+            lambda x: today.year - x.year - (
+                (today.month, today.day) < (x.month, x.day)
+            )
+        )
+        return users
 
     @staticmethod
     def update_user_ratings(user_actions: pd.DataFrame) -> pd.DataFrame:
@@ -34,7 +53,7 @@ class IntelligentAgent:
         return user_actions[['user_id', 'rating']]
 
     @staticmethod
-    def _split_into_genders(users: pd.DataFrame) -> List[pd.DataFrame]:
+    def _split_into_genders(users: pd.DataFrame) -> Tuple[pd.DataFrame]:
         """
         Splitting users into groups by gender.
         Smaller group is target in the matchmaking process and returned first.
@@ -42,7 +61,14 @@ class IntelligentAgent:
         :param users:
         :return:
         """
-        ...
+        LOGGER.debug('Splitting into genders')
+        f_size = users.loc[users.sex == 'F'].shape[0]
+        m_size = users.loc[users.sex == 'M'].shape[0]
+        target_sex = 'F' if f_size < m_size else 'M'
+        return (
+            users.loc[users.sex == target_sex],
+            users.loc[users.sex != target_sex],
+        )
 
     @staticmethod
     def _split_by_age(users: pd.DataFrame) -> pd.DataFrame:
@@ -59,9 +85,46 @@ class IntelligentAgent:
         """
         return users
 
+    @classmethod
+    def _split_by_city(cls, users: pd.DataFrame) -> pd.DataFrame:
+        """
+        We want to split users into groups by city.
+        The problem is in small cities.
+        Since we do not have geo data now, we just randomly combine small cities in
+        one.
+        Sum of users should be multiple of "ideal size of group".
+        :param users:
+        :return:
+        """
+        return users
+
     @staticmethod
-    def _split_by_city(users: pd.DataFrame) -> pd.DataFrame:
-        ...
+    def partition_integers(numbers: List[int], target: int) -> List[List[int]]:
+        """
+        AI generated, can be shit.
+        The function takes a list of integers and a target integer,
+        then tries to partition the list into groups with sums close to the target.
+        """
+        # Sort numbers in decreasing order
+        numbers.sort(reverse=True)
+
+        # To hold the groups of numbers
+        partitions = []
+
+        for number in numbers:
+            # Try to find an existing partition to add this number to
+            added_to_partition = False
+            for group in partitions:
+                if sum(group) + number <= target:
+                    group.append(number)
+                    added_to_partition = True
+                    break
+
+            # If no existing partition can hold the number, create a new partition
+            if not added_to_partition:
+                partitions.append([number])
+
+        return partitions
 
     @staticmethod
     def _split_by_rating(users: pd.DataFrame) -> pd.DataFrame:
@@ -78,11 +141,96 @@ class IntelligentAgent:
         """
         Calculate matrix of compatibility coefficients for each M-F pair.
 
+        Age scoring:
+            - if target and additive users age is +-1 year (max diff 2) than score is 2
+            - score decreases by 1 for each year away
+
+        City scoring:
+            - if city matches than score equals 2 else 0
+
+        Manual scoring:
+            - possible values for manual rating: 1, 2, 3
+            - if target and additive users have same manual rating than score equals 6
+            - score decreases by 2 for each 1 point difference
+
+        Rating scoring: in progress.
+
         :param target:
         :param additive:
         :return:
         """
-        return additive
+        LOGGER.debug('Calculating matchmaking embedding')
+        embedding: pd.DataFrame = target[['user_id']].copy(deep=True)
+        for additive_user in additive.user_id.values:
+            embedding[str(additive_user)] = 0
+            for target_user in target.user_id.values:
+                # scoring age
+                age_diff = abs(
+                    target.loc[target.user_id == target_user].age.values[0] -
+                    additive.loc[additive.user_id == additive_user].age.values[0]
+                )
+                score = 2 + 2 - age_diff
 
-    # @staticmethod
-    # def _make_groups
+                # scoring city
+                same_city = (
+                    target.loc[target.user_id == target_user].city.values[0] ==
+                    additive.loc[additive.user_id == additive_user].city.values[0]
+                )
+                score += 2 if same_city else 0
+
+                # including manual tune
+                manual_diff = abs(
+                    target.loc[target.user_id == target_user].manual_score.values[0] -
+                    additive.loc[additive.user_id == additive_user].manual_score.values[0]
+                )
+                score += 6 - 2 * manual_diff
+
+                # assigning score
+                embedding.loc[embedding.user_id == target_user, str(additive_user)] = score
+
+        embedding['match'] = embedding.idxmax(axis=1)
+        return embedding
+
+    @classmethod
+    def _split_into_groups(
+            cls,
+            target_users: pd.DataFrame,
+            embedding_data: pd.DataFrame
+    ) -> List[pd.DataFrame]:
+        """
+        Generate groups.
+
+        1. Order target by rating, age and registration date.
+        2. Select the best possible pair for each target user (every additive used once)
+        3. Split into groups.
+
+        :param target_users:
+        :param embedding_data:
+        :return:
+        """
+        sorted_user_ids = target_users.sort_values(by=['rating', 'registered_on_dttm'], ascending=False).user_id.tolist()
+        target_users['match'] = -1
+        for user in sorted_user_ids:
+            target_users.loc[target_users.user_id == user, 'match'] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
+        return cls._split_dataframe(target_users)
+
+    @staticmethod
+    def _split_dataframe(df: pd.DataFrame, chunk_size: int = EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
+        return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
+
+    @staticmethod
+    def _generate_pairs(group: pd.DataFrame) -> List[pd.DataFrame]:
+        turn = 0
+        for first_user in group.user_id.values:
+            for second_user in group.match.values:
+                yield turn, first_user, second_user
+                turn += 1
+
+    @classmethod
+    def put_event_data_into_bd(
+            cls,
+            event_id: int,
+            group_id: int,
+            group_data: pd.DataFrame
+    ):
+        ...
