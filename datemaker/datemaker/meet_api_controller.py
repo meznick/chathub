@@ -1,12 +1,14 @@
 import os
 
-from google.apps.meet_v2 import Space
+from google.apps.meet_v2 import UpdateSpaceRequest, SpaceConfig, Space
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.apps import meet_v2
+from google.protobuf import field_mask_pb2
+import asyncio
 
-from datemaker import setup_logger
+from __init__ import setup_logger
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = [
@@ -66,3 +68,38 @@ class GoogleMeetApiController:
                 token.write(creds.to_json())
 
         return creds
+    
+    async def update_meeting_space(self, space_name: str, entry_point_access : str = 'ALL', access_type : str = 'OPEN'):
+        # Создаём объект SpaceConfig
+        space_config = SpaceConfig(
+            entry_point_access=entry_point_access,
+            access_type=access_type
+        )
+
+        # Создаём объект Space с обновлённой конфигурацией
+        space = Space(
+            name=space_name,
+            config=space_config
+        )
+
+        # Создаём запрос на обновление
+        request = UpdateSpaceRequest(
+            space=space,
+            update_mask={"paths": ["config.entry_point_access", "config.access_type"]}  # Указываем, что обновляем только поле config
+        )
+
+        # Выполняем запрос
+        response = await self.client.update_space(request=request)
+
+        LOGGER.debug(f"Space updated: {response.name}")
+        return response
+    
+    async def create_meeting(self) -> Space:
+        space = await self.create_space()
+        space = await self.update_meeting_space(space_name= space.name)
+        return space
+    
+    async def delete_meeting_with_timer(self, space: Space, timer_minutes:int = 5):
+        await asyncio.sleep(timer_minutes * 60)
+        await self.end_active_call(space)
+        LOGGER.debug(f"Space deleted: {space.name}")
