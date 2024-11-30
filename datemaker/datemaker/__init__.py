@@ -49,6 +49,9 @@ class EventStateIDs(Enum):
     FINISHED = 4
 
 
+EVENT_IDEAL_USERS = 20
+
+
 # all parameters from RabbitMQConnector (0.0.3)
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
 MESSAGE_BROKER_PORT = int(os.getenv('RABBITMQ_PORT', '5672'))
