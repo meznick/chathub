@@ -352,6 +352,15 @@ class AsyncPgConnector:
         )
         LOGGER.debug(f'Event state for event {event_id} set to {state_id}')
 
+    async def put_event_data(self, data):
+        request_query = """
+            INSERT INTO public.dating_event_groups 
+            (event_id, group_id, turn_no, user_1_id, user_2_id)
+            VALUES ($1, $2, $3, $4, $5);
+        """
+        await self.client.executemany(request_query, data)
+        LOGGER.debug(f'Inserted event groups')
+
     def __del__(self):
         loop = asyncio.new_event_loop()
         if self.client:

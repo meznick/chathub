@@ -1,11 +1,19 @@
+import asyncio
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Generator
 
 import pandas as pd
-from more_itertools.more import partitions
 
-from datemaker import setup_logger, EVENT_IDEAL_USERS
-from chathub_connectors.postgres_connector import LOGGER
+from chathub_connectors.postgres_connector import AsyncPgConnector
+from datemaker import (
+    setup_logger,
+    EVENT_IDEAL_USERS,
+    POSTGRES_HOST,
+    POSTGRES_PORT,
+    POSTGRES_DB,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD,
+)
 
 LOGGER = setup_logger(__name__)
 
@@ -15,7 +23,16 @@ class IntelligentAgent:
     MVP class for matchmaker. Will be moved to a separate service.
     """
 
-    def cluster_users_for_event(self, users: pd.DataFrame) -> pd.DataFrame:
+    def __init__(self):
+        self.postgres_connector = AsyncPgConnector(
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            db=POSTGRES_DB,
+            username=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+        )
+
+    def cluster_users_for_event(self, users: pd.DataFrame, event_id: int) -> pd.DataFrame:
         """
         For a given list of users need to cluster them in groups for
         the best experience.
@@ -24,12 +41,18 @@ class IntelligentAgent:
         """
         users = self.prepare_data(users)
         target_users, additive_users = self._split_into_genders(users)
-        # target_users = self._split_by_age(target_users)  # too difficult for now
+        # target_users = self._split_by_age(target_users)  # not implemented
         # target_users = self._split_by_city(target_users)  # not implemented
         # target_users = self._split_by_rating(target_users)  # rating not implemented
         embedding_data = self._calculate_matchmaking_embedding(target_users, additive_users)
         groups = self._split_into_groups(target_users, embedding_data)
         # put the final dataframe into dating_event_groups
+        for group_num, group in enumerate(groups):
+            self.put_event_data_into_bd(
+                event_id,
+                group_num,
+                self._generate_pairs(group)
+            )
 
     @staticmethod
     def prepare_data(users: pd.DataFrame) -> pd.DataFrame:
@@ -53,7 +76,7 @@ class IntelligentAgent:
         return user_actions[['user_id', 'rating']]
 
     @staticmethod
-    def _split_into_genders(users: pd.DataFrame) -> Tuple[pd.DataFrame]:
+    def _split_into_genders(users: pd.DataFrame) -> Tuple:
         """
         Splitting users into groups by gender.
         Smaller group is target in the matchmaking process and returned first.
@@ -208,10 +231,15 @@ class IntelligentAgent:
         :param embedding_data:
         :return:
         """
-        sorted_user_ids = target_users.sort_values(by=['rating', 'registered_on_dttm'], ascending=False).user_id.tolist()
+        sorted_user_ids = target_users.sort_values(
+            by=['rating', 'registered_on_dttm'],
+            ascending=False
+        ).user_id.tolist()
         target_users['match'] = -1
         for user in sorted_user_ids:
-            target_users.loc[target_users.user_id == user, 'match'] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
+            target_users.loc[
+                target_users.user_id == user, 'match'
+            ] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
         return cls._split_dataframe(target_users)
 
     @staticmethod
@@ -219,18 +247,28 @@ class IntelligentAgent:
         return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
 
     @staticmethod
-    def _generate_pairs(group: pd.DataFrame) -> List[pd.DataFrame]:
+    def _generate_pairs(group: pd.DataFrame) -> Generator[Tuple[int, int, int], None, None]:
         turn = 0
         for first_user in group.user_id.values:
             for second_user in group.match.values:
                 yield turn, first_user, second_user
                 turn += 1
 
-    @classmethod
+    @staticmethod
+    def add_event_group_ids_to_pairs(event_id: int, group_id: int, data: Generator) -> Generator:
+        for row in data:
+            yield event_id, group_id, row[0], row[1], row[2]
+
     def put_event_data_into_bd(
-            cls,
+            self,
             event_id: int,
             group_id: int,
-            group_data: pd.DataFrame
+            group_data,
     ):
-        ...
+        loop = asyncio.get_running_loop()
+        if loop.is_running():
+            loop.run_until_complete(
+                self.postgres_connector.put_event_data(
+                    data=self.add_event_group_ids_to_pairs(event_id, group_id, group_data)
+                )
+            )

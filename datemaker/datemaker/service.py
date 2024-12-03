@@ -276,7 +276,8 @@ class RegistrationConfirmationRunner:
         )
         df_users = df_users.merge(df_registrations, on='user_id')
 
-        df_grouped = self.intelligence_agent.cluster_users_for_event(df_users)
+        df_grouped = self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
+        LOGGER.debug(f'Generated {len(df_grouped)} user groups for event#{self.event_id}')
 
 
 class DateMakerService:
