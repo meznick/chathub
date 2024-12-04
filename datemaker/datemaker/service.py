@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 import time
-from asyncio import sleep
+from asyncio import sleep, AbstractEventLoop
 from datetime import timedelta, datetime
 from typing import List
 
@@ -26,14 +26,13 @@ class DateRunner:
     """
     Class that encapsulates logic for running singe date event.
     """
-    intelligence_agent = IntelligentAgent()
-
     def __init__(
             self,
             event_id: int,
             meet_api_controller: GoogleMeetApiController,
             postgres_controller: AsyncPgConnector,
             rabbitmq_controller: AIORabbitMQConnector,
+            custom_event_loop: AbstractEventLoop = None,
     ):
         self.event_id = event_id
         self.meet_api = meet_api_controller
@@ -44,6 +43,8 @@ class DateRunner:
         self.state_start_time = None
         self.is_ready_to_start = False  # flag when state machine is ready to start rounds
         self.participants = None
+        loop = custom_event_loop or asyncio.get_event_loop()
+        self.intelligence_agent = IntelligentAgent(custom_event_loop=loop)
         LOGGER.info(f'DateRunner for event#{event_id} initialized')
 
     async def run_event(self):
@@ -167,7 +168,6 @@ class RegistrationConfirmationRunner:
     """
     Class that encapsulates logic for running preparation for an event.
     """
-    intelligence_agent = IntelligentAgent()
 
     def __init__(
             self,
@@ -176,6 +176,7 @@ class RegistrationConfirmationRunner:
             meet_api_controller: GoogleMeetApiController,
             postgres_controller: AsyncPgConnector,
             rabbitmq_controller: AIORabbitMQConnector,
+            custom_event_loop: AbstractEventLoop = None,
     ):
         self.event_id = event_id
         self.event_start_time = start_time
@@ -184,6 +185,8 @@ class RegistrationConfirmationRunner:
         self.rabbitmq = rabbitmq_controller
         self.running = False
         self.registrations = []
+        loop = custom_event_loop or asyncio.get_event_loop()
+        self.intelligence_agent = IntelligentAgent(loop)
         LOGGER.info(f'RegistrationConfirmationRunner for event#{event_id} initialized')
 
     async def handle_preparations(self):
@@ -276,8 +279,8 @@ class RegistrationConfirmationRunner:
         )
         df_users = df_users.merge(df_registrations, on='user_id')
 
-        df_grouped = self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
-        LOGGER.debug(f'Generated {len(df_grouped)} user groups for event#{self.event_id}')
+        self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
+        LOGGER.info(f'Generated user groups for event#{self.event_id}')
 
 
 class DateMakerService:
@@ -624,6 +627,7 @@ class DateMakerService:
                     meet_api_controller=self.meet_api_controller,
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
+                    custom_event_loop=loop,
                 )
                 loop.create_task(runner.run_event())
                 loop.create_task(runner.save_event_results())
@@ -634,6 +638,7 @@ class DateMakerService:
                     meet_api_controller=self.meet_api_controller,
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
+                    custom_event_loop=loop,
                 )
                 loop.create_task(runner.handle_preparations())
 

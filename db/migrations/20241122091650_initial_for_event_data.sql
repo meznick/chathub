@@ -7,7 +7,7 @@ CREATE TABLE dating_event_groups (
     user_1_id BIGINT,
     user_2_id BIGINT
 );
-GRANT SELECT, DELETE ON dating_event_groups TO chathub_service, developer;
+GRANT SELECT, INSERT, DELETE ON dating_event_groups TO chathub_service, developer;
 
 -- migrate:down
 DROP TABLE dating_event_groups;

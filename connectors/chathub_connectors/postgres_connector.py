@@ -355,7 +355,7 @@ class AsyncPgConnector:
     async def put_event_data(self, data):
         request_query = """
             INSERT INTO public.dating_event_groups 
-            (event_id, group_id, turn_no, user_1_id, user_2_id)
+            (event_id, group_no, turn_no, user_1_id, user_2_id)
             VALUES ($1, $2, $3, $4, $5);
         """
         await self.client.executemany(request_query, data)

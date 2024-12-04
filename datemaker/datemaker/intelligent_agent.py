@@ -1,8 +1,10 @@
 import asyncio
+from asyncio import AbstractEventLoop
 from datetime import datetime
 from typing import List, Tuple, Generator
 
 import pandas as pd
+from more_itertools.more import first
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from datemaker import (
@@ -23,7 +25,7 @@ class IntelligentAgent:
     MVP class for matchmaker. Will be moved to a separate service.
     """
 
-    def __init__(self):
+    def __init__(self, custom_event_loop: AbstractEventLoop = None,):
         self.postgres_connector = AsyncPgConnector(
             host=POSTGRES_HOST,
             port=POSTGRES_PORT,
@@ -31,6 +33,11 @@ class IntelligentAgent:
             username=POSTGRES_USER,
             password=POSTGRES_PASSWORD,
         )
+        self.loop = custom_event_loop or asyncio.get_event_loop()
+        connect = self.loop.create_task(
+            self.postgres_connector.connect(custom_loop=self.loop)
+        )
+        asyncio.gather(connect)
 
     def cluster_users_for_event(self, users: pd.DataFrame, event_id: int) -> pd.DataFrame:
         """
@@ -248,11 +255,14 @@ class IntelligentAgent:
 
     @staticmethod
     def _generate_pairs(group: pd.DataFrame) -> Generator[Tuple[int, int, int], None, None]:
-        turn = 0
-        for first_user in group.user_id.values:
-            for second_user in group.match.values:
+        pair_count = len(group.user_id.values.tolist())
+        for turn in range(pair_count):
+            for i in range(pair_count):
+                first_user = group.user_id.values.tolist()[i]
+                second_user_index = turn + i if turn + i < pair_count else turn + i - pair_count
+                second_user = int(group.match.values.tolist()[second_user_index])
                 yield turn, first_user, second_user
-                turn += 1
+
 
     @staticmethod
     def add_event_group_ids_to_pairs(event_id: int, group_id: int, data: Generator) -> Generator:
@@ -265,9 +275,8 @@ class IntelligentAgent:
             group_id: int,
             group_data,
     ):
-        loop = asyncio.get_running_loop()
-        if loop.is_running():
-            loop.run_until_complete(
+        if self.loop.is_running():
+            self.loop.create_task(
                 self.postgres_connector.put_event_data(
                     data=self.add_event_group_ids_to_pairs(event_id, group_id, group_data)
                 )
