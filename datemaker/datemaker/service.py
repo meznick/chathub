@@ -192,10 +192,10 @@ class RegistrationConfirmationRunner:
     async def handle_preparations(self):
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has started')
         self.running = True
-        # await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
+        await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
         await self.collect_registrations()
-        # await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
-        # await self.wait_for_confirmations()
+        await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
+        await self.wait_for_confirmations()
         await self.generate_user_groups()
         await self.trigger_bot_command(BotCommands.SEND_RULES)
         await self.set_event_state(EventStateIDs.READY)
@@ -208,7 +208,7 @@ class RegistrationConfirmationRunner:
         """
         Collecting all users registered for event.
         """
-        LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
+        LOGGER.info(f'Collecting registrations for event#{self.event_id}')
         self.registrations = await self.postgres.get_event_registrations(self.event_id)
 
     async def trigger_bot_command(self, command: BotCommands):
@@ -223,7 +223,7 @@ class RegistrationConfirmationRunner:
                     'event_id': self.event_id,
                 }
             )
-            LOGGER.debug(f'Command {command} triggered for {len(self.registrations)} users')
+        LOGGER.info(f'Command {command} triggered for {len(self.registrations)} users')
 
     async def wait_for_confirmations(self):
         is_all_confirmed = False  # all users confirmed registrations
@@ -237,6 +237,7 @@ class RegistrationConfirmationRunner:
                 {user.get('user_id') for user in registrations} -
                 {user.get('user_id') for user in registrations if user.get('confirmed_on_dttm')}
             ) == 0
+        LOGGER.info(f'All users confirmed registrations for event#{self.event_id}')
 
     async def generate_user_groups(self):
         """
