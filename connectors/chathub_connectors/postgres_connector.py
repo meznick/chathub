@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import AbstractEventLoop, create_task
 from datetime import datetime
 from typing import Optional, List
 
@@ -30,10 +31,14 @@ class AsyncPgConnector:
         self._username = username
         self._password = password
         self.client: asyncpg.connection.Connection | None = None
+        self.loop: AbstractEventLoop | None = None
         LOGGER.info('Async PG connector initialized')
 
     async def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to PG: {self._host}:{self._port}/{self._db}')
+        if custom_loop:
+            self.loop = custom_loop
+
         self.client = await asyncpg.connect(
             host=self._host,
             port=self._port,
@@ -362,15 +367,14 @@ class AsyncPgConnector:
         LOGGER.debug(f'Inserted event groups')
 
     def __del__(self):
-        loop = asyncio.new_event_loop()
+        loop = self.loop or asyncio.new_event_loop()
         if self.client:
-            # it looks like it cannot close properly
             try:
-                loop.run_until_complete(self.client.close())
+                close_task = loop.create_task(self.client.close())
+                asyncio.gather(close_task)
             except Exception as e:
                 LOGGER.warning(f'Fail on closing connection: {e}')
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
-
         LOGGER.debug('PG connector deleted')
 
 
