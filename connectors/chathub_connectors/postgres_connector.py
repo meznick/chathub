@@ -284,7 +284,10 @@ class AsyncPgConnector:
             {limit}
             ;
         """
-        data = await self.client.fetch(request_query, user_id)
+        if user_id:
+            data = await self.client.fetch(request_query, user_id)
+        else:
+            data = await self.client.fetch(request_query)
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
 
@@ -365,6 +368,16 @@ class AsyncPgConnector:
         """
         await self.client.executemany(request_query, data)
         LOGGER.debug(f'Inserted event groups')
+
+    async def get_event_data(self, event_id: int):
+        request_query = """
+            SELECT group_no, turn_no, user_1_id, user_2_id
+            FROM public.dating_event_groups
+            where event_id = $1;
+        """
+        data = await self.client.fetch(request_query, event_id)
+        LOGGER.debug(f'Fetched event#{event_id} groups')
+        return data
 
     def __del__(self):
         loop = self.loop or asyncio.new_event_loop()
