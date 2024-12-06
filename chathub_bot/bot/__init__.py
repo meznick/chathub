@@ -36,6 +36,10 @@ class BotCommands(Enum):
     SEND_RULES = 'send_rules'
     INVITE_TO_MEETING = 'invite_to_meeting'
     SEND_PARTNER_PROFILE = 'send_partner_profile'
+    SEND_PARTNER_RATING_REQUEST = 'send_partner_rating_request'
+    SEND_PARTNER_PROFILE_VERIFICATION_REQUEST = 'send_partner_profile_verification_request'
+    SEND_FINAL_DATING_MESSAGE = 'send_final_dating_message'
+    SEND_MATCH_MESSAGE = 'send_match_message'
 
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
