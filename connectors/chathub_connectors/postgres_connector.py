@@ -1,5 +1,5 @@
 import asyncio
-from asyncio import AbstractEventLoop, create_task
+from asyncio import AbstractEventLoop
 from datetime import datetime
 from typing import Optional, List
 
@@ -8,7 +8,6 @@ import psycopg2
 from asyncpg import Record
 from psycopg2 import Error
 from psycopg2.extras import RealDictCursor, RealDictRow
-from urllib3 import request
 
 from chathub_connectors import setup_logger
 
