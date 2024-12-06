@@ -68,7 +68,7 @@ class GoogleMeetApiController:
 
         return creds
 
-    async def update_meeting_space(
+    async def make_space_public(
             self,
             space_name: str,
             entry_point_access: str = 'ALL',
@@ -98,9 +98,9 @@ class GoogleMeetApiController:
         LOGGER.debug(f"Space updated: {response.name}")
         return response
 
-    async def create_meeting(self) -> Space:
+    async def create_public_space(self) -> Space:
         space = await self.create_space()
-        space = await self.update_meeting_space(space_name=space.name)
+        space = await self.make_space_public(space_name=space.name)
         return space
 
     async def delete_meeting_with_timer(self, space: Space, timer_minutes: int = 5):
