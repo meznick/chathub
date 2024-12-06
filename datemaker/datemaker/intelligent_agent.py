@@ -25,19 +25,23 @@ class IntelligentAgent:
     MVP class for matchmaker. Will be moved to a separate service.
     """
 
-    def __init__(self, custom_event_loop: AbstractEventLoop = None,):
-        self.postgres_connector = AsyncPgConnector(
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            db=POSTGRES_DB,
-            username=POSTGRES_USER,
-            password=POSTGRES_PASSWORD,
-        )
+    def __init__(self, custom_event_loop: AbstractEventLoop = None, postgres_connector=None):
         self.loop = custom_event_loop or asyncio.get_event_loop()
-        connect = self.loop.create_task(
-            self.postgres_connector.connect(custom_loop=self.loop)
-        )
-        asyncio.gather(connect)
+
+        if not postgres_connector:
+            self.postgres_connector = AsyncPgConnector(
+                host=POSTGRES_HOST,
+                port=POSTGRES_PORT,
+                db=POSTGRES_DB,
+                username=POSTGRES_USER,
+                password=POSTGRES_PASSWORD,
+            )
+            connect = self.loop.create_task(
+                self.postgres_connector.connect(custom_loop=self.loop)
+            )
+            asyncio.gather(connect)
+        else:
+            self.postgres_connector = postgres_connector
 
     def cluster_users_for_event(self, users: pd.DataFrame, event_id: int) -> pd.DataFrame:
         """
@@ -218,7 +222,7 @@ class IntelligentAgent:
                 # assigning score
                 embedding.loc[embedding.user_id == target_user, str(additive_user)] = score
 
-        embedding['match'] = embedding.idxmax(axis=1)
+        embedding['match'] = embedding[[str(x) for x in additive.user_id.values.tolist()]].idxmax(axis=1)
         return embedding
 
     @classmethod
@@ -263,7 +267,6 @@ class IntelligentAgent:
                 second_user = int(group.match.values.tolist()[second_user_index])
                 yield turn, first_user, second_user
 
-
     @staticmethod
     def add_event_group_ids_to_pairs(event_id: int, group_id: int, data: Generator) -> Generator:
         for row in data:
@@ -276,8 +279,9 @@ class IntelligentAgent:
             group_data,
     ):
         if self.loop.is_running():
-            self.loop.create_task(
+            task = self.loop.create_task(
                 self.postgres_connector.put_event_data(
                     data=self.add_event_group_ids_to_pairs(event_id, group_id, group_data)
                 )
             )
+            asyncio.gather(task)
