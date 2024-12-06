@@ -35,6 +35,7 @@ class BotCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
     SEND_RULES = 'send_rules'
     INVITE_TO_MEETING = 'invite_to_meeting'
+    SEND_PARTNER_PROFILE = 'send_partner_profile'
 
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
