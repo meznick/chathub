@@ -51,7 +51,7 @@ class EventStateIDs(Enum):
 
 EVENT_IDEAL_USERS = 20
 
-
+DEBUG = os.getenv('DEBUG', 'false')
 # all parameters from RabbitMQConnector (0.0.3)
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
 MESSAGE_BROKER_PORT = int(os.getenv('RABBITMQ_PORT', '5672'))
@@ -65,7 +65,8 @@ MESSAGE_BROKER_ROUTING_KEY = os.getenv(
 MESSAGE_BROKER_USERNAME = os.getenv('DATEMAKER_RABBITMQ_USERNAME', 'guest')
 MESSAGE_BROKER_PASSWORD = os.getenv('DATEMAKER_RABBITMQ_PASSWORD', 'guest')
 # all parameters from GoogleMeetApiController
-
+MEET_CREDS_FILE = os.getenv('MEET_CREDS_FILE')
+MEET_TOKEN_FILE = os.getenv('MEET_TOKEN_FILE')
 # all parameters for AsyncPgConnector
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', '5432'))
