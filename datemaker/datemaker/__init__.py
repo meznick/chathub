@@ -31,6 +31,7 @@ class DateMakerCommands(Enum):
 class BotCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
     SEND_RULES = 'send_rules'
+    INVITE_TO_MEETING = 'invite_to_meeting'
 
 
 class EventStates(Enum):

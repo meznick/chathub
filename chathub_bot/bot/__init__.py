@@ -34,6 +34,7 @@ class DateMakerCommands(Enum):
 class BotCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
     SEND_RULES = 'send_rules'
+    INVITE_TO_MEETING = 'invite_to_meeting'
 
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
