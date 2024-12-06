@@ -24,10 +24,12 @@ class State:
 class FiniteStateMachine:
     """A finite state machine."""
 
-    def __init__(self, initial_state: State, **params):
+    def __init__(self, initial_state: State, group_id: int, **params):
         self.current_state = initial_state
+        self.group_id = group_id
         loop = asyncio.get_running_loop()
-        loop.create_task(self.current_state.run(**params))
+        task = loop.create_task(self.current_state.run(**params))
+        asyncio.gather(task)
 
     async def transition(self, _input: str, **params):
         next_state = self.current_state.get_next_state(_input)
