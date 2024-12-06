@@ -1,6 +1,10 @@
 import asyncio
 from collections.abc import Callable
 
+from datemaker import setup_logger
+
+LOGGER = setup_logger(__name__)
+
 
 class State:
     """Represents a state in the FSM."""
@@ -35,7 +39,7 @@ class FiniteStateMachine:
         next_state = self.current_state.get_next_state(_input)
         if next_state:
             self.current_state = next_state
-            print(f"Transitioned to {self.current_state.name}")
+            LOGGER.debug(f"Transitioned to {self.current_state.name}")
             await self.current_state.run(**params)
         else:
-            print(f"No transition for input {_input} in state {self.current_state.name}")
+            LOGGER.error(f"No transition for input {_input} in state {self.current_state.name}")
