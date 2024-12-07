@@ -1,299 +1,36 @@
-"""
-Class and setting for the main class for managing date-making logic.
-"""
 import asyncio
 import json
 import logging
-import time
-from asyncio import sleep, AbstractEventLoop
+from asyncio import sleep
 from datetime import timedelta, datetime
-from typing import List
 
-import pandas as pd
 from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
-from datemaker import setup_logger, DateMakerCommands, EventStates, EventStateIDs, BotCommands
-from .finite_state_machine import FiniteStateMachine, State
-from .intelligent_agent import IntelligentAgent
+from datemaker import (
+    setup_logger,
+    DateMakerCommands,
+    EventStates,
+    MEET_TOKEN_FILE,
+    MEET_CREDS_FILE, DEBUG,
+)
+from .dating_event_runner import DateRunner
 from .meet_api_controller import GoogleMeetApiController
+from .registration_confirmation_runner import RegistrationConfirmationRunner
 
 LOGGER = setup_logger(__name__)
 
 
-class DateRunner:
-    """
-    Class that encapsulates logic for running singe date event.
-    """
-    def __init__(
-            self,
-            event_id: int,
-            meet_api_controller: GoogleMeetApiController,
-            postgres_controller: AsyncPgConnector,
-            rabbitmq_controller: AIORabbitMQConnector,
-            custom_event_loop: AbstractEventLoop = None,
-    ):
-        self.event_id = event_id
-        self.meet_api = meet_api_controller
-        self.postgres = postgres_controller
-        self.rabbitmq = rabbitmq_controller
-        self.running = False
-        self.groups: List = []  # data collected from RegistrationConfirmationRunner
-        self.state_start_time = None
-        self.is_ready_to_start = False  # flag when state machine is ready to start rounds
-        self.participants = None
-        loop = custom_event_loop or asyncio.get_event_loop()
-        self.intelligence_agent = IntelligentAgent(custom_event_loop=loop)
-        LOGGER.info(f'DateRunner for event#{event_id} initialized')
-
-    async def run_event(self):
-        """
-        Method for running actual dating event.
-        I'd recommend using a finite state machine pattern here.
-        See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
-        """
-        LOGGER.info(f'Dating event#{self.event_id} has started')
-        self.running = True
-        await self.set_event_state(EventStates.RUNNING)
-        await self.collect_registrations()
-        await self.trigger_bot_to_send_rules()
-        await self.get_event_prepared_data()
-        await asyncio.gather(*[
-            self.run_dating_fsm(group)
-            for group in self.groups
-        ])
-        LOGGER.info(f'Dating event#{self.event_id} has finished')
-
-    async def set_event_state(self, state: EventStates):
-        await self.postgres.set_event_state(self.event_id, state.value)
-
-    async def collect_registrations(self):
-        """
-        Collecting all users registered for event.
-        """
-        LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
-        registrations = await self.postgres.get_event_registrations(self.event_id)
-        self.participants = {
-            user for user in registrations if user.get('confirmed_on_dttm')
-        }
-
-    async def trigger_bot_to_send_rules(self):
-        for user in self.participants:
-            await self.rabbitmq.publish(
-                message=BotCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
-                routing_key='tg_bot_dev',
-                exchange='chathub_direct_main',
-                headers={
-                    'user_id': user.get('user_id'),
-                    'chat_id': user.get('user_id'),
-                    'event_id': self.event_id,
-                }
-            )
-            LOGGER.debug(f'Send confirmation request to {len(self.participants)} users')
-
-    async def get_event_prepared_data(self):
-        """
-        Collecting prepared data: dating groups and pairs.
-        """
-        ...
-
-    async def run_dating_fsm(self, group):
-        """
-        Running FSM that handles dating process.
-        States:
-            - initial (waiting for all users, see dating event documentation: 2)
-            - dating
-            - break (dating event documentation: 4)
-            - final (dating event documentation: 6)
-            Transitions:
-            - initial -> dating
-            - dating -> break
-            - break -> dating
-            - dating -> final
-        """
-        # event loop for running tasks
-        loop = asyncio.get_running_loop()
-
-        # states for fsm
-        initial_state = State('initial', action=self.run_initial_state)
-        round_state = State('round', action=self.run_dating_round)
-        break_state = State('break', action=self.run_dating_break)
-        final_state = State('final', action=self.run_dating_final)
-
-        # transitions
-        initial_state.add_transition('start', round_state)
-        round_state.add_transition('break', break_state)
-        round_state.add_transition('finish', final_state)
-        break_state.add_transition('next', round_state)
-
-        # initialize, start timer
-        fsm = FiniteStateMachine(initial_state)
-        # run transition to 1st round after timer ends or all users ready
-        while not self.is_ready_to_start:
-            await sleep(1)
-        await fsm.transition('start')
-        # after 5 min transition to pause
-        # after 1 min transition to next round
-        # repeat 2 prev steps to max round
-        # transition to final state
-
-    async def run_initial_state(self):
-        LOGGER.debug('State machine is in initial state')
-        self.state_start_time = time.time()
-        while time.time() - self.state_start_time < 30:
-            await sleep(10)
-        self.is_ready_to_start = True
-
-    @staticmethod
-    async def run_dating_round(round_num):
-        LOGGER.debug(f'State machine is running dating round #{round_num}')
-
-    @staticmethod
-    async def run_dating_break():
-        LOGGER.debug('State machine is in dating break')
-
-    @staticmethod
-    async def run_dating_final():
-        LOGGER.debug('State machine is finishing dating event')
-
-    async def save_event_results(self):
-        while self.running:
-            await sleep(100)
-        LOGGER.debug(f'Saving event results for event#{self.event_id}')
-
-
-class RegistrationConfirmationRunner:
-    """
-    Class that encapsulates logic for running preparation for an event.
-    """
-
-    def __init__(
-            self,
-            event_id: int,
-            start_time: datetime,
-            meet_api_controller: GoogleMeetApiController,
-            postgres_controller: AsyncPgConnector,
-            rabbitmq_controller: AIORabbitMQConnector,
-            custom_event_loop: AbstractEventLoop = None,
-    ):
-        self.event_id = event_id
-        self.event_start_time = start_time
-        self.meet_api = meet_api_controller
-        self.postgres = postgres_controller
-        self.rabbitmq = rabbitmq_controller
-        self.running = False
-        self.registrations = []
-        loop = custom_event_loop or asyncio.get_event_loop()
-        self.intelligence_agent = IntelligentAgent(loop)
-        LOGGER.info(f'RegistrationConfirmationRunner for event#{event_id} initialized')
-
-    async def handle_preparations(self):
-        LOGGER.info(f'Registration confirmation for event#{self.event_id} has started')
-        self.running = True
-        await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
-        await self.collect_registrations()
-        await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
-        await self.wait_for_confirmations()
-        await self.generate_user_groups()
-        await self.trigger_bot_command(BotCommands.SEND_RULES)
-        await self.set_event_state(EventStateIDs.READY)
-        LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
-
-    async def set_event_state(self, state: EventStateIDs):
-        await self.postgres.set_event_state(self.event_id, state.value)
-
-    async def collect_registrations(self):
-        """
-        Collecting all users registered for event.
-        """
-        LOGGER.info(f'Collecting registrations for event#{self.event_id}')
-        self.registrations = await self.postgres.get_event_registrations(self.event_id)
-
-    async def trigger_bot_command(self, command: BotCommands):
-        for user in self.registrations:
-            await self.rabbitmq.publish(
-                message=command.value,
-                routing_key='tg_bot_dev',
-                exchange='chathub_direct_main',
-                headers={
-                    'user_id': user.get('user_id'),
-                    'chat_id': user.get('user_id'),
-                    'event_id': self.event_id,
-                }
-            )
-        LOGGER.info(f'Command {command} triggered for {len(self.registrations)} users')
-
-    async def wait_for_confirmations(self):
-        is_all_confirmed = False  # all users confirmed registrations
-        is_timeout = False        # confirmation time is out (1 hour before event)
-        while not (is_all_confirmed or is_timeout):
-            LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
-            await sleep(100)
-            is_timeout = self.event_start_time - datetime.now() < timedelta(hours=1)
-            registrations = await self.postgres.get_event_registrations(self.event_id)
-            is_all_confirmed = len(
-                {user.get('user_id') for user in registrations} -
-                {user.get('user_id') for user in registrations if user.get('confirmed_on_dttm')}
-            ) == 0
-        LOGGER.info(f'All users confirmed registrations for event#{self.event_id}')
-
-    async def generate_user_groups(self):
-        """
-        When confirmed users collected -- splitting them into groups according
-        to maximize dating experience.
-
-        The result of this method should be a list of users, split into groups.
-        In each group, there should be prepared tuple: user pairs that date each
-        other.
-        """
-        LOGGER.debug(f'Generating user groups for event#{self.event_id}')
-        # collect user data to make groups
-        confirmed_user_ids = {
-            user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
-        }
-        confirmed_users = []
-        for user_id in confirmed_user_ids:
-            confirmed_users.append(
-                await self.postgres.get_user(user_id)
-            )
-
-        df_registrations = pd.DataFrame(
-            self.registrations,
-            columns=['user_id', 'registered_on_dttm', 'confirmed_on_dttm'],
-        )
-        df_users = pd.DataFrame(
-            confirmed_users,
-            columns=[
-                'user_id',
-                'username',
-                'password_hash',
-                'bio',
-                'birthday',
-                'sex',
-                'name',
-                'city',
-                'rating',
-                'manual_score',
-            ]
-        )
-        df_users = df_users.merge(df_registrations, on='user_id')
-
-        self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
-        LOGGER.info(f'Generated user groups for event#{self.event_id}')
-
-
 class DateMakerService:
-    # settings for controllers should be passed using env variables and read
-    # inside __init__.py
-    meet_api_controller: GoogleMeetApiController = None
-    message_broker_controller: RabbitMQConnector = None
-
+    """
+    Class for managing date-making logic.
+    """
     def __init__(
             self,
             # all parameters from GoogleMeetApiController
-
+            meet_creds_file: str,
+            meet_token_file: str,
             # all parameters from RabbitMQConnector (0.0.3)
             message_broker_virtual_host: str,
             message_broker_exchange: str,
@@ -312,7 +49,10 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
-        # self.meet_api_controller = GoogleMeetApiController()
+        self.meet_api_controller = GoogleMeetApiController(
+            creds_file_path=meet_creds_file,
+            token_file_path=meet_token_file,
+        )
         # LEGACY CONTROLLER, TO BE REMOVED
         self.message_broker_controller = RabbitMQConnector(
             host=message_broker_host,
@@ -613,6 +353,8 @@ class DateMakerService:
         - managing DateRunner instances
         """
         loop = asyncio.get_running_loop()
+        if not DEBUG:
+            await sleep(10)
         while True:
             events = await self._collect_events()
             await self._process_events(events, loop)
@@ -620,7 +362,8 @@ class DateMakerService:
 
     async def _process_events(self, events, loop):
         # for event in events create processor and run
-        LOGGER.debug('Processing events')
+        if events:
+            LOGGER.debug('Processing events')
         for event in events:
             if event.get('state_name') == EventStates.READY.value:
                 runner = DateRunner(
@@ -656,7 +399,7 @@ class DateMakerService:
             in events
             if (
                e.get('state_name', '') == EventStates.READY.value and
-               e.get('start_dttm') - datetime.now() < timedelta(minutes=1)
+               e.get('start_dttm') - datetime.now() < timedelta(minutes=10000)
             )
         ]
         confirmations = [
