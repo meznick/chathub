@@ -198,6 +198,11 @@ class DateRunner:
         self.running = False
 
     async def save_event_results(self):
+        """
+        See readme for more info:
+        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L70
+        :return:
+        """
         while self.running:
             await sleep(100)
         LOGGER.debug(f'Saving event results for event#{self.event_id}')

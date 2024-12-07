@@ -417,14 +417,3 @@ class DateMakerService:
         events = dating_events + confirmations
         LOGGER.debug(f'Got {len(events)} events to process')
         return events
-
-    def save_event_result(self, event):
-        """
-        Method saves artifacts into DB.
-        An actual artifact list is on developer.
-        See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L70
-
-        :param event: Some event ID?
-        """
-        ...
