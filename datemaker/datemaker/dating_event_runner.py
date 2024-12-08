@@ -153,7 +153,7 @@ class DateRunner:
             round_start_time = time.time()
             while time.time() - round_start_time < 300:
                 await sleep(10)
-            await fsm.transition('break')
+            await fsm.transition('break', round_num=round_num)
             # after 1 min transition to the next round
             break_start_time = time.time()
             while time.time() - break_start_time < 60:
@@ -247,7 +247,6 @@ class DateRunner:
                 await self.trigger_bot_command(
                     command=BotCommands.SEND_READY_FOR_EVENT_REQUEST,
                     user_id=uid,
-                    data={'event_id': self.event_id}
                 )
             LOGGER.debug(f'Sent ready for event requests to {len(self.user_ids_in_event)} users')
         are_all_ready = await self.postgres.are_all_event_users_ready(self.event_id)
