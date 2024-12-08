@@ -378,6 +378,17 @@ class AsyncPgConnector:
         LOGGER.debug(f'Fetched event#{event_id} groups')
         return data
 
+    async def set_user_ready_to_start(self, user_id: int, event_id: int):
+        request_query = """
+            UPDATE public.dating_registrations
+            SET is_ready = TRUE
+            WHERE user_id = $1 AND event_id = $2;
+        """
+        await self.client.execute(
+            request_query, user_id, event_id
+        )
+        LOGGER.debug(f'User {user_id} set to ready for event {event_id}')
+
     async def are_all_event_users_ready(self, event_id: int):
         request_query = """
             select sum(case when is_ready then 1 else 0 end)/count(*) = 1.0 as all_ready
