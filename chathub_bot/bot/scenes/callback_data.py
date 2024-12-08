@@ -18,6 +18,7 @@ class DatingEventActions(Enum):
     REGISTER = 'register'
     CANCEL = 'cancel'
     CONFIRM = 'confirm'
+    READY = 'ready'
 
 
 class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
