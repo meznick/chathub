@@ -378,6 +378,34 @@ class AsyncPgConnector:
         LOGGER.debug(f'Fetched event#{event_id} groups')
         return data
 
+    async def are_all_event_users_ready(self, event_id: int):
+        request_query = """
+            select sum(case when is_ready then 1 else 0 end)/count(*) = 1.0 as all_ready
+            from dating_registrations
+            where event_id = $1;
+        """
+        data = await self.client.fetchrow(request_query, event_id)
+        LOGGER.debug(f'Are all event users ready for event#{event_id}: {data.get("all_ready")}')
+        return data.get('all_ready')
+
+    async def save_user_like(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.user_likes (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        await self.client.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} likes user {target_user_id} for event {event_id}')
+
+    async def get_user_matches(self, user_id: int, event_id: int):
+        request_query = """
+            SELECT *
+            FROM public.matches
+            WHERE user_1_id = $1 AND eventt_id = $2;
+        """
+        data = await self.client.fetch(request_query, user_id, event_id)
+        LOGGER.debug(f'Fetched {len(data)} user matches for user {user_id} in event {event_id}')
+        return data
+
     def __del__(self):
         loop = self.loop or asyncio.new_event_loop()
         if self.client:
