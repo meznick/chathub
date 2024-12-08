@@ -51,9 +51,9 @@ class DateRunner:
     async def run_event(self):
         """
         Method for running actual dating event.
-        I'd recommend using a finite state machine pattern here.
+        A finite state machine pattern is used here.
         See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
+        https://github.com/meznick/chathub/blob/71b1b58d6bb6ae37e5f6e500da782c7dc3c40c79/datemaker/readme.md#L85
         """
         LOGGER.info(f'Dating event#{self.event_id} has started')
         self.running = True
@@ -196,6 +196,7 @@ class DateRunner:
         # todo: process likes data
         # todo: if there are any matches - send user's data to each other
         self.running = False
+        await self.set_event_state(EventStateIDs.FINISHED)
 
     async def save_event_results(self):
         """
