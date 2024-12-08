@@ -103,6 +103,9 @@ async def dating_event_callback_handler(
         # triggered from confirmation request message (commands handler)
         await _confirm_registration(query, callback_data, rmq, query.bot)
 
+    elif callback_data.action == DatingEventActions.READY:
+        await _user_ready_to_start_event(query, callback_data, pg, query.bot)
+
 
 async def _display_main_menu(
         pg: AsyncPgConnector,
@@ -381,3 +384,19 @@ async def _confirm_registration(query, callback_data, rmq, bot):
         },
     )
     bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
+
+
+async def _user_ready_to_start_event(query, callback_data, pg, bot):
+    LOGGER.debug(f'User {query.from_user.id} is ready to start event {callback_data.event_id}')
+
+    await pg.set_user_ready_to_start(
+        user_id=callback_data.user_id,
+        event_id=callback_data.event_id,
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=_('confirmed'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
