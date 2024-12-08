@@ -253,5 +253,5 @@ class AIORabbitMQConnector:
             ),
         )
         LOGGER.debug(
-            f'Message "{message[:30]}..." (RK {routing_key}) published to exchange {exchange}'
+            f'Message "{message[:100]}..." (RK {routing_key}) published to exchange {exchange}'
         )
