@@ -40,6 +40,8 @@ class BotCommands(Enum):
     SEND_PARTNER_PROFILE_VERIFICATION_REQUEST = 'send_partner_profile_verification_request'
     SEND_FINAL_DATING_MESSAGE = 'send_final_dating_message'
     SEND_MATCH_MESSAGE = 'send_match_message'
+    SEND_READY_FOR_EVENT_REQUEST = 'send_ready_for_event_request'
+    SEND_BREAK_MESSAGE = 'send_break_message'
 
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
