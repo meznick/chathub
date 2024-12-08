@@ -40,6 +40,7 @@ class DateRunner:
         self.running = False
         # data created in RegistrationConfirmationRunner
         self.event_data: pd.DataFrame | None = None
+        self.user_ids_in_event = list
         self.meeting_spaces = []
         self.state_start_time = None
         self.is_ready_to_start = False  # flag when state machine is ready to start rounds
@@ -102,6 +103,11 @@ class DateRunner:
             await self.postgres.get_event_data(self.event_id),
             columns=['group_no', 'turn_no', 'user_1_id', 'user_2_id']
         )
+        self.user_ids_in_event = {
+            int(uid)
+            for uid
+            in self.event_data.user_1_id.values.tolist() + self.event_data.user_2_id.values.tolist()
+        }
 
     async def run_dating_fsm(self, group_id: int):
         """
@@ -140,7 +146,6 @@ class DateRunner:
 
         rounds = self.event_data.loc[self.event_data.group_no == group_id].shape[0]
         LOGGER.debug(f'There will be {rounds} rounds for event#{self.event_id} group#{group_id}')
-        await fsm.transition('start', round_num=0)
 
         for round_num in range(rounds):
             await fsm.transition('start' if round_num == 0 else 'next', round_num=round_num)
@@ -160,7 +165,7 @@ class DateRunner:
         LOGGER.debug('State machine is in initial state')
         self.state_start_time = time.time()
         await self.create_spaces_for_event()
-        ready = await self.check_all_users_are_ready()
+        ready = await self.check_all_users_are_ready(send_requests=True)
         start_time = await self.get_event_start_time()
         while not (ready or start_time < datetime.now()):
             await sleep(10)
@@ -179,22 +184,30 @@ class DateRunner:
         LOGGER.debug('State machine is in dating break')
         await self.stop_active_spaces()
         round_pairs = self.event_data.loc[self.event_data.turn_no == round_num]
-        for _, row in round_pairs.iterrows():
-            await self.ask_to_rate_partner(row)
-            await self.ask_to_verify_partner_profile(row)
+
+        for user_id in self.user_ids_in_event:
+            await self.send_break_message(user_id)
+        LOGGER.debug(f'Sent break message to {len(self.user_ids_in_event)} users')
+
+        # in question
+        # for _, row in round_pairs.iterrows():
+        #     await self.ask_to_rate_partner(row)
+        #     await self.ask_to_verify_partner_profile(row)
 
     async def run_dating_final(self):
         LOGGER.debug('State machine is finishing dating event')
-        user_ids_in_event = {
-            uid
-            for uid
-            in self.event_data.user_1_id.values.tolist() + self.event_data.user_2_id.values.tolist()
-        }
-        for uid in user_ids_in_event:
+        for uid in self.user_ids_in_event:
             await self.send_final_event_message(uid)
-        LOGGER.debug(f'Sent final message to {len(user_ids_in_event)} users')
-        # todo: process likes data
-        # todo: if there are any matches - send user's data to each other
+        LOGGER.debug(f'Sent final message to {len(self.user_ids_in_event)} users')
+
+        start_time = time.time()
+        # waiting for all users to like each other
+        while time.time() - start_time < 60:
+            await sleep(10)
+
+        for uid in self.user_ids_in_event:
+            await self.send_matches_message(uid)
+
         self.running = False
         await self.set_event_state(EventStateIDs.FINISHED)
 
@@ -223,9 +236,23 @@ class DateRunner:
             await self.meet_api.end_active_call(space)
         LOGGER.debug(f'Stopped all active meetings for event#{self.event_id}')
 
-    async def check_all_users_are_ready(self):
-        # todo: do this check now or later? discuss
-        return DEBUG
+    async def check_all_users_are_ready(self, send_requests: bool = False):
+        """
+        Check if all users are ready to start event.
+        :param send_requests: If "true" then triggering bot service to send requests to users.
+        :return: True if all users are ready, false otherwise.
+        """
+        if send_requests:
+            for uid in self.user_ids_in_event:
+                await self.trigger_bot_command(
+                    command=BotCommands.SEND_READY_FOR_EVENT_REQUEST,
+                    user_id=uid,
+                    data={'event_id': self.event_id}
+                )
+            LOGGER.debug(f'Sent ready for event requests to {len(self.user_ids_in_event)} users')
+        are_all_ready = await self.postgres.are_all_event_users_ready(self.event_id)
+        LOGGER.debug(f'All users are ready from DB: {are_all_ready}, debug: {DEBUG}')
+        return DEBUG or are_all_ready
 
     async def get_event_start_time(self):
         events = await self.postgres.get_dating_events()
@@ -303,9 +330,21 @@ class DateRunner:
             },
         )
 
+    async def send_break_message(self, user_id: int):
+        await self.trigger_bot_command(
+            command=BotCommands.SEND_BREAK_MESSAGE,
+            user_id=user_id,
+        )
+
     async def send_final_event_message(self, user_id: int):
         await self.trigger_bot_command(
             command=BotCommands.SEND_FINAL_DATING_MESSAGE,
+            user_id=user_id,
+        )
+
+    async def send_matches_message(self, user_id: int):
+        await self.trigger_bot_command(
+            command=BotCommands.SEND_MATCH_MESSAGE,
             user_id=user_id,
         )
 
@@ -320,4 +359,3 @@ class DateRunner:
                 'event_id': self.event_id,
             }
         )
-        LOGGER.info(f'Command {command} triggered for user {user_id}')
