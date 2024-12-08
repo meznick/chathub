@@ -128,7 +128,7 @@ class DatingBot(DataHandlerMixin, BotCommandsHandlerMixin, CustomBot):
                     data=json.loads(message.body)
                 )
             except KeyError:
-                LOGGER.warning(f'Cannot find key in waiting list, trying to execute command')
+                LOGGER.debug(f'Trying to process command {message.body[:100]} for user {chat_id}...')
                 can_ack = await self.process_commands(
                     message.body.decode('utf-8'),
                     message.headers,
