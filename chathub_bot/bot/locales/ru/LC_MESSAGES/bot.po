@@ -50,7 +50,7 @@ msgstr ""
 
 #: bot/commands_handler.py:87
 msgid "meeting invitation {url}"
-msgstr "Ссылка для подключения: {url}"
+msgstr "Ссылка для подключения: \{url\}"
 
 #: bot/commands_handler.py:96
 msgid "i am ready button"
