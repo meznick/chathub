@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-08 14:41+0300\n"
+"POT-Creation-Date: 2024-12-18 21:03+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,31 +18,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/commands_handler.py:47
+#: bot/commands_handler.py:51
 msgid "confirm button"
 msgstr ""
 
-#: bot/commands_handler.py:57
+#: bot/commands_handler.py:61
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 
-#: bot/commands_handler.py:71
+#: bot/commands_handler.py:75
 msgid "event will start soon, heres rule remainder"
 msgstr ""
 
-#: bot/commands_handler.py:76 bot/scenes/dating.py:187
+#: bot/commands_handler.py:80 bot/scenes/dating.py:187
 msgid "dating rules"
 msgstr ""
 
-#: bot/commands_handler.py:87
+#: bot/commands_handler.py:91
 msgid "meeting invitation {url}"
 msgstr ""
 
-#: bot/commands_handler.py:96
+#: bot/commands_handler.py:103
+msgid "like button"
+msgstr ""
+
+#: bot/commands_handler.py:112
+msgid "dislike button"
+msgstr ""
+
+#: bot/commands_handler.py:121
+msgid "report button"
+msgstr ""
+
+#: bot/commands_handler.py:132
+msgid "please rate partner's performance"
+msgstr ""
+
+#: bot/commands_handler.py:141
+msgid "final dating message"
+msgstr ""
+
+#: bot/commands_handler.py:153
 msgid "i am ready button"
 msgstr ""
 
-#: bot/commands_handler.py:106
+#: bot/commands_handler.py:163
 msgid "are you ready to start event?"
 msgstr ""
 
