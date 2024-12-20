@@ -135,7 +135,7 @@ class DateRunner:
         # transitions
         initial_state.add_transition('start', round_state)
         round_state.add_transition('break', break_state)
-        round_state.add_transition('finish', final_state)
+        break_state.add_transition('finish', final_state)
         break_state.add_transition('next', round_state)
 
         # initialize, start timer
@@ -189,10 +189,10 @@ class DateRunner:
             await self.send_break_message(user_id)
         LOGGER.debug(f'Sent break message to {len(self.user_ids_in_event)} users')
 
-        # in question
-        # for _, row in round_pairs.iterrows():
-        #     await self.ask_to_rate_partner(row)
-        #     await self.ask_to_verify_partner_profile(row)
+        for _, row in round_pairs.iterrows():
+            await self.ask_to_rate_partner(row)
+            # implement later
+            # await self.ask_to_verify_partner_profile(row)
 
     async def run_dating_final(self):
         LOGGER.debug('State machine is finishing dating event')
