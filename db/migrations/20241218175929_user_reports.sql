@@ -6,7 +6,7 @@ CREATE TABLE public.reports
     event_id BIGINT NOT NULL
 );
 
-GRANT INSERT, SELECT, DELETE ON public.likes TO developer, chathub_service;
+GRANT INSERT, SELECT, DELETE ON public.reports TO developer, chathub_service;
 
 -- migrate:down
 DROP TABLE public.reports;
