@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-12-18 21:03+0300\n"
+"POT-Creation-Date: 2024-12-20 19:32+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -30,11 +30,13 @@ msgstr ""
 msgid "event will start soon, heres rule remainder"
 msgstr "Событие скоро начнется\\! Вот краткое напоминание о правилах\\."
 
-#: bot/commands_handler.py:80 bot/scenes/dating.py:187
+#: bot/commands_handler.py:80 bot/scenes/dating.py:208
 msgid "dating rules"
 msgstr ""
-"*Правила мероприятия*\n\nКоротко - будь вежлив, одет, поддерживай контакт "
-"глаза-в-глаза с собеседником и получай удовольствие!\n"
+"*Правила мероприятия*\n"
+"\n"
+"Коротко - будь вежлив, одет, поддерживай контакт глаза-в-глаза с "
+"собеседником и получай удовольствие!\n"
 "1. Наш главный принцип - твой комфорт. Хочешь общаться в домашней пижаме?"
 " В костюме штурмовика из звездных войн? Давай! Главное - быть одетым, "
 "иначе нам придется ограничить твое участие в мероприятии. Для улучшения "
@@ -58,39 +60,50 @@ msgid "meeting invitation {url}"
 msgstr "Ссылка для подключения: \\{url\\}"
 
 #: bot/commands_handler.py:103
-#, fuzzy
 msgid "like button"
-msgstr "🔙 назад"
+msgstr "❤️"
 
 #: bot/commands_handler.py:112
-#, fuzzy
 msgid "dislike button"
-msgstr "⚠️ правила"
+msgstr "👎"
 
 #: bot/commands_handler.py:121
-#, fuzzy
 msgid "report button"
-msgstr "✅ подтверждаю"
+msgstr "🚩 пожаловаться"
 
 #: bot/commands_handler.py:132
-msgid "please rate partner's performance"
-msgstr ""
+msgid "please rate partners performance"
+msgstr "Пожалуйста, оцени как тебе партнер"
 
-#: bot/commands_handler.py:141
-#, fuzzy
+#: bot/commands_handler.py:142
 msgid "final dating message"
-msgstr "Начинаем редактирование твоего профиля, {name}!"
+msgstr ""
+"Вот мероприятие и подошло к концу. Дай нам немного времени на подведение "
+"итогов. Скоро ты увидишь взаимные симпатии и сможешь пообщаться с "
+"выбранными людьми."
 
-#: bot/commands_handler.py:153
+#: bot/commands_handler.py:157
+msgid "you match with {partner_name}, his contact {partner_contact}"
+msgstr ""
+"У тебя совпала симпатия с пользователем *{partner_name}*, его контакт: "
+"{partner_contact}.\n\nПриятного общения."
+
+#: bot/commands_handler.py:169
 msgid "i am ready button"
 msgstr "я готов"
 
-#: bot/commands_handler.py:163
+#: bot/commands_handler.py:179
 msgid "are you ready to start event?"
 msgstr "Начинаем событие, отмечайся если готов\\!"
 
-#: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:178
-#: bot/scenes/dating.py:225 bot/scenes/dating.py:265 bot/scenes/dating.py:342
+#: bot/commands_handler.py:189
+msgid "break message"
+msgstr ""
+"Раунд закончился, теперь у тебя есть минутка чтобы передохнуть, "
+"подготовиться к следующему собеседнику или оценить предыдущего партнера."
+
+#: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:199
+#: bot/scenes/dating.py:246 bot/scenes/dating.py:286 bot/scenes/dating.py:363
 msgid "back button"
 msgstr "🔙 назад"
 
@@ -106,19 +119,19 @@ msgstr "Успешно!😊"
 msgid "operation failed"
 msgstr "Не получилось😢"
 
-#: bot/scenes/dating.py:133
+#: bot/scenes/dating.py:154
 msgid "dating rules button"
 msgstr "⚠️ правила"
 
-#: bot/scenes/dating.py:137
+#: bot/scenes/dating.py:158
 msgid "list events"
 msgstr "🗓 мероприятия"
 
-#: bot/scenes/dating.py:141
+#: bot/scenes/dating.py:162
 msgid "cancel event registration"
 msgstr "❌ отменить регистрацию"
 
-#: bot/scenes/dating.py:155 bot/scenes/dating.py:165
+#: bot/scenes/dating.py:176 bot/scenes/dating.py:186
 msgid "welcome to dating platform {name}"
 msgstr ""
 "Привет! 👋 Добро пожаловать на нашу платформу знакомств! Мы рады помочь "
@@ -130,34 +143,34 @@ msgstr ""
 "\n"
 "Желаем вам хорошо провести время и удачных знакомств! ❤️"
 
-#: bot/scenes/dating.py:234
+#: bot/scenes/dating.py:255
 msgid "here is list of events"
 msgstr "Вот список мероприятий"
 
-#: bot/scenes/dating.py:276
+#: bot/scenes/dating.py:297
 msgid "registering you to the event {event}"
 msgstr ""
 "Вы скоро будете зарегистрированы на мероприятие: {event}! 🎉Если вы "
 "передумаете, вы всегда можете отменить свою регистрацию до начала "
 "мероприятия. Ждём вас на встрече!"
 
-#: bot/scenes/dating.py:333
+#: bot/scenes/dating.py:354
 msgid "are you sure you want to cancel all registrations?"
 msgstr "Вы уверены, что хотите отменить регистрацию на это мероприятие: {event}?"
 
-#: bot/scenes/dating.py:337
+#: bot/scenes/dating.py:358
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr "Вы уверены, что хотите отменить регистрацию на это мероприятие: {event}?"
 
-#: bot/scenes/dating.py:348
+#: bot/scenes/dating.py:369
 msgid "cancel registration"
 msgstr "❌ отменить регистрацию"
 
-#: bot/scenes/dating.py:372
+#: bot/scenes/dating.py:393
 msgid "thanks for confirming registration for {event}"
 msgstr "Спасибо что подтвердили регистрацию на событие {event}!"
 
-#: bot/scenes/dating.py:400
+#: bot/scenes/dating.py:421
 msgid "confirmed"
 msgstr "✅ подтверждаю"
 
@@ -232,3 +245,6 @@ msgstr ""
 #: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr "Начинаем редактирование твоего профиля, {name}!"
+
+#~ msgid "please rate partner's performance"
+#~ msgstr ""
