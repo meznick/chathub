@@ -401,11 +401,27 @@ class AsyncPgConnector:
 
     async def save_user_like(self, source_user_id: int, target_user_id: int, event_id: int):
         request_query = """
-            INSERT INTO public.user_likes (source_user_id, target_user_id, event_id)
+            INSERT INTO public.likes (source_user_id, target_user_id, event_id)
             VALUES ($1, $2, $3);
         """
         await self.client.execute(request_query, source_user_id, target_user_id, event_id)
-        LOGGER.debug(f'User {source_user_id} likes user {target_user_id} for event {event_id}')
+        LOGGER.debug(f'User {source_user_id} likes user {target_user_id} in event {event_id}')
+
+    async def save_user_dislike(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.dislikes (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        await self.client.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} dislikes user {target_user_id} in event {event_id}')
+
+    async def save_user_report(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.reports (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        await self.client.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} reports user {target_user_id} in event {event_id}')
 
     async def get_user_matches(self, user_id: int, event_id: int):
         request_query = """
