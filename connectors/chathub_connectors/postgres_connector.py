@@ -425,9 +425,10 @@ class AsyncPgConnector:
 
     async def get_user_matches(self, user_id: int, event_id: int):
         request_query = """
-            SELECT *
+            SELECT user_1_id, user_2_id, username, name
             FROM public.matches
-            WHERE user_1_id = $1 AND eventt_id = $2;
+            INNER JOIN users ON users.id = matches.user_2_id
+            WHERE user_1_id = $1 AND event_id = $2;
         """
         data = await self.client.fetch(request_query, user_id, event_id)
         LOGGER.debug(f'Fetched {len(data)} user matches for user {user_id} in event {event_id}')
