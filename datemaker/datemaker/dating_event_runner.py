@@ -162,7 +162,7 @@ class DateRunner:
         await fsm.transition('finish')
 
     async def run_initial_state(self):
-        LOGGER.debug('State machine is in initial state')
+        LOGGER.info('State machine is in initial state')
         self.state_start_time = time.time()
         await self.create_spaces_for_event()
         ready = await self.check_all_users_are_ready(send_requests=True)
@@ -173,7 +173,7 @@ class DateRunner:
         self.is_ready_to_start = True
 
     async def run_dating_round(self, round_num: int):
-        LOGGER.debug(f'State machine is running dating round #{round_num}')
+        LOGGER.info(f'State machine is running dating round #{round_num}')
         round_pairs = self.event_data.loc[self.event_data.turn_no == round_num]
         for i, row in round_pairs.iterrows():
             assert round_pairs.shape[0] <= len(self.meeting_spaces)
@@ -181,7 +181,7 @@ class DateRunner:
             await self.send_partner_profiles(row)
 
     async def run_dating_break(self, round_num: int):
-        LOGGER.debug('State machine is in dating break')
+        LOGGER.info('State machine is in dating break')
         await self.stop_active_spaces()
         round_pairs = self.event_data.loc[self.event_data.turn_no == round_num]
 
@@ -195,7 +195,7 @@ class DateRunner:
             # await self.ask_to_verify_partner_profile(row)
 
     async def run_dating_final(self):
-        LOGGER.debug('State machine is finishing dating event')
+        LOGGER.info('State machine is finishing dating event')
         for uid in self.user_ids_in_event:
             await self.send_final_event_message(uid)
         LOGGER.debug(f'Sent final message to {len(self.user_ids_in_event)} users')
@@ -219,8 +219,7 @@ class DateRunner:
         """
         while self.running:
             await sleep(100)
-        LOGGER.debug(f'Saving event results for event#{self.event_id}')
-        # todo: save all users' likes, reports
+        LOGGER.info(f'Saving event results for event#{self.event_id}')
 
     async def create_spaces_for_event(self):
         """
