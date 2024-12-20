@@ -4,7 +4,9 @@ from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot import BotCommands
-from bot.scenes.callback_data import DatingEventCallbackData, DatingEventActions
+from bot.scenes.callback_data import DatingEventCallbackData, DatingEventActions, PartnerActions, \
+    PartnerActionsCallbackData
+from bot.utils import escape_markdown_v2 as __
 
 
 class UnknownBotCommandError(Exception):
@@ -20,19 +22,21 @@ class BotCommandsHandlerMixin:
         elif BotCommands.INVITE_TO_MEETING.value in message:
             await self.send_meeting_invitation(message, headers)
         elif BotCommands.SEND_PARTNER_PROFILE.value in message:
+            # implement later
             ...
         elif BotCommands.SEND_PARTNER_RATING_REQUEST.value in message:
-            ...
+            await self.send_partner_rating_request(message, headers)
         elif BotCommands.SEND_PARTNER_PROFILE_VERIFICATION_REQUEST.value in message:
+            # implement later
             ...
         elif BotCommands.SEND_FINAL_DATING_MESSAGE.value in message:
-            ...
+            await self.send_final_dating_message(message, headers)
         elif BotCommands.SEND_MATCH_MESSAGE.value in message:
-            ...
+            await self.send_match_messages(message, headers)
         elif BotCommands.SEND_READY_FOR_EVENT_REQUEST.value in message:
             await self.send_ready_for_event_request(message, headers)
         elif BotCommands.SEND_BREAK_MESSAGE.value in message:
-            ...
+            await self.send_break_message(message, headers)
         else:
             raise UnknownBotCommandError(f'Cannot process command, message: {message[:100]}')
         return True
@@ -73,7 +77,7 @@ class BotCommandsHandlerMixin:
         )
         await self.send_message(
             chat_id=user_id,
-            text=_('dating rules'),
+            text=__(_('dating rules')),
             parse_mode=ParseMode.MARKDOWN_V2,
         )
 
@@ -84,9 +88,78 @@ class BotCommandsHandlerMixin:
 
         await self.send_message(
             chat_id=headers.get('user_id'),
-            text=_('meeting invitation {url}'.format(url=data.get('url'))),
+            text=__(_('meeting invitation {url}'.format(url=data.get('url')))),
             parse_mode=ParseMode.MARKDOWN_V2,
         )
+
+    async def send_partner_rating_request(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        data = json.loads(message)[BotCommands.SEND_PARTNER_RATING_REQUEST.value]
+        partner_id = int(data.get('partner_id'))
+
+        builder = InlineKeyboardBuilder()
+        builder.button(
+            text=_('like button'),
+            callback_data=PartnerActionsCallbackData(
+                action=PartnerActions.LIKE.value,
+                event_id=headers.get('event_id'),
+                user_id=headers.get('user_id'),
+                partner_id=partner_id,
+            )
+        )
+        builder.button(
+            text=_('dislike button'),
+            callback_data=PartnerActionsCallbackData(
+                action=PartnerActions.DISLIKE.value,
+                event_id=headers.get('event_id'),
+                user_id=headers.get('user_id'),
+                partner_id=partner_id,
+            )
+        )
+        builder.button(
+            text=_('report button'),
+            callback_data=PartnerActionsCallbackData(
+                action=PartnerActions.REPORT.value,
+                event_id=headers.get('event_id'),
+                user_id=headers.get('user_id'),
+                partner_id=partner_id,
+            )
+        )
+
+        await self.send_message(
+            chat_id=headers.get('user_id'),
+            text=__(_("please rate partners performance")),
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=builder.as_markup(),
+        )
+
+    async def send_final_dating_message(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        await self.send_message(
+            chat_id=headers.get('user_id'),
+            text=__(_('final dating message')),
+            parse_mode=ParseMode.MARKDOWN_V2,
+        )
+
+    async def send_match_messages(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        matches = await self.pg.get_user_matches(
+            user_id=int(headers.get('user_id')),
+            event_id=int(headers.get('event_id')),
+        )
+
+        for match in matches:
+            await self.send_message(
+                chat_id=headers.get('user_id'),
+                text=__(_('you match with {partner_name}, his contact {partner_contact}').format(
+                    partner_name=match.get('name'),
+                    partner_contact=f'@{match.get("username")}',
+                )),
+                parse_mode=ParseMode.MARKDOWN_V2,
+            )
 
     async def send_ready_for_event_request(self, message: str, headers: dict):
         _ = self.i18n.gettext
@@ -106,4 +179,13 @@ class BotCommandsHandlerMixin:
             text=_('are you ready to start event?'),
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),
+        )
+
+    async def send_break_message(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        await self.send_message(
+            chat_id=headers.get('user_id'),
+            text=__(_('break message')),
+            parse_mode=ParseMode.MARKDOWN_V2,
         )

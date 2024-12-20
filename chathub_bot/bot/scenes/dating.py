@@ -10,13 +10,14 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from bot.utils import escape_markdown_v2 as __
 
 from bot import setup_logger, DateMakerCommands
 from bot.scenes.base import BaseSpeedDatingScene
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
     DatingEventCallbackData,
-    DatingEventActions, DatingMenuActions
+    DatingEventActions, DatingMenuActions, PartnerActionsCallbackData, PartnerActions
 )
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
@@ -107,6 +108,26 @@ async def dating_event_callback_handler(
         await _user_ready_to_start_event(query, callback_data, pg, query.bot)
 
 
+@dating_router.callback_query(PartnerActionsCallbackData.filter())
+async def dating_main_menu_actions_callback_handler(
+        query: CallbackQuery,
+        callback_data: PartnerActionsCallbackData
+):
+    LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
+
+    pg: AsyncPgConnector
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
+
+    # triggered for partner rating request
+    if callback_data.action == PartnerActions.LIKE:
+        await _user_liked(query, callback_data, query.bot, pg)
+    elif callback_data.action == PartnerActions.DISLIKE:
+        await _user_disliked(query, callback_data, query.bot, pg)
+    elif callback_data.action == PartnerActions.REPORT:
+        await _user_reported(query, callback_data, query.bot, pg)
+
+
 async def _display_main_menu(
         pg: AsyncPgConnector,
         user_id: int = None,
@@ -184,7 +205,7 @@ async def _display_dating_rules(query):
     await query.bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text=_('dating rules'),
+        text=__(_('dating rules')),
         parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=builder.as_markup(),
     )
@@ -398,5 +419,50 @@ async def _user_ready_to_start_event(query, callback_data, pg, bot):
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
         text=_('confirmed'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_liked(query, callback_data, bot, pg):
+    await pg.save_user_like(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{_("please rate partners performance")}\n\n{_("liked")}'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_disliked(query, callback_data, bot, pg):
+    await pg.save_user_dislike(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{_("please rate partners performance")}\n\n{_("disliked")}'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_reported(query, callback_data, bot, pg):
+    await pg.save_user_report(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{_("please rate partners performance")}\n\n{_("reported")}'),
         parse_mode=ParseMode.MARKDOWN_V2,
     )
