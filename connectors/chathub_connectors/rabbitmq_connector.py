@@ -5,10 +5,8 @@ from typing import Optional, Callable
 import aio_pika
 from aio_pika.abc import AbstractRobustChannel, AbstractRobustConnection, AbstractExchange, \
     HeadersType
-from kombu import Connection, Queue, Consumer
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.asyncio_connection import AsyncioConnection
-from pika.adapters.blocking_connection import BlockingConnection
 from pika.spec import BasicProperties
 
 from chathub_connectors import setup_logger
