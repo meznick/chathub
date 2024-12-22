@@ -114,6 +114,8 @@ msgstr ""
 #: bot/commands_handler.py:190
 msgid "break message"
 msgstr ""
+"The round has ended, now you have a minute to take a break, prepare for "
+"the next participant, or rate the previous partner."
 
 #: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:199
 #: bot/scenes/dating.py:246 bot/scenes/dating.py:286 bot/scenes/dating.py:363
