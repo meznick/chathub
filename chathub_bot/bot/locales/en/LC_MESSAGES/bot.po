@@ -21,7 +21,7 @@ msgstr "✅ confirm"
 #: bot/commands_handler.py:61
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
-"You have registered for an event starting at {event_start_time}.\n"
+"You have registered for an event starting at *{event_start_time}*.\n"
 "Please confirm or cancel your participation ✅❌"
 
 #: bot/commands_handler.py:75
@@ -69,19 +69,16 @@ msgstr ""
 "Don't forget your webcam! 💖"
 
 #: bot/commands_handler.py:103
-#, fuzzy
 msgid "like button"
-msgstr "🔙 back"
+msgstr "❤️"
 
 #: bot/commands_handler.py:112
-#, fuzzy
 msgid "dislike button"
-msgstr "⚠️ rules"
+msgstr "👎"
 
 #: bot/commands_handler.py:121
-#, fuzzy
 msgid "report button"
-msgstr "✅ confirm"
+msgstr "🚩 report"
 
 #: bot/commands_handler.py:133 bot/scenes/dating.py:432
 #: bot/scenes/dating.py:448 bot/scenes/dating.py:464
@@ -109,7 +106,7 @@ msgstr "✅ ready"
 
 #: bot/commands_handler.py:180
 msgid "are you ready to start event?"
-msgstr ""
+msgstr "We're starting the event, check in if you're ready!"
 
 #: bot/commands_handler.py:190
 msgid "break message"
@@ -128,11 +125,11 @@ msgstr "Sorry, there are no events available now 😢"
 
 #: bot/data_handler.py:132
 msgid "operation was succeeded"
-msgstr "Oops😢"
+msgstr "Done!😊"
 
 #: bot/data_handler.py:139
 msgid "operation failed"
-msgstr "Done!😊"
+msgstr "Oops😢"
 
 #: bot/scenes/dating.py:154
 msgid "dating rules button"
@@ -165,7 +162,7 @@ msgstr "Here's event list"
 #: bot/scenes/dating.py:297
 msgid "registering you to the event {event}"
 msgstr ""
-"You are about to be registered for the event: {event}! 🎉If you change "
+"You are about to be registered for the event: {event}! 🎉 If you change "
 "your mind, you can always cancel your registration before the event "
 "starts. We look forward to seeing you there!"
 
@@ -208,7 +205,7 @@ msgstr "A user with this information already exists. You can update it with /edi
 #: bot/scenes/profile.py:159
 msgid "welcome message {name}"
 msgstr ""
-"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
+"Welcome to Speed Dating Bot, {name}! 💕 We are excited to have you here! To"
 " get started, please enter your name so we can register you for the "
 "event. Looking forward to helping you find your perfect match!"
 
@@ -244,10 +241,6 @@ msgstr "Invalid date format. Please use YYYY-MM-DD."
 msgid "registration complete"
 msgstr "Registration complete. To start dating press: /date."
 
-#: bot/scenes/profile.py:270
-msgid "internal error"
-msgstr ""
-
 #: bot/scenes/profile.py:284
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
@@ -267,7 +260,3 @@ msgstr "A user with this information already exists. You can update it with /edi
 #: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
-
-#~ msgid "please rate partner's performance"
-#~ msgstr ""
-
