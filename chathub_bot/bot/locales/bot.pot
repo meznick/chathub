@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-11-21 12:47+0300\n"
+"POT-Creation-Date: 2024-12-22 11:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,57 +18,134 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/data_handler.py:85 bot/data_handler.py:100 bot/scenes/dating.py:173
-#: bot/scenes/dating.py:220 bot/scenes/dating.py:260 bot/scenes/dating.py:337
-msgid "back button"
+#: bot/commands_handler.py:51
+msgid "confirm button"
 msgstr ""
 
-#: bot/data_handler.py:110
-msgid "there are no events"
+#: bot/commands_handler.py:61
+msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 
-#: bot/data_handler.py:136
-msgid "operation was succeeded"
+#: bot/commands_handler.py:75
+msgid "event will start soon, heres rule remainder"
 msgstr ""
 
-#: bot/data_handler.py:143
-msgid "operation failed"
-msgstr ""
-
-#: bot/scenes/dating.py:128 bot/scenes/dating.py:182
+#: bot/commands_handler.py:80 bot/scenes/dating.py:208
 msgid "dating rules"
 msgstr ""
 
-#: bot/scenes/dating.py:132
+#: bot/commands_handler.py:91
+msgid "meeting invitation {url}"
+msgstr ""
+
+#: bot/commands_handler.py:103
+msgid "like button"
+msgstr ""
+
+#: bot/commands_handler.py:112
+msgid "dislike button"
+msgstr ""
+
+#: bot/commands_handler.py:121
+msgid "report button"
+msgstr ""
+
+#: bot/commands_handler.py:133 bot/scenes/dating.py:432
+#: bot/scenes/dating.py:448 bot/scenes/dating.py:464
+msgid "please rate partners performance"
+msgstr ""
+
+#: bot/commands_handler.py:143
+msgid "final dating message"
+msgstr ""
+
+#: bot/commands_handler.py:158
+msgid "you match with {partner_name}, his contact {partner_contact}"
+msgstr ""
+
+#: bot/commands_handler.py:170
+msgid "i am ready button"
+msgstr ""
+
+#: bot/commands_handler.py:180
+msgid "are you ready to start event?"
+msgstr ""
+
+#: bot/commands_handler.py:190
+msgid "break message"
+msgstr ""
+
+#: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:199
+#: bot/scenes/dating.py:246 bot/scenes/dating.py:286 bot/scenes/dating.py:363
+msgid "back button"
+msgstr ""
+
+#: bot/data_handler.py:108
+msgid "there are no events"
+msgstr ""
+
+#: bot/data_handler.py:132
+msgid "operation was succeeded"
+msgstr ""
+
+#: bot/data_handler.py:139
+msgid "operation failed"
+msgstr ""
+
+#: bot/scenes/dating.py:154
+msgid "dating rules button"
+msgstr ""
+
+#: bot/scenes/dating.py:158
 msgid "list events"
 msgstr ""
 
-#: bot/scenes/dating.py:136
+#: bot/scenes/dating.py:162
 msgid "cancel event registration"
 msgstr ""
 
-#: bot/scenes/dating.py:150 bot/scenes/dating.py:160
+#: bot/scenes/dating.py:176 bot/scenes/dating.py:186
 msgid "welcome to dating platform {name}"
 msgstr ""
 
-#: bot/scenes/dating.py:229
+#: bot/scenes/dating.py:255
 msgid "here is list of events"
 msgstr ""
 
-#: bot/scenes/dating.py:271
+#: bot/scenes/dating.py:297
 msgid "registering you to the event {event}"
 msgstr ""
 
-#: bot/scenes/dating.py:328
+#: bot/scenes/dating.py:354
 msgid "are you sure you want to cancel all registrations?"
 msgstr ""
 
-#: bot/scenes/dating.py:332
+#: bot/scenes/dating.py:358
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr ""
 
-#: bot/scenes/dating.py:343
+#: bot/scenes/dating.py:369
 msgid "cancel registration"
+msgstr ""
+
+#: bot/scenes/dating.py:393
+msgid "thanks for confirming registration for {event}"
+msgstr ""
+
+#: bot/scenes/dating.py:421
+msgid "confirmed"
+msgstr ""
+
+#: bot/scenes/dating.py:433
+msgid "liked"
+msgstr ""
+
+#: bot/scenes/dating.py:449
+msgid "disliked"
+msgstr ""
+
+#: bot/scenes/dating.py:465
+msgid "reported"
 msgstr ""
 
 #: bot/scenes/profile.py:62
@@ -79,7 +156,7 @@ msgstr ""
 msgid "welcome message {name}"
 msgstr ""
 
-#: bot/scenes/profile.py:163 bot/scenes/profile.py:365
+#: bot/scenes/profile.py:163 bot/scenes/profile.py:371
 msgid "invite to enter name"
 msgstr ""
 
@@ -115,23 +192,23 @@ msgstr ""
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:282
+#: bot/scenes/profile.py:284
 msgid "your profile {name} {sex} {age} {city}"
 msgstr ""
 
-#: bot/scenes/profile.py:284
+#: bot/scenes/profile.py:286
 msgid "sex_male"
 msgstr ""
 
-#: bot/scenes/profile.py:284
+#: bot/scenes/profile.py:286
 msgid "sex_female"
 msgstr ""
 
-#: bot/scenes/profile.py:352
+#: bot/scenes/profile.py:358
 msgid "user does not exist"
 msgstr ""
 
-#: bot/scenes/profile.py:361
+#: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr ""
 

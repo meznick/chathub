@@ -35,7 +35,7 @@ def manage_waiting_list(func):
     return wrapper
 
 
-class DataHandler:
+class DataHandlerMixin:
     """
     Class for handling data from message broker.
     """
@@ -52,13 +52,11 @@ class DataHandler:
     @manage_waiting_list
     async def process_list_events(
             self,
-            bot,
             chat_id: str,
             message_id: str,
             data: Optional[List[Dict]] = None
     ) -> bool:
-        _ = bot.i18n.gettext
-        bot = bot._bot
+        _ = self.i18n.gettext
         builder = InlineKeyboardBuilder()
 
         if data:
@@ -89,7 +87,7 @@ class DataHandler:
             )
 
             builder.adjust(1)
-            await bot.edit_message_reply_markup(
+            await self.edit_message_reply_markup(
                 chat_id=chat_id,
                 message_id=message_id,
                 reply_markup=builder.as_markup(),
@@ -104,7 +102,7 @@ class DataHandler:
             )
             builder.adjust(1)
             # edit message: there are no events
-            await bot.edit_message_text(
+            await self.edit_message_text(
                 chat_id=chat_id,
                 message_id=message_id,
                 text=_('there are no events'),
@@ -116,7 +114,6 @@ class DataHandler:
     @manage_waiting_list
     async def get_confirmation(
             self,
-            bot,
             chat_id: str,
             message_id: str,
             data: Dict[str, str]
@@ -125,20 +122,19 @@ class DataHandler:
         Processing result of an operation that returns just a status:
         success or failure.
         """
-        _ = bot.i18n.gettext
-        bot = bot._bot
+        _ = self.i18n.gettext
         command_name = [key for key in data.keys()][0]
         succeed = data[command_name]
         if succeed:
             LOGGER.debug(f'Operation {command_name} was succeeded for {chat_id}')
-            await bot.send_message(
+            await self.send_message(
                 chat_id=chat_id,
                 text=_('operation was succeeded'),
                 parse_mode=ParseMode.HTML,
             )
         else:
             LOGGER.debug(f'Operation {command_name} was failed for {chat_id}')
-            await bot.send_message(
+            await self.send_message(
                 chat_id=chat_id,
                 text=_('operation failed'),
                 parse_mode=ParseMode.HTML,

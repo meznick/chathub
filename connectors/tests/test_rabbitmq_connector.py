@@ -20,7 +20,7 @@ class TestRabbitMQConnector:
             'queue': 'test_queue'
         }
         mock_connection = mock_asyncio_connection.return_value
-        mock_connection.connect.return_value = mock_connection
+        mock_connection._create_connection.return_value = mock_connection
         mock_connection.ioloop = MagicMock()
         from chathub_connectors.rabbitmq_connector import RabbitMQConnector
         connector = RabbitMQConnector(**test_parameters)

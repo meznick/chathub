@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-11-21 12:47+0300\n"
+"POT-Creation-Date: 2024-12-22 11:14+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,43 +14,140 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/data_handler.py:85 bot/data_handler.py:100 bot/scenes/dating.py:173
-#: bot/scenes/dating.py:220 bot/scenes/dating.py:260 bot/scenes/dating.py:337
+#: bot/commands_handler.py:51
+msgid "confirm button"
+msgstr "✅ confirm"
+
+#: bot/commands_handler.py:61
+msgid "please confirm event registration. event will start at {event_start_time}"
+msgstr ""
+"You have registered for an event starting at *{event_start_time}*.\n"
+"Please confirm or cancel your participation ✅❌"
+
+#: bot/commands_handler.py:75
+msgid "event will start soon, heres rule remainder"
+msgstr "The event will start soon! Here's a quick reminder of the rules."
+
+#: bot/commands_handler.py:80 bot/scenes/dating.py:208
+msgid "dating rules"
+msgstr ""
+"*Event Rules* 🎉\n"
+"In short: Be polite, dress appropriately, maintain eye contact with your "
+"conversation partner, and enjoy yourself! 🌟\n"
+"\n"
+"1️⃣ *Your Comfort is Key*\n"
+"Feel like chatting in cozy pajamas? Or a Star Wars stormtrooper costume? "
+"Go for it! Just make sure you're dressed—otherwise, we may need to limit "
+"your participation. For quality assurance, all calls are securely "
+"recorded and remain confidential.\n"
+"\n"
+"2️⃣ *Keep It Fun and Light*\n"
+"Share a funny story, pick a quirky virtual background, or start a "
+"conversation on an unusual topic! 🚀 However, personal boundaries must be "
+"respected, and negativity toward others will lead to removal from the "
+"event.\n"
+"\n"
+"3️⃣ *Genuine Connection Matters*\n"
+"Laughter and eye contact set us apart from anonymous dating chats. For "
+"this reason, communication is non-anonymous—your face must be clearly "
+"visible on camera. 🎥\n"
+"\n"
+"4️⃣ *Your Comfort Comes First*\n"
+"If you feel uncomfortable during a date, you can always end it early. 💔 "
+"But please use this option considerately—our service values kind and "
+"respectful communication.\n"
+"\n"
+"XOXO ❤️"
+
+#: bot/commands_handler.py:91
+msgid "meeting invitation {url}"
+msgstr ""
+"*The round is starting!@ 🚀\n"
+"\n"
+"Here’s the link to join the call: {url}.\n"
+"\n"
+"Don't forget your webcam! 💖"
+
+#: bot/commands_handler.py:103
+msgid "like button"
+msgstr "❤️"
+
+#: bot/commands_handler.py:112
+msgid "dislike button"
+msgstr "👎"
+
+#: bot/commands_handler.py:121
+msgid "report button"
+msgstr "🚩 report"
+
+#: bot/commands_handler.py:133 bot/scenes/dating.py:432
+#: bot/scenes/dating.py:448 bot/scenes/dating.py:464
+msgid "please rate partners performance"
+msgstr "If you want, rate the partner you just talked to 🙏🤔"
+
+#: bot/commands_handler.py:143
+msgid "final dating message"
+msgstr ""
+"The event has come to an end. Please give us a little time to summarize "
+"the results. Soon, you’ll see your mutual matches and will be able to "
+"connect with the people you’ve chosen. 😊✨"
+
+#: bot/commands_handler.py:158
+msgid "you match with {partner_name}, his contact {partner_contact}"
+msgstr ""
+"You have a mutual match 💞 with the user *{partner_name}*, their contact "
+"is: {partner_contact}.\n"
+"\n"
+"Enjoy your conversation 🎉"
+
+#: bot/commands_handler.py:170
+msgid "i am ready button"
+msgstr "✅ ready"
+
+#: bot/commands_handler.py:180
+msgid "are you ready to start event?"
+msgstr "We're starting the event, check in if you're ready!"
+
+#: bot/commands_handler.py:190
+msgid "break message"
+msgstr ""
+"The round has ended, now you have a minute to take a break, prepare for "
+"the next participant, or rate the previous partner."
+
+#: bot/data_handler.py:83 bot/data_handler.py:98 bot/scenes/dating.py:199
+#: bot/scenes/dating.py:246 bot/scenes/dating.py:286 bot/scenes/dating.py:363
 msgid "back button"
 msgstr "🔙 back"
 
-#: bot/data_handler.py:110
+#: bot/data_handler.py:108
 msgid "there are no events"
 msgstr "Sorry, there are no events available now 😢"
 
-#: bot/data_handler.py:136
+#: bot/data_handler.py:132
 msgid "operation was succeeded"
-msgstr "Oops😢"
-
-#: bot/data_handler.py:143
-msgid "operation failed"
 msgstr "Done!😊"
 
-#: bot/scenes/dating.py:128 bot/scenes/dating.py:182
-msgid "dating rules"
+#: bot/data_handler.py:139
+msgid "operation failed"
+msgstr "Oops😢"
+
+#: bot/scenes/dating.py:154
+msgid "dating rules button"
 msgstr "⚠️ rules"
 
-#: bot/scenes/dating.py:132
+#: bot/scenes/dating.py:158
 msgid "list events"
 msgstr "🗓 events"
 
-#: bot/scenes/dating.py:136
+#: bot/scenes/dating.py:162
 msgid "cancel event registration"
 msgstr "❌ cancel registration"
 
-#: bot/scenes/dating.py:150 bot/scenes/dating.py:160
+#: bot/scenes/dating.py:176 bot/scenes/dating.py:186
 msgid "welcome to dating platform {name}"
 msgstr ""
 "Hello! 👋 Welcome to our dating platform! We're excited to help you "
 "connect with amazing people.\n"
-"\n"
-"To get started, you might want to update your profile so others can get "
-"to know you better. Just use the /edit command to make changes.\n"
 "\n"
 "Looking to meet new people in person? Check out upcoming events! You can "
 "view the events and register for them or cancel your registration if your"
@@ -58,30 +155,66 @@ msgstr ""
 "\n"
 "Enjoy your time here, and happy connecting! ❤️"
 
-#: bot/scenes/dating.py:229
+#: bot/scenes/dating.py:255
 msgid "here is list of events"
-msgstr "Here's event list"
+msgstr ""
+"Here are the *registration rules*:\n"
+"1. *Familiarize yourself with the list of events* in your city and choose"
+" a suitable one. If there are no events in your city yet, stay tuned — "
+"they will appear later. The time is always indicated in the time zone of "
+"the event's location.\n"
+"2. *Click on the button for the appropriate event.* A day before the "
+"event, you will receive a request for confirmation — the sooner you "
+"accept it, the higher your chances of participation. If you don't make it"
+" to the participant list, it means there were not enough spots at the "
+"event. Don't worry — you'll have better luck next time!\n"
+"\n"
+"To participate, be at your computer or smartphone *a few minutes before "
+"the start* to confirm your presence. If you don't confirm, *your "
+"application will be canceled* (this is important to ensure everyone's "
+"participation).\n"
+"\n"
+"*Most importantly — enjoy the conversation!* Smile, give it a try, and "
+"you will definitely meet the right person. And I’ll help you with that!"
 
-#: bot/scenes/dating.py:271
+#: bot/scenes/dating.py:297
 msgid "registering you to the event {event}"
 msgstr ""
-"You are about to be registered for the event: {event}! 🎉If you change "
+"You are about to be registered for the event: {event}! 🎉 If you change "
 "your mind, you can always cancel your registration before the event "
 "starts. We look forward to seeing you there!"
 
-#: bot/scenes/dating.py:328
-#, fuzzy
+#: bot/scenes/dating.py:354
 msgid "are you sure you want to cancel all registrations?"
 msgstr "Are you sure you want to cancel your registration for this event: {event}?"
 
-#: bot/scenes/dating.py:332
+#: bot/scenes/dating.py:358
 msgid "are you sure you want to cancel registration to event {event}"
 msgstr "Are you sure you want to cancel your registration for this event: {event}?"
 
-#: bot/scenes/dating.py:343
-#, fuzzy
+#: bot/scenes/dating.py:369
 msgid "cancel registration"
 msgstr "❌ cancel registration"
+
+#: bot/scenes/dating.py:393
+msgid "thanks for confirming registration for {event}"
+msgstr "Thanks for confirming registration for event {event}"
+
+#: bot/scenes/dating.py:421
+msgid "confirmed"
+msgstr "✅ confirm"
+
+#: bot/scenes/dating.py:433
+msgid "liked"
+msgstr "❤️"
+
+#: bot/scenes/dating.py:449
+msgid "disliked"
+msgstr "👎"
+
+#: bot/scenes/dating.py:465
+msgid "reported"
+msgstr "🚩 *report accepted*, we will review it shortly!"
 
 #: bot/scenes/profile.py:62
 msgid "user already exists"
@@ -90,11 +223,16 @@ msgstr "A user with this information already exists. You can update it with /edi
 #: bot/scenes/profile.py:159
 msgid "welcome message {name}"
 msgstr ""
-"Welcome to Speed Dating Bot, {name}! 💕We are excited to have you here! To"
-" get started, please enter your name so we can register you for the "
-"event. Looking forward to helping you find your perfect match!"
+"Hi, {name}! 💕 I'm XOXO Bot — your assistant in finding friendship and "
+"love. No more random people or endless chats! I'll help you meet "
+"interesting people from your city and organize online speed dating — "
+"connect quickly and choose those you like.\n"
+"\n"
+"How does it work? I analyze your profile, so you can start filling it out"
+" right now. This is a beta version, and for now, all features are "
+"completely free."
 
-#: bot/scenes/profile.py:163 bot/scenes/profile.py:365
+#: bot/scenes/profile.py:163 bot/scenes/profile.py:371
 msgid "invite to enter name"
 msgstr "Please enter your name."
 
@@ -130,27 +268,23 @@ msgstr "Registration complete. To start dating press: /date."
 msgid "internal error"
 msgstr ""
 
-#: bot/scenes/profile.py:282
+#: bot/scenes/profile.py:284
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
 
-#: bot/scenes/profile.py:284
+#: bot/scenes/profile.py:286
 msgid "sex_male"
 msgstr "Male"
 
-#: bot/scenes/profile.py:284
+#: bot/scenes/profile.py:286
 msgid "sex_female"
 msgstr "Female"
 
-#: bot/scenes/profile.py:352
-#, fuzzy
+#: bot/scenes/profile.py:358
 msgid "user does not exist"
 msgstr "A user with this information already exists. You can update it with /edit."
 
-#: bot/scenes/profile.py:361
-#, fuzzy
+#: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
 
-#~ msgid "your registration will be cancelled"
-#~ msgstr "Your registration will be canceled. ❌"

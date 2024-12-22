@@ -30,6 +30,20 @@ class DateMakerCommands(Enum):
     CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
 
 
+# same as datemaker/datemaker/__init__.py:30
+class BotCommands(Enum):
+    CONFIRM_USER_EVENT_REGISTRATION = 'confirm_registration'
+    SEND_RULES = 'send_rules'
+    INVITE_TO_MEETING = 'invite_to_meeting'
+    SEND_PARTNER_PROFILE = 'send_partner_profile'
+    SEND_PARTNER_RATING_REQUEST = 'send_partner_rating_request'
+    SEND_PARTNER_PROFILE_VERIFICATION_REQUEST = 'send_partner_profile_verification_request'
+    SEND_FINAL_DATING_MESSAGE = 'send_final_dating_message'
+    SEND_MATCH_MESSAGE = 'send_match_message'
+    SEND_READY_FOR_EVENT_REQUEST = 'send_ready_for_event_request'
+    SEND_BREAK_MESSAGE = 'send_break_message'
+
+
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
 # Read RabbitMQ settings and credentials from environment
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')

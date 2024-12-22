@@ -11,6 +11,7 @@ from aiogram.utils.media_group import MediaGroupBuilder
 
 from bot import setup_logger
 from bot.scenes.base import BaseSpeedDatingScene
+from bot.utils import escape_markdown_v2 as __
 
 LOGGER = setup_logger(__name__)
 
@@ -107,7 +108,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
         data = await state.get_data()
         step_name = data.get('step', '')
 
-        pg, __, s3, fm, dh = self.get_connectors_from_context(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != 'photo':
             await message.answer(
@@ -146,7 +147,7 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             f'User left registration Scene: '
             f'{message.from_user.id}[{step_name}]'
         )
-        pg, __, s3, fm, dh = self.get_connectors_from_context(kwargs)
+        pg, __, s3, fm = self.get_connectors_from_context(kwargs)
 
         if step_name != '':
             user, images = await self._get_user_profile_data(pg, message)
@@ -156,8 +157,8 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
     async def _start_registration(message, pg, state, step_name):
         if step_name == '':
             await message.answer(
-                _('welcome message {name}').format(name=message.from_user.full_name),
-                parse_mode=ParseMode.HTML,
+                __(_('welcome message {name}').format(name=message.from_user.full_name)),
+                parse_mode=ParseMode.MARKDOWN_V2,
             )
             await message.answer(
                 _('invite to enter name'),
@@ -266,10 +267,6 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             LOGGER.error(
                 f'Registration Scene: cannot find user {message.from_user.id} on exit'
             )
-            await message.answer(
-                _('internal error'),
-                parse_mode=ParseMode.HTML,
-            )
             return
         # for now, showing only the latest image
         images = [await pg.get_latest_image_by_owner(message.from_user.id)]
@@ -278,11 +275,17 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
 
     @staticmethod
     async def _send_user_profile(fm, images, message, s3, user):
+        birth_date = user['birthday']
+        today = datetime.now().date()
         media_group = MediaGroupBuilder(
             caption=_('your profile {name} {sex} {age} {city}').format(
                 name=user['name'],
                 sex=_('sex_male') if user['sex'].upper() == 'M' else _('sex_female'),
-                age=datetime.now().year - user['birthday'].year,  # is it correct?
+                age=(
+                        today.year - birth_date.year - (
+                            (today.month, today.day) < (birth_date.month, birth_date.day)
+                        )
+                ),
                 city=user['city'],
             ),
         )

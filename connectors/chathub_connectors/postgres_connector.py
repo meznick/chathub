@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import AbstractEventLoop
 from datetime import datetime
 from typing import Optional, List
 
@@ -28,19 +29,25 @@ class AsyncPgConnector:
         self._db = db
         self._username = username
         self._password = password
-        self.client: asyncpg.connection.Connection | None = None
+        self.pool: Optional[asyncpg.pool.Pool] = None
+        self.loop: Optional[AbstractEventLoop] = None
         LOGGER.info('Async PG connector initialized')
 
     async def connect(self, custom_loop: asyncio.AbstractEventLoop = None):
         LOGGER.debug(f'Connecting to PG: {self._host}:{self._port}/{self._db}')
-        self.client = await asyncpg.connect(
+        if custom_loop:
+            self.loop = custom_loop
+
+        self.pool = await asyncpg.create_pool(
+            min_size=1,
+            max_size=1,
             host=self._host,
             port=self._port,
             database=self._db,
             user=self._username,
             password=self._password,
             timeout=10,
-            loop=custom_loop
+            loop=self.loop
         )
         LOGGER.info(f'PG connected to {self._host}:{self._port}/{self._db}')
 
@@ -49,12 +56,9 @@ class AsyncPgConnector:
         :param user_id: ID of the user to fetch.
         :return: The user data fetched from the database.
         """
-        LOGGER.debug('getting')
-        if not self.client:
-            await self.connect()
-
         request_query = 'SELECT * FROM users WHERE id = $1;'
-        data = await self.client.fetchrow(request_query, user_id)
+        async with self.pool.acquire() as conn:
+            data = await conn.fetchrow(request_query, user_id)
         LOGGER.debug(f'User found: {data}')
         return data
 
@@ -99,9 +103,10 @@ class AsyncPgConnector:
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
         '''
-        await self.client.execute(
-            request_query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
-        )
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
+            )
         LOGGER.debug(f'User created: {username} [{user_id}]')
 
     async def update_user(
@@ -192,9 +197,10 @@ class AsyncPgConnector:
         '''
         LOGGER.debug(f'update_user query: {request_query}, params: {values}')
 
-        await self.client.execute(
-            request_query, user_id, *values
-        )
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, user_id, *values
+            )
         LOGGER.debug(f'User altered in postgres: {username} [{user_id}]')
 
     async def add_image(
@@ -221,9 +227,10 @@ class AsyncPgConnector:
                 )
                 VALUES ($1, $2, $3, NOW());
             '''
-        await self.client.execute(
-            request_query, owner_id, s3_bucket, s3_path
-        )
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, owner_id, s3_bucket, s3_path
+            )
         LOGGER.debug(f'New image for {owner_id} was created')
 
     async def get_latest_image_by_owner(self, owner_id: int) -> Optional[Record]:
@@ -236,7 +243,8 @@ class AsyncPgConnector:
         :return: A list of images belonging to the specified owner.
         """
         request_query = 'SELECT * FROM images WHERE owner = $1 ORDER BY upload_dttm DESC;'
-        data = await self.client.fetch(request_query, owner_id)
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, owner_id)
         LOGGER.debug(f'Found {len(data)} images for owner {owner_id}')
         return data
 
@@ -260,7 +268,7 @@ class AsyncPgConnector:
 
         user_id = user.get("id") if user else None
         only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
-        for_user = 'WHERE r.user_id = $1' if user else ''
+        for_user = 'WHERE user_id = $1' if user else ''
         limit = f'LIMIT {limit}'
         request_query = f"""
             SELECT DISTINCT 
@@ -279,7 +287,11 @@ class AsyncPgConnector:
             {limit}
             ;
         """
-        data = await self.client.fetch(request_query, (user_id,))
+        async with self.pool.acquire() as conn:
+            if user_id:
+                data = await conn.fetch(request_query, user_id)
+            else:
+                data = await conn.fetch(request_query)
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
 
@@ -297,8 +309,29 @@ class AsyncPgConnector:
             FROM public.dating_registrations
             WHERE event_id = $1;
         """
-        data = await self.client.execute(request_query, event_id)
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, event_id)
         LOGGER.debug(f'Found {len(data)} event registrations')
+        return data
+
+    async def get_event_participants(
+            self,
+            event_id: int,
+    ) -> List[Record]:
+        request_query = """
+            SELECT DISTINCT user_1_id as user_id
+            FROM public.dating_event_groups
+            WHERE event_id = $1
+            
+            UNION ALL
+            
+            SELECT DISTINCT user_2_id as user_id
+            FROM public.dating_event_groups
+            WHERE event_id = $1;
+        """
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, event_id)
+        LOGGER.debug(f'Found {len(data)} event participants')
         return data
 
     async def register_for_event(
@@ -318,9 +351,10 @@ class AsyncPgConnector:
             INSERT INTO public.dating_registrations (user_id, event_id)
             VALUES ($1, $2);
         """
-        await self.client.execute(
-            request_query, user.get('id'), event_id
-        )
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, user.get('id'), event_id
+            )
         LOGGER.debug(f'User {user.get("id")} registered for event {event_id}')
 
     async def confirm_registration(self, user: Record, event_id: int):
@@ -336,21 +370,116 @@ class AsyncPgConnector:
             SET confirmed_on_dttm = NOW()
             WHERE user_id = $1 AND event_id = $2;
         """
-        await self.client.execute(
-            request_query, user.get('id'), event_id
-        )
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, user.get('id'), event_id
+            )
         LOGGER.debug(f'User {user.get("id")} confirmed registration for event {event_id}')
 
+    async def set_event_state(self, event_id: int, state_id: int):
+        request_query = """
+            UPDATE public.dating_events
+            SET state_id = $2
+            WHERE id = $1;
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, event_id, state_id
+            )
+        LOGGER.debug(f'Event state for event {event_id} set to {state_id}')
+
+    async def put_event_data(self, data):
+        request_query = """
+            INSERT INTO public.dating_event_groups 
+            (event_id, group_no, turn_no, user_1_id, user_2_id)
+            VALUES ($1, $2, $3, $4, $5);
+        """
+        async with self.pool.acquire() as conn:
+            await conn.executemany(request_query, data)
+        LOGGER.debug(f'Inserted event groups')
+
+    async def get_event_data(self, event_id: int):
+        request_query = """
+            SELECT group_no, turn_no, user_1_id, user_2_id
+            FROM public.dating_event_groups
+            where event_id = $1;
+        """
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, event_id)
+        LOGGER.debug(f'Fetched event#{event_id} groups')
+        return data
+
+    async def set_user_ready_to_start(self, user_id: int, event_id: int):
+        request_query = """
+            UPDATE public.dating_registrations
+            SET is_ready = TRUE
+            WHERE user_id = $1 AND event_id = $2;
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                request_query, user_id, event_id
+            )
+        LOGGER.debug(f'User {user_id} set to ready for event {event_id}')
+
+    async def are_all_event_users_ready(self, event_id: int):
+        request_query = """
+            select sum(case when is_ready then 1 else 0 end)/count(*) = 1.0 as all_ready
+            from dating_registrations
+            where event_id = $1;
+        """
+        async with self.pool.acquire() as conn:
+            data = await conn.fetchrow(request_query, event_id)
+        LOGGER.debug(f'Are all event users ready for event#{event_id}: {data.get("all_ready")}')
+        return data.get('all_ready')
+
+    async def save_user_like(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.likes (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} likes user {target_user_id} in event {event_id}')
+
+    async def save_user_dislike(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.dislikes (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} dislikes user {target_user_id} in event {event_id}')
+
+    async def save_user_report(self, source_user_id: int, target_user_id: int, event_id: int):
+        request_query = """
+            INSERT INTO public.reports (source_user_id, target_user_id, event_id)
+            VALUES ($1, $2, $3);
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(request_query, source_user_id, target_user_id, event_id)
+        LOGGER.debug(f'User {source_user_id} reports user {target_user_id} in event {event_id}')
+
+    async def get_user_matches(self, user_id: int, event_id: int):
+        request_query = """
+            SELECT user_1_id, user_2_id, username, name
+            FROM public.matches
+            INNER JOIN users ON users.id = matches.user_2_id
+            WHERE user_1_id = $1 AND event_id = $2;
+        """
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, user_id, event_id)
+        LOGGER.debug(f'Fetched {len(data)} user matches for user {user_id} in event {event_id}')
+        return data
+
     def __del__(self):
-        loop = asyncio.new_event_loop()
-        if self.client:
-            # it looks like it cannot close properly
+        loop = self.loop or asyncio.new_event_loop()
+        if self.pool:
             try:
-                loop.run_until_complete(self.client.close())
+                close_task = loop.create_task(self.pool.close())
+                asyncio.gather(close_task)
             except Exception as e:
                 LOGGER.warning(f'Fail on closing connection: {e}')
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
-
         LOGGER.debug('PG connector deleted')
 
 
@@ -401,7 +530,7 @@ class PostgresConnection:
             self,
             user: Record = None,
             include_finished: bool = False,
-            limit: int = 10
+            limit: int = 10,
     ) -> List[RealDictRow]:
         """
         List Dating Events
@@ -422,8 +551,10 @@ class PostgresConnection:
             SELECT DISTINCT
                 e.id,
                 e.start_dttm,
+                s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
+            LEFT JOIN event_states as s ON e.state_id = s.id
             LEFT JOIN (
                 SELECT *
                 FROM public.dating_registrations
@@ -545,7 +676,7 @@ class PostgresConnection:
             print(f"Error: {e}")
             return None
 
-    def close(self):
+    def disconnect(self):
         if self.client:
             self.client.close()
             print("Connection closed")

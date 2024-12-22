@@ -1,34 +1,36 @@
-"""
-Class and setting for the main class for managing date-making logic.
-"""
 import asyncio
 import json
 import logging
+from asyncio import sleep
+from datetime import timedelta, datetime
 
-from kombu.pools import reset
 from pika.spec import BasicProperties
 
-from chathub_connectors.postgres_connector import PostgresConnection
-from chathub_connectors.rabbitmq_connector import RabbitMQConnector
-from datemaker import setup_logger, DateMakerCommands
+from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
+from chathub_connectors.rabbitmq_connector import RabbitMQConnector, AIORabbitMQConnector
+from datemaker import (
+    setup_logger,
+    DateMakerCommands,
+    EventStates,
+    MEET_TOKEN_FILE,
+    MEET_CREDS_FILE, DEBUG,
+)
+from .dating_event_runner import DateRunner
 from .meet_api_controller import GoogleMeetApiController
-
-# also, we probably will need connector to DB, user management, authentication
-# these things already exist as separate modules in this repo
+from .registration_confirmation_runner import RegistrationConfirmationRunner
 
 LOGGER = setup_logger(__name__)
 
 
 class DateMakerService:
-    # settings for controllers should be passed using env variables and read
-    # inside __init__.py
-    meet_api_controller: GoogleMeetApiController = None
-    message_broker_controller: RabbitMQConnector = None
-
+    """
+    Class for managing date-making logic.
+    """
     def __init__(
             self,
             # all parameters from GoogleMeetApiController
-
+            meet_creds_file: str,
+            meet_token_file: str,
             # all parameters from RabbitMQConnector (0.0.3)
             message_broker_virtual_host: str,
             message_broker_exchange: str,
@@ -47,7 +49,11 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
-        # self.meet_api_controller = GoogleMeetApiController()
+        self.meet_api_controller = GoogleMeetApiController(
+            creds_file_path=meet_creds_file,
+            token_file_path=meet_token_file,
+        )
+        # LEGACY CONTROLLER, TO BE REMOVED
         self.message_broker_controller = RabbitMQConnector(
             host=message_broker_host,
             port=message_broker_port,
@@ -61,12 +67,30 @@ class DateMakerService:
             caller_service='datemaker',
             loglevel=logging.DEBUG if debug else logging.INFO,
         )
+        # LEGACY CONTROLLER, TO BE REMOVED
         self.postgres_controller = PostgresConnection(
             host=postgres_host,
             port=postgres_port,
             db=postgres_db,
             username=postgres_user,
             password=postgres_password,
+        )
+        # NEW CONTROLLERS, NOW USE ONLY FOR PASSING INTO DATING RUNNER CLASSES
+        self.async_pg_controller = AsyncPgConnector(
+            host=postgres_host,
+            port=postgres_port,
+            db=postgres_db,
+            username=postgres_user,
+            password=postgres_password,
+        )
+        self.async_rmq_controller = AIORabbitMQConnector(
+            host=message_broker_host,
+            port=message_broker_port,
+            virtual_host=message_broker_virtual_host,
+            exchange=message_broker_exchange,
+            username=message_broker_username,
+            password=message_broker_password,
+            caller_service='datemaker',
         )
         LOGGER.info('DateMaker service initialized')
 
@@ -82,13 +106,16 @@ class DateMakerService:
         LOGGER.info('Running DateMakerService...')
         try:
             loop = asyncio.get_event_loop()
-            self.message_broker_controller.run()
+            self.message_broker_controller.connect()
             self.postgres_controller.connect()
+            loop.run_until_complete(self.async_pg_controller.connect())
+            loop.run_until_complete(self.async_rmq_controller.connect())
+            loop.create_task(self.run_date_making())
             loop.run_forever()
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
             self.message_broker_controller.disconnect()
-            self.postgres_controller.close()
+            self.postgres_controller.disconnect()
 
     def process_incoming_message(self, channel, method, properties, body):
         """
@@ -120,38 +147,7 @@ class DateMakerService:
             if not user:
                 raise Exception('No user found')
 
-            if DateMakerCommands.LIST_EVENTS.value in message:
-                self.list_events(user, message_params)
-
-            elif DateMakerCommands.REGISTER_USER_TO_EVENT.value in message:
-                event_id = message_params.get('event_id', None)
-                if not event_id:
-                    LOGGER.error(
-                        f'No event_id got with registration request for user {user}: {message}'
-                    )
-                self.register_user_to_event(user, message_params)
-
-            elif DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value in message:
-                event_id = message_params.get('event_id', None)
-                if not event_id:
-                    LOGGER.error(
-                        f'No event_id got with registration confirmation for user {user}: {message}'
-                    )
-                self.confirm_user_event_registration(user, message_params)
-
-            elif DateMakerCommands.CANCEL_REGISTRATION.value in message:
-                event_id = int(message_params.get('event_id', -1))
-                if event_id != 0:
-                    self.cancel_event_registration(user, message_params)
-                elif event_id == 0:
-                    events = self.postgres_controller.get_event_registrations_for_user(user)
-                    for event_id in [event['event_id'] for event in events]:
-                        message_params.update({'event_id': event_id})
-                        self.cancel_event_registration(user, message_params)
-                else:
-                    LOGGER.error(
-                        f'No event_id got with registration cancellation for user {user}: {message}'
-                    )
+            self._process_commands(message, message_params, user)
 
         except Exception as e:
             LOGGER.error(
@@ -166,6 +162,40 @@ class DateMakerService:
                 exchange='chathub_direct_main',
                 properties=BasicProperties(headers=message_params)
             )
+
+    def _process_commands(self, message, message_params, user):
+        if DateMakerCommands.LIST_EVENTS.value in message:
+            self.list_events(user, message_params)
+
+        elif DateMakerCommands.REGISTER_USER_TO_EVENT.value in message:
+            event_id = message_params.get('event_id', None)
+            if not event_id:
+                LOGGER.error(
+                    f'No event_id got with registration request for user {user}: {message}'
+                )
+            self.register_user_to_event(user, message_params)
+
+        elif DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value in message:
+            event_id = message_params.get('event_id', None)
+            if not event_id:
+                LOGGER.error(
+                    f'No event_id got with registration confirmation for user {user}: {message}'
+                )
+            self.confirm_user_event_registration(user, message_params)
+
+        elif DateMakerCommands.CANCEL_REGISTRATION.value in message:
+            event_id = int(message_params.get('event_id', -1))
+            if event_id != 0:
+                self.cancel_event_registration(user, message_params)
+            elif event_id == 0:
+                events = self.postgres_controller.get_event_registrations_for_user(user)
+                for event_id in [event['event_id'] for event in events]:
+                    message_params.update({'event_id': event_id})
+                    self.cancel_event_registration(user, message_params)
+            else:
+                LOGGER.error(
+                    f'No event_id got with registration cancellation for user {user}: {message}'
+                )
 
     def list_events(self, user, message_params: dict):
         """
@@ -261,7 +291,7 @@ class DateMakerService:
         )
 
         registered_users = [
-            user.get('id') for user in event_registrations
+            user.get('user_id') for user in event_registrations
         ]
 
         if user.get('id') in registered_users:
@@ -316,22 +346,74 @@ class DateMakerService:
         """
         ...
 
-    def run_event(self):
+    async def run_date_making(self):
         """
-        Method for running actual dating event.
-        I'd recommend using a finite state machine pattern here.
-        See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L79
+        Managing dating routines:
+        - checking event schedule
+        - managing DateRunner instances
         """
-        ...
+        loop = asyncio.get_running_loop()
+        if not DEBUG:
+            await sleep(10)
+        while True:
+            events = await self._collect_events()
+            await self._process_events(events, loop)
+            await sleep(59)
 
-    def save_event_result(self, event):
-        """
-        Method saves artifacts into DB.
-        An actual artifact list is on developer.
-        See readme for more info:
-        https://github.com/meznick/chathub/blob/f4a0aaf447e2af5518d6c88b217d1d0f260f15e0/datemaker/readme.md#L70
+    async def _process_events(self, events, loop):
+        # for event in events create processor and run
+        if events:
+            LOGGER.debug('Processing events')
+        for event in events:
+            if event.get('state_name') == EventStates.READY.value:
+                runner = DateRunner(
+                    event_id=event.get('id'),
+                    meet_api_controller=self.meet_api_controller,
+                    postgres_controller=self.async_pg_controller,
+                    rabbitmq_controller=self.async_rmq_controller,
+                    custom_event_loop=loop,
+                )
+                loop.create_task(runner.run_event())
+                loop.create_task(runner.save_event_results())
+            elif event.get('state_name') == EventStates.NOT_STARTED.value:
+                runner = RegistrationConfirmationRunner(
+                    event_id=event.get('id'),
+                    start_time=event.get('start_dttm'),
+                    meet_api_controller=self.meet_api_controller,
+                    postgres_controller=self.async_pg_controller,
+                    rabbitmq_controller=self.async_rmq_controller,
+                    custom_event_loop=loop,
+                )
+                loop.create_task(runner.handle_preparations())
 
-        :param event: Some event ID?
+    async def _collect_events(self):
         """
-        ...
+        Collect events to process: registration confirmations and dating events.
+        :return:
+        """
+        LOGGER.debug('Collecting events')
+        events = self.postgres_controller.get_dating_events(limit=10)
+        dating_events = [
+            e
+            for e
+            in events
+            if (
+               e.get('state_name', '') == EventStates.READY.value and
+               e.get('start_dttm') - datetime.now() < timedelta(minutes=10000)
+            )
+        ]
+        confirmations = [
+            e
+            for e
+            in events
+            if (
+                e.get('state_name', '') == EventStates.NOT_STARTED.value and
+                e.get('start_dttm') - datetime.now() < timedelta(days=1)
+            )
+        ]
+        # registration should start 1 day before the event starts
+        for event in confirmations:
+            event['start_dttm'] = event.get('start_dttm') - timedelta(days=1)
+        events = dating_events + confirmations
+        LOGGER.debug(f'Got {len(events)} events to process')
+        return events

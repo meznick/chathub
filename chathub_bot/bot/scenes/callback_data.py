@@ -17,6 +17,8 @@ class DatingMenuActionsCallbackData(CallbackData, sep=':', prefix='dating_main_m
 class DatingEventActions(Enum):
     REGISTER = 'register'
     CANCEL = 'cancel'
+    CONFIRM = 'confirm'
+    READY = 'ready'
 
 
 class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
@@ -24,3 +26,16 @@ class DatingEventCallbackData(CallbackData, sep=':', prefix='dating_event'):
     event_id: int
     user_id: int
     confirmed: bool
+
+
+class PartnerActions(Enum):
+    LIKE = 'like'
+    DISLIKE = 'dislike'
+    REPORT = 'report'
+
+
+class PartnerActionsCallbackData(CallbackData, sep=':', prefix='partner'):
+    action: PartnerActions
+    event_id: int
+    user_id: int
+    partner_id: int

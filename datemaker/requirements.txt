@@ -2,3 +2,4 @@ google-apps-meet==0.1.8
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
 chathub_connectors==0.0.2
+pandas==2.2.3

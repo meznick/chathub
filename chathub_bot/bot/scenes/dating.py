@@ -10,13 +10,14 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from bot.utils import escape_markdown_v2 as __
 
 from bot import setup_logger, DateMakerCommands
 from bot.scenes.base import BaseSpeedDatingScene
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
     DatingEventCallbackData,
-    DatingEventActions, DatingMenuActions
+    DatingEventActions, DatingMenuActions, PartnerActionsCallbackData, PartnerActions
 )
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
@@ -37,9 +38,7 @@ class DatingScene(BaseSpeedDatingScene, state='dating'):
         pg: AsyncPgConnector
         rmq: AIORabbitMQConnector
 
-        pg, rmq, s3, fm, gh = self.get_connectors_from_context(kwargs)
-
-        user = await pg.get_user(message.from_user.id)
+        pg, rmq, s3, fm = self.get_connectors_from_context(kwargs)
 
         # show an entry message with inline controls.
         # inline handler will process further actions
@@ -68,11 +67,11 @@ async def dating_main_menu_actions_callback_handler(
 
     pg: AsyncPgConnector
     rmq: AIORabbitMQConnector
-    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
 
     if callback_data.action == DatingMenuActions.LIST_EVENTS:
         # triggered from the main menu
-        await _handle_listing_events(query, rmq, dh)
+        await _handle_listing_events(query, rmq, query.bot)
 
     elif callback_data.action == DatingMenuActions.SHOW_RULES:
         # triggered from the main menu
@@ -91,15 +90,42 @@ async def dating_event_callback_handler(
     LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
 
     rmq: AIORabbitMQConnector
-    pg, rmq, s3, fm, dh = DatingScene.get_connectors_from_query(query)
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
 
     if callback_data.action == DatingEventActions.REGISTER:
         # triggered from the event list
-        await _handle_event_registration(query, rmq, callback_data, dh)
+        await _handle_event_registration(query, rmq, callback_data, query.bot)
 
     elif callback_data.action == DatingEventActions.CANCEL:
         # triggered from the main menu
-        await _handle_cancelling_event_registration(query, rmq, callback_data, dh)
+        await _handle_cancelling_event_registration(query, rmq, callback_data, query.bot)
+
+    elif callback_data.action == DatingEventActions.CONFIRM:
+        # triggered from confirmation request message (commands handler)
+        await _confirm_registration(query, callback_data, rmq, query.bot)
+
+    elif callback_data.action == DatingEventActions.READY:
+        await _user_ready_to_start_event(query, callback_data, pg, query.bot)
+
+
+@dating_router.callback_query(PartnerActionsCallbackData.filter())
+async def dating_partner_actions_callback_handler(
+        query: CallbackQuery,
+        callback_data: PartnerActionsCallbackData
+):
+    LOGGER.debug(f'Got callback from user {query.from_user.id}: {callback_data}')
+
+    pg: AsyncPgConnector
+    rmq: AIORabbitMQConnector
+    pg, rmq, s3, fm = DatingScene.get_connectors_from_query(query)
+
+    # triggered for partner rating request
+    if callback_data.action == PartnerActions.LIKE:
+        await _user_liked(query, callback_data, query.bot, pg)
+    elif callback_data.action == PartnerActions.DISLIKE:
+        await _user_disliked(query, callback_data, query.bot, pg)
+    elif callback_data.action == PartnerActions.REPORT:
+        await _user_reported(query, callback_data, query.bot, pg)
 
 
 async def _display_main_menu(
@@ -125,7 +151,7 @@ async def _display_main_menu(
 
     builder = InlineKeyboardBuilder()
     builder.button(
-        text=_('dating rules'),
+        text=_('dating rules button'),
         callback_data=DatingMenuActionsCallbackData(action=DatingMenuActions.SHOW_RULES),
     )
     builder.button(
@@ -179,8 +205,8 @@ async def _display_dating_rules(query):
     await query.bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text=_('dating rules'),
-        parse_mode=ParseMode.HTML,
+        text=__(_('dating rules')),
+        parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=builder.as_markup(),
     )
 
@@ -188,7 +214,7 @@ async def _display_dating_rules(query):
 async def _handle_listing_events(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
-        dh,
+        bot,
 ):
     """
     This method logic:
@@ -207,8 +233,8 @@ async def _handle_listing_events(
 
     :param query:
     :param rmq:
-    :param dh:
-    :type dh: DataHandler
+    :param bot:
+    :type bot: DataHandler
     :return:
     """
     LOGGER.debug(f'Listing events for user {query.from_user.id}')
@@ -226,8 +252,8 @@ async def _handle_listing_events(
         await query.bot.edit_message_text(
             chat_id=query.message.chat.id,
             message_id=query.message.message_id,
-            text=_('here is list of events'),
-            parse_mode=ParseMode.HTML,
+            text=__(_('here is list of events')),
+            parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),
         )
         await rmq.publish(
@@ -240,7 +266,7 @@ async def _handle_listing_events(
                 'message_id': str(query.message.message_id),
             },
         )
-        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.process_list_events)
+        bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.process_list_events)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -250,7 +276,7 @@ async def _handle_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData,
-        dh,
+        bot,
 ):
     LOGGER.debug(f'Registering user {query.from_user.id} to event {callback_data.event_id}')
     try:
@@ -283,7 +309,7 @@ async def _handle_event_registration(
                 'event_id': str(callback_data.event_id),
             },
         )
-        dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+        bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
@@ -293,7 +319,7 @@ async def _handle_cancelling_event_registration(
         query: CallbackQuery,
         rmq: AIORabbitMQConnector,
         callback_data: DatingEventCallbackData,
-        dh,
+        bot,
 ):
     LOGGER.debug(f'User {query.from_user.id} is cancelling registrations')
 
@@ -301,13 +327,13 @@ async def _handle_cancelling_event_registration(
         if not callback_data.confirmed:
             await _ask_for_cancelling_confirmation(callback_data, query)
         else:
-            await _cancel_registration(callback_data, dh, query, rmq)
+            await _cancel_registration(callback_data, bot, query, rmq)
 
     except TelegramBadRequest as e:
         LOGGER.warning(f'Got exception while processing callback: {e}')
 
 
-async def _cancel_registration(callback_data, dh, query, rmq):
+async def _cancel_registration(callback_data, bot, query, rmq):
     await rmq.publish(
         message=DateMakerCommands.CANCEL_REGISTRATION.value,
         routing_key='date_maker_dev',
@@ -319,7 +345,7 @@ async def _cancel_registration(callback_data, dh, query, rmq):
             'event_id': str(callback_data.event_id),
         },
     )
-    dh.wait_for_data(query.message.chat.id, query.message.message_id, dh.get_confirmation)
+    bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
 
 
 async def _ask_for_cancelling_confirmation(callback_data, query):
@@ -354,4 +380,92 @@ async def _ask_for_cancelling_confirmation(callback_data, query):
         text=message_text,
         parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(),
+    )
+
+
+async def _confirm_registration(query, callback_data, rmq, bot):
+    LOGGER.debug(f'Confirming user {query.from_user.id} to event {callback_data.event_id}')
+    dating_event = f'Event #{callback_data.event_id}'
+
+    await query.bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=_('thanks for confirming registration for {event}').format(event=dating_event),
+        parse_mode=ParseMode.HTML,
+    )
+    await rmq.publish(
+        message=DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
+        routing_key='date_maker_dev',
+        exchange='chathub_direct_main',
+        headers={
+            'user_id': str(query.from_user.id),
+            'chat_id': str(query.message.chat.id),
+            'message_id': str(query.message.message_id),
+            'event_id': str(callback_data.event_id),
+        },
+    )
+    bot.wait_for_data(query.message.chat.id, query.message.message_id, bot.get_confirmation)
+
+
+async def _user_ready_to_start_event(query, callback_data, pg, bot):
+    LOGGER.debug(f'User {query.from_user.id} is ready to start event {callback_data.event_id}')
+
+    await pg.set_user_ready_to_start(
+        user_id=callback_data.user_id,
+        event_id=callback_data.event_id,
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=_('confirmed'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_liked(query, callback_data, bot, pg):
+    await pg.save_user_like(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+    message = _("please rate partners performance")
+    reaction = _("liked")
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{message}\n\n{reaction}'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_disliked(query, callback_data, bot, pg):
+    await pg.save_user_dislike(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+    message = _("please rate partners performance")
+    reaction = _("disliked")
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{message}\n\n{reaction}'),
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+
+async def _user_reported(query, callback_data, bot, pg):
+    await pg.save_user_report(
+        source_user_id=callback_data.user_id,
+        target_user_id=callback_data.partner_id,
+        event_id=callback_data.event_id,
+    )
+    message = _("please rate partners performance")
+    reaction = _("reported")
+    await bot.edit_message_text(
+        chat_id=query.message.chat.id,
+        message_id=query.message.message_id,
+        text=__(f'{message}\n\n{reaction}'),
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
