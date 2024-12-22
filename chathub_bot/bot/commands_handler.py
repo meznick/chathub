@@ -177,7 +177,7 @@ class BotCommandsHandlerMixin:
 
         await self.send_message(
             chat_id=headers.get('user_id'),
-            text=_('are you ready to start event?'),
+            text=__(_('are you ready to start event?')),
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),
         )
