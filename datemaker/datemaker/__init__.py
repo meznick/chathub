@@ -55,6 +55,7 @@ class EventStateIDs(Enum):
     READY = 2
     RUNNING = 3
     FINISHED = 4
+    SKIPPED = 5
 
 
 EVENT_IDEAL_USERS = 20
