@@ -57,9 +57,9 @@ class DateRunner:
         https://github.com/meznick/chathub/blob/71b1b58d6bb6ae37e5f6e500da782c7dc3c40c79/datemaker/readme.md#L85
         """
         LOGGER.info(f'Dating event#{self.event_id} has started')
-        self.running = True
         await self.set_event_state(EventStateIDs.RUNNING)
-        await self.collect_registrations()
+        self.running = True
+        await self.collect_participants()
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
         await asyncio.gather(*[
@@ -71,15 +71,12 @@ class DateRunner:
     async def set_event_state(self, state: EventStateIDs):
         await self.postgres.set_event_state(self.event_id, state.value)
 
-    async def collect_registrations(self):
+    async def collect_participants(self):
         """
         Collecting all users registered for event.
         """
         LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
-        registrations = await self.postgres.get_event_registrations(self.event_id)
-        self.participants = {
-            user for user in registrations if user.get('confirmed_on_dttm')
-        }
+        self.participants = self.postgres.get_event_participants(self.event_id)
 
     async def trigger_bot_to_send_rules(self):
         for user in self.participants:
@@ -146,20 +143,22 @@ class DateRunner:
 
         rounds = self.event_data.loc[self.event_data.group_no == group_id].shape[0]
         LOGGER.debug(f'There will be {rounds} rounds for event#{self.event_id} group#{group_id}')
+        if rounds == 0:
+            await self.set_event_state(EventStateIDs.SKIPPED)
+        else:
+            for round_num in range(rounds):
+                await fsm.transition('start' if round_num == 0 else 'next', round_num=round_num)
+                # after 5 min transition to pause
+                round_start_time = time.time()
+                while time.time() - round_start_time < 300:
+                    await sleep(10)
+                await fsm.transition('break', round_num=round_num)
+                # after 1 min transition to the next round
+                break_start_time = time.time()
+                while time.time() - break_start_time < 60:
+                    await sleep(10)
 
-        for round_num in range(rounds):
-            await fsm.transition('start' if round_num == 0 else 'next', round_num=round_num)
-            # after 5 min transition to pause
-            round_start_time = time.time()
-            while time.time() - round_start_time < 300:
-                await sleep(10)
-            await fsm.transition('break', round_num=round_num)
-            # after 1 min transition to the next round
-            break_start_time = time.time()
-            while time.time() - break_start_time < 60:
-                await sleep(10)
-
-        await fsm.transition('finish')
+            await fsm.transition('finish')
 
     async def run_initial_state(self):
         LOGGER.info('State machine is in initial state')
