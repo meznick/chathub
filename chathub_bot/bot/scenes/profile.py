@@ -11,6 +11,7 @@ from aiogram.utils.media_group import MediaGroupBuilder
 
 from bot import setup_logger
 from bot.scenes.base import BaseSpeedDatingScene
+from bot.utils import escape_markdown_v2 as __
 
 LOGGER = setup_logger(__name__)
 
@@ -156,8 +157,8 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
     async def _start_registration(message, pg, state, step_name):
         if step_name == '':
             await message.answer(
-                _('welcome message {name}').format(name=message.from_user.full_name),
-                parse_mode=ParseMode.HTML,
+                __(_('welcome message {name}').format(name=message.from_user.full_name)),
+                parse_mode=ParseMode.MARKDOWN_V2,
             )
             await message.answer(
                 _('invite to enter name'),

@@ -252,8 +252,8 @@ async def _handle_listing_events(
         await query.bot.edit_message_text(
             chat_id=query.message.chat.id,
             message_id=query.message.message_id,
-            text=_('here is list of events'),
-            parse_mode=ParseMode.HTML,
+            text=__(_('here is list of events')),
+            parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),
         )
         await rmq.publish(

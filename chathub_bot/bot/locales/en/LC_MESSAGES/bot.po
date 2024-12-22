@@ -157,7 +157,25 @@ msgstr ""
 
 #: bot/scenes/dating.py:255
 msgid "here is list of events"
-msgstr "Here's event list"
+msgstr ""
+"Here are the *registration rules*:\n"
+"1. *Familiarize yourself with the list of events* in your city and choose"
+" a suitable one. If there are no events in your city yet, stay tuned — "
+"they will appear later. The time is always indicated in the time zone of "
+"the event's location.\n"
+"2. *Click on the button for the appropriate event.* A day before the "
+"event, you will receive a request for confirmation — the sooner you "
+"accept it, the higher your chances of participation. If you don't make it"
+" to the participant list, it means there were not enough spots at the "
+"event. Don't worry — you'll have better luck next time!\n"
+"\n"
+"To participate, be at your computer or smartphone *a few minutes before "
+"the start* to confirm your presence. If you don't confirm, *your "
+"application will be canceled* (this is important to ensure everyone's "
+"participation).\n"
+"\n"
+"*Most importantly — enjoy the conversation!* Smile, give it a try, and "
+"you will definitely meet the right person. And I’ll help you with that!"
 
 #: bot/scenes/dating.py:297
 msgid "registering you to the event {event}"
@@ -205,9 +223,14 @@ msgstr "A user with this information already exists. You can update it with /edi
 #: bot/scenes/profile.py:159
 msgid "welcome message {name}"
 msgstr ""
-"Welcome to Speed Dating Bot, {name}! 💕 We are excited to have you here! To"
-" get started, please enter your name so we can register you for the "
-"event. Looking forward to helping you find your perfect match!"
+"Hi, {name}! 💕 I'm XOXO Bot — your assistant in finding friendship and "
+"love. No more random people or endless chats! I'll help you meet "
+"interesting people from your city and organize online speed dating — "
+"connect quickly and choose those you like.\n"
+"\n"
+"How does it work? I analyze your profile, so you can start filling it out"
+" right now. This is a beta version, and for now, all features are "
+"completely free."
 
 #: bot/scenes/profile.py:163 bot/scenes/profile.py:371
 msgid "invite to enter name"
@@ -241,6 +264,10 @@ msgstr "Invalid date format. Please use YYYY-MM-DD."
 msgid "registration complete"
 msgstr "Registration complete. To start dating press: /date."
 
+#: bot/scenes/profile.py:270
+msgid "internal error"
+msgstr ""
+
 #: bot/scenes/profile.py:284
 msgid "your profile {name} {sex} {age} {city}"
 msgstr "Your profile: Name: {name}, Gender: {sex}, Age: {age}, City: {city}."
@@ -260,3 +287,4 @@ msgstr "A user with this information already exists. You can update it with /edi
 #: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr "Starting to edit your profile, {name}!"
+
