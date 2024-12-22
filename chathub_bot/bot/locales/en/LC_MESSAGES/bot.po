@@ -105,7 +105,7 @@ msgstr ""
 
 #: bot/commands_handler.py:170
 msgid "i am ready button"
-msgstr "i am ready"
+msgstr "✅ ready"
 
 #: bot/commands_handler.py:180
 msgid "are you ready to start event?"
