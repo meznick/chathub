@@ -72,7 +72,7 @@ class BotCommandsHandlerMixin:
 
         await self.send_message(
             chat_id=user_id,
-            text=_('event will start soon, heres rule remainder'),
+            text=__(_('event will start soon, heres rule remainder')),
             parse_mode=ParseMode.MARKDOWN_V2,
         )
         await self.send_message(
