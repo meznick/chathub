@@ -98,11 +98,14 @@ msgstr ""
 #: bot/commands_handler.py:158
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
+"You have a mutual match 💞 with the user *{partner_name}*, their contact "
+"is: {partner_contact}.\n"
+"\n"
+"Enjoy your conversation 🎉"
 
 #: bot/commands_handler.py:170
-#, fuzzy
 msgid "i am ready button"
-msgstr "⚠️ rules"
+msgstr "i am ready"
 
 #: bot/commands_handler.py:180
 msgid "are you ready to start event?"

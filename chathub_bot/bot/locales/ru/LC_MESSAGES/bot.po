@@ -98,10 +98,10 @@ msgstr ""
 #: bot/commands_handler.py:158
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
-"У тебя совпала симпатия с пользователем *{partner_name}*, его контакт: "
+"У тебя совпала симпатия 💞 с пользователем *{partner_name}*, его контакт: "
 "{partner_contact}.\n"
 "\n"
-"Приятного общения."
+"Приятного общения 🎉"
 
 #: bot/commands_handler.py:170
 msgid "i am ready button"
