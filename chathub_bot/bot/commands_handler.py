@@ -58,12 +58,12 @@ class BotCommandsHandlerMixin:
         )
         await self.send_message(
             chat_id=user_id,
-            text=_(
+            text=__(_(
                 'please confirm event registration. event will start at {event_start_time}'
             ).format(
                 event_start_time=target_event.get('start_dttm')
-            ),
-            parse_mode=ParseMode.HTML,
+            )),
+            parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),
         )
 

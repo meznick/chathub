@@ -23,8 +23,8 @@ msgstr "✅ подтверждаю"
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 "Вы зарегистрировались на мероприятие которое начнется "
-"*{event_start_time}*. Подтвердите или отмените свое участие в "
-"мероприятии."
+"*{event_start_time}*.\n"
+"Подтвердите или отмените свое участие в мероприятии ✅❌"
 
 #: bot/commands_handler.py:75
 msgid "event will start soon, heres rule remainder"
@@ -86,7 +86,9 @@ msgstr ""
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
 "У тебя совпала симпатия с пользователем *{partner_name}*, его контакт: "
-"{partner_contact}.\n\nПриятного общения."
+"{partner_contact}.\n"
+"\n"
+"Приятного общения."
 
 #: bot/commands_handler.py:169
 msgid "i am ready button"
@@ -248,3 +250,4 @@ msgstr "Начинаем редактирование твоего профил�
 
 #~ msgid "please rate partner's performance"
 #~ msgstr ""
+

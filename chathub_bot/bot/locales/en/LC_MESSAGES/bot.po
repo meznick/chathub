@@ -21,8 +21,8 @@ msgstr "✅ confirm"
 #: bot/commands_handler.py:61
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
-"Please confirm your event registration. The event will start at "
-"{event_start_time}."
+"You have registered for an event starting at {event_start_time}.\n"
+"Please confirm or cancel your participation ✅❌"
 
 #: bot/commands_handler.py:75
 msgid "event will start soon, heres rule remainder"
