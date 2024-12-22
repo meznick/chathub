@@ -62,6 +62,11 @@ msgstr ""
 #: bot/commands_handler.py:91
 msgid "meeting invitation {url}"
 msgstr ""
+"*The round is starting!@ 🚀\n"
+"\n"
+"Here’s the link to join the call: {url}.\n"
+"\n"
+"Don't forget your webcam! 💖"
 
 #: bot/commands_handler.py:103
 #, fuzzy

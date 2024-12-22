@@ -88,7 +88,7 @@ class BotCommandsHandlerMixin:
 
         await self.send_message(
             chat_id=headers.get('user_id'),
-            text=__(_('meeting invitation {url}'.format(url=data.get('url')))),
+            text=__(_('meeting invitation {url}').format(url=data.get('url'))),
             parse_mode=ParseMode.MARKDOWN_V2,
         )
 

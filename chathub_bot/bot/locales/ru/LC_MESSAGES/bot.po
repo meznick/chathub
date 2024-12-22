@@ -64,7 +64,12 @@ msgstr ""
 
 #: bot/commands_handler.py:91
 msgid "meeting invitation {url}"
-msgstr "Ссылка для подключения: \\{url\\}"
+msgstr ""
+"*Раунд начинается!* 🚀\n"
+"\n"
+" Ссылка для подключения к звонку: {url}.\n"
+"\n"
+" Не забудь про вебку! 💖"
 
 #: bot/commands_handler.py:103
 msgid "like button"
