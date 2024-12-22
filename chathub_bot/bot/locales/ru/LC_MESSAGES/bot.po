@@ -250,7 +250,7 @@ msgstr "Неправильный выбор пола. Пожалуйста, вы
 
 #: bot/scenes/profile.py:203
 msgid "invite to enter birthday"
-msgstr "Пожалуйста, введите вашу дату рождения (ГГГГ-ММ-ВВ)."
+msgstr "Пожалуйста, введите вашу дату рождения (ГГГГ-ММ-ДД)."
 
 #: bot/scenes/profile.py:211
 msgid "invite to send photo"
@@ -262,7 +262,7 @@ msgstr "Пожалуйста, укажите ваш город."
 
 #: bot/scenes/profile.py:229
 msgid "wrong date format"
-msgstr "Неправильный формат даты. Используйте ГГГГ-ММ-ВВ."
+msgstr "Неправильный формат даты. Используйте ГГГГ-ММ-ДД."
 
 #: bot/scenes/profile.py:257
 msgid "registration complete"
@@ -293,4 +293,3 @@ msgstr ""
 #: bot/scenes/profile.py:367
 msgid "starting editing message {name}"
 msgstr "Начинаем редактирование твоего профиля, {name}!"
-
