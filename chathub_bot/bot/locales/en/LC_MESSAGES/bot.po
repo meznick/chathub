@@ -89,9 +89,11 @@ msgid "please rate partners performance"
 msgstr "If you want, rate the partner you just talked to 🙏🤔"
 
 #: bot/commands_handler.py:143
-#, fuzzy
 msgid "final dating message"
-msgstr "Starting to edit your profile, {name}!"
+msgstr ""
+"The event has come to an end. Please give us a little time to summarize "
+"the results. Soon, you’ll see your mutual matches and will be able to "
+"connect with the people you’ve chosen. 😊✨"
 
 #: bot/commands_handler.py:158
 msgid "you match with {partner_name}, his contact {partner_contact}"
