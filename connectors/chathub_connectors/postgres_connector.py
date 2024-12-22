@@ -308,6 +308,25 @@ class AsyncPgConnector:
         LOGGER.debug(f'Found {len(data)} event registrations')
         return data
 
+    async def get_event_participants(
+            self,
+            event_id: int,
+    ) -> List[Record]:
+        request_query = """
+            SELECT DISTINCT user_1_id as user_id
+            FROM public.dating_event_groups
+            WHERE event_id = $1
+            
+            UNION ALL
+            
+            SELECT DISTINCT user_2_id as user_id
+            FROM public.dating_event_groups
+            WHERE event_id = $1;
+        """
+        data = await self.client.fetch(request_query, event_id)
+        LOGGER.debug(f'Found {len(data)} event participants')
+        return data
+
     async def register_for_event(
             self,
             user: Record,
