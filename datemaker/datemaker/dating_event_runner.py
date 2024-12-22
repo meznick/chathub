@@ -198,11 +198,6 @@ class DateRunner:
             await self.send_final_event_message(uid)
         LOGGER.debug(f'Sent final message to {len(self.user_ids_in_event)} users')
 
-        start_time = time.time()
-        # waiting for all users to like each other
-        while time.time() - start_time < 60:
-            await sleep(10)
-
         for uid in self.user_ids_in_event:
             await self.send_matches_message(uid)
 
