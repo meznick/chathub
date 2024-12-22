@@ -37,7 +37,7 @@ class DateRunner:
         self.meet_api = meet_api_controller
         self.postgres = postgres_controller
         self.rabbitmq = rabbitmq_controller
-        self.running = False
+        self.running = True
         # data created in RegistrationConfirmationRunner
         self.event_data: pd.DataFrame | None = None
         self.user_ids_in_event = list
@@ -58,7 +58,6 @@ class DateRunner:
         """
         LOGGER.info(f'Dating event#{self.event_id} has started')
         await self.set_event_state(EventStateIDs.RUNNING)
-        self.running = True
         await self.collect_participants()
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
@@ -76,7 +75,7 @@ class DateRunner:
         Collecting all users registered for event.
         """
         LOGGER.debug(f'Collecting registrations for event#{self.event_id}')
-        self.participants = self.postgres.get_event_participants(self.event_id)
+        self.participants = await self.postgres.get_event_participants(self.event_id)
 
     async def trigger_bot_to_send_rules(self):
         for user in self.participants:
