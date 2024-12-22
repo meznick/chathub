@@ -85,12 +85,17 @@ class RegistrationConfirmationRunner:
             LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
             await sleep(100)
             is_timeout = self.event_start_time - datetime.now() < timedelta(hours=1)
-            registrations = await self.postgres.get_event_registrations(self.event_id)
+            self.registrations = await self.postgres.get_event_registrations(self.event_id)
             is_all_confirmed = len(
-                {user.get('user_id') for user in registrations} -
-                {user.get('user_id') for user in registrations if user.get('confirmed_on_dttm')}
+                {user.get('user_id') for user in self.registrations} -
+                {user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')}
             ) == 0
-        LOGGER.info(f'All users confirmed registrations for event#{self.event_id}')
+        LOGGER.debug(
+            f'All users confirmed registration: {is_all_confirmed}, '
+            f'timeout: {is_timeout} '
+            f'for event#{self.event_id}'
+        )
+        LOGGER.info(f'Waiting for confirmation ended for event#{self.event_id}')
 
     async def generate_user_groups(self):
         """
@@ -106,6 +111,7 @@ class RegistrationConfirmationRunner:
         confirmed_user_ids = {
             user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
         }
+        LOGGER.debug(f'Got {len(confirmed_user_ids)} confirmed users for event#{self.event_id}')
         confirmed_users = []
         for user_id in confirmed_user_ids:
             confirmed_users.append(
