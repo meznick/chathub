@@ -109,7 +109,7 @@ async def dating_event_callback_handler(
 
 
 @dating_router.callback_query(PartnerActionsCallbackData.filter())
-async def dating_main_menu_actions_callback_handler(
+async def dating_partner_actions_callback_handler(
         query: CallbackQuery,
         callback_data: PartnerActionsCallbackData
 ):
@@ -429,11 +429,12 @@ async def _user_liked(query, callback_data, bot, pg):
         target_user_id=callback_data.partner_id,
         event_id=callback_data.event_id,
     )
-
+    message = _("please rate partners performance")
+    reaction = _("liked")
     await bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text=__(f'{_("please rate partners performance")}\n\n{_("liked")}'),
+        text=__(f'{message}\n\n{reaction}'),
         parse_mode=ParseMode.MARKDOWN_V2,
     )
 
@@ -444,11 +445,12 @@ async def _user_disliked(query, callback_data, bot, pg):
         target_user_id=callback_data.partner_id,
         event_id=callback_data.event_id,
     )
-
+    message = _("please rate partners performance")
+    reaction = _("disliked")
     await bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text=__(f'{_("please rate partners performance")}\n\n{_("disliked")}'),
+        text=__(f'{message}\n\n{reaction}'),
         parse_mode=ParseMode.MARKDOWN_V2,
     )
 
@@ -459,10 +461,11 @@ async def _user_reported(query, callback_data, bot, pg):
         target_user_id=callback_data.partner_id,
         event_id=callback_data.event_id,
     )
-
+    message = _("please rate partners performance")
+    reaction = _("reported")
     await bot.edit_message_text(
         chat_id=query.message.chat.id,
         message_id=query.message.message_id,
-        text=__(f'{_("please rate partners performance")}\n\n{_("reported")}'),
+        text=__(f'{message}\n\n{reaction}'),
         parse_mode=ParseMode.MARKDOWN_V2,
     )

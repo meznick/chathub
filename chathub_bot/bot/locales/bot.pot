@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-20 19:32+0300\n"
+"POT-Creation-Date: 2024-12-22 11:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,27 +50,28 @@ msgstr ""
 msgid "report button"
 msgstr ""
 
-#: bot/commands_handler.py:132
+#: bot/commands_handler.py:133 bot/scenes/dating.py:432
+#: bot/scenes/dating.py:448 bot/scenes/dating.py:464
 msgid "please rate partners performance"
 msgstr ""
 
-#: bot/commands_handler.py:142
+#: bot/commands_handler.py:143
 msgid "final dating message"
 msgstr ""
 
-#: bot/commands_handler.py:157
+#: bot/commands_handler.py:158
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
 
-#: bot/commands_handler.py:169
+#: bot/commands_handler.py:170
 msgid "i am ready button"
 msgstr ""
 
-#: bot/commands_handler.py:179
+#: bot/commands_handler.py:180
 msgid "are you ready to start event?"
 msgstr ""
 
-#: bot/commands_handler.py:189
+#: bot/commands_handler.py:190
 msgid "break message"
 msgstr ""
 
@@ -133,6 +134,18 @@ msgstr ""
 
 #: bot/scenes/dating.py:421
 msgid "confirmed"
+msgstr ""
+
+#: bot/scenes/dating.py:433
+msgid "liked"
+msgstr ""
+
+#: bot/scenes/dating.py:449
+msgid "disliked"
+msgstr ""
+
+#: bot/scenes/dating.py:465
+msgid "reported"
 msgstr ""
 
 #: bot/scenes/profile.py:62

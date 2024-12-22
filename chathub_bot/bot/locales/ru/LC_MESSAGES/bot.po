@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2024-12-20 19:32+0300\n"
+"POT-Creation-Date: 2024-12-22 11:14+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -83,18 +83,19 @@ msgstr "👎"
 msgid "report button"
 msgstr "🚩 пожаловаться"
 
-#: bot/commands_handler.py:132
+#: bot/commands_handler.py:133 bot/scenes/dating.py:432
+#: bot/scenes/dating.py:448 bot/scenes/dating.py:464
 msgid "please rate partners performance"
-msgstr "Пожалуйста, оцени как тебе партнер"
+msgstr "Если хочешь -- оцени партнера с которым только что общались 🙏🤔"
 
-#: bot/commands_handler.py:142
+#: bot/commands_handler.py:143
 msgid "final dating message"
 msgstr ""
 "Вот мероприятие и подошло к концу. Дай нам немного времени на подведение "
 "итогов. Скоро ты увидишь взаимные симпатии и сможешь пообщаться с "
 "выбранными людьми."
 
-#: bot/commands_handler.py:157
+#: bot/commands_handler.py:158
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
 "У тебя совпала симпатия с пользователем *{partner_name}*, его контакт: "
@@ -102,15 +103,15 @@ msgstr ""
 "\n"
 "Приятного общения."
 
-#: bot/commands_handler.py:169
+#: bot/commands_handler.py:170
 msgid "i am ready button"
 msgstr "я готов"
 
-#: bot/commands_handler.py:179
+#: bot/commands_handler.py:180
 msgid "are you ready to start event?"
 msgstr "Начинаем событие, отмечайся если готов\\!"
 
-#: bot/commands_handler.py:189
+#: bot/commands_handler.py:190
 msgid "break message"
 msgstr ""
 "Раунд закончился, теперь у тебя есть минутка чтобы передохнуть, "
@@ -188,6 +189,18 @@ msgstr "Спасибо что подтвердили регистрацию на
 msgid "confirmed"
 msgstr "✅ подтверждаю"
 
+#: bot/scenes/dating.py:433
+msgid "liked"
+msgstr "❤️"
+
+#: bot/scenes/dating.py:449
+msgid "disliked"
+msgstr "👎"
+
+#: bot/scenes/dating.py:465
+msgid "reported"
+msgstr "🚩 *жалоба принята*, мы рассмотрим ее в ближайшее время!"
+
 #: bot/scenes/profile.py:62
 msgid "user already exists"
 msgstr ""
@@ -262,4 +275,3 @@ msgstr "Начинаем редактирование твоего профил�
 
 #~ msgid "please rate partner's performance"
 #~ msgstr ""
-

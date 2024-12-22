@@ -126,6 +126,7 @@ class BotCommandsHandlerMixin:
                 partner_id=partner_id,
             )
         )
+        builder.adjust(2)
 
         await self.send_message(
             chat_id=headers.get('user_id'),
