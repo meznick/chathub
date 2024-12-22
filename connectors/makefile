@@ -14,4 +14,4 @@ build: clean
 
 upload:
 	@echo "Uploading package..."
-	twine upload --repository-url http://10.137.239.1:8228 dist/* --verbose
+	twine upload --repository-url http://007pi.loc:8228 dist/* --verbose
