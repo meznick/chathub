@@ -50,7 +50,6 @@ class RegistrationConfirmationRunner:
         await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
         await self.wait_for_confirmations()
         await self.generate_user_groups()
-        await self.trigger_bot_command(BotCommands.SEND_RULES)
         await self.set_event_state(EventStateIDs.READY)
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
 
