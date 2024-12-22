@@ -266,10 +266,6 @@ class RegistrationScene(BaseSpeedDatingScene, state='registration'):
             LOGGER.error(
                 f'Registration Scene: cannot find user {message.from_user.id} on exit'
             )
-            await message.answer(
-                _('internal error'),
-                parse_mode=ParseMode.HTML,
-            )
             return
         # for now, showing only the latest image
         images = [await pg.get_latest_image_by_owner(message.from_user.id)]
