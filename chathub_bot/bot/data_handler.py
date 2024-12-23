@@ -4,7 +4,6 @@ from typing import Dict, List, Optional
 
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from click import confirm
 
 from bot import setup_logger
 from bot.scenes.callback_data import (
