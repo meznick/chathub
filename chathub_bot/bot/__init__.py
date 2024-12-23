@@ -4,6 +4,7 @@ import os
 __version__ = '0.1.0'
 
 from enum import Enum
+from dotenv import load_dotenv
 
 
 def setup_logger(name):
@@ -43,6 +44,11 @@ class BotCommands(Enum):
     SEND_READY_FOR_EVENT_REQUEST = 'send_ready_for_event_request'
     SEND_BREAK_MESSAGE = 'send_break_message'
 
+
+BOT_VARIABLES_LOADED = os.getenv('BOT_VARIABLES_LOADED', 'false')
+if BOT_VARIABLES_LOADED.lower() == 'false':
+    load_dotenv(dotenv_path='/app/.env')
+    logging.info(f'Environment variables loaded: {BOT_VARIABLES_LOADED}')
 
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
 # Read RabbitMQ settings and credentials from environment
