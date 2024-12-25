@@ -13,7 +13,7 @@ from datemaker import (
     DateMakerCommands,
     EventStates,
     MEET_TOKEN_FILE,
-    MEET_CREDS_FILE, DEBUG,
+    MEET_CREDS_FILE, DEBUG, TG_BOT_ROUTING_KEY,
 )
 from .dating_event_runner import DateRunner
 from .meet_api_controller import GoogleMeetApiController
@@ -158,7 +158,7 @@ class DateMakerService:
             )
             self.message_broker_controller.publish(
                 json.dumps({'success': False}),
-                routing_key='tg_bot_dev',
+                routing_key=TG_BOT_ROUTING_KEY,
                 exchange='chathub_direct_main',
                 properties=BasicProperties(headers=message_params)
             )
@@ -220,7 +220,7 @@ class DateMakerService:
         ]
         self.message_broker_controller.publish(
             json.dumps(events_list),
-            routing_key='tg_bot_dev',
+            routing_key=TG_BOT_ROUTING_KEY,
             exchange='chathub_direct_main',
             properties=BasicProperties(headers=message_params)
         )
@@ -260,7 +260,7 @@ class DateMakerService:
         }
         self.message_broker_controller.publish(
             json.dumps(result),
-            routing_key='tg_bot_dev',
+            routing_key=TG_BOT_ROUTING_KEY,
             exchange='chathub_direct_main',
             properties=BasicProperties(headers=message_params)
         )
@@ -306,7 +306,7 @@ class DateMakerService:
         }
         self.message_broker_controller.publish(
             json.dumps(result),
-            routing_key='tg_bot_dev',
+            routing_key=TG_BOT_ROUTING_KEY,
             exchange='chathub_direct_main',
             properties=BasicProperties(headers=message_params)
         )
@@ -331,7 +331,7 @@ class DateMakerService:
         result = {'registration_cancelled': is_cancelled}
         self.message_broker_controller.publish(
             json.dumps(result),
-            routing_key='tg_bot_dev',
+            routing_key=TG_BOT_ROUTING_KEY,
             exchange='chathub_direct_main',
             properties=BasicProperties(headers=message_params)
         )

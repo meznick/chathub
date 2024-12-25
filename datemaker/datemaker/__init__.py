@@ -89,3 +89,5 @@ POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', '5432'))
 POSTGRES_DB = os.getenv('POSTGRES_DB', '')
 POSTGRES_USER = os.getenv('POSTGRES_USER', '')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', '')
+
+TG_BOT_ROUTING_KEY = 'tg_bot_dev' if DEBUG.lower() == 'true' else 'tg_bot_prod'

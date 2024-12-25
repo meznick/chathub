@@ -12,7 +12,7 @@ from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.utils import escape_markdown_v2 as __
 
-from bot import setup_logger, DateMakerCommands
+from bot import setup_logger, DateMakerCommands, DATE_MAKER_ROUTING_KEY
 from bot.scenes.base import BaseSpeedDatingScene
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
@@ -258,7 +258,7 @@ async def _handle_listing_events(
         )
         await rmq.publish(
             message=DateMakerCommands.LIST_EVENTS.value,
-            routing_key='date_maker_dev',
+            routing_key=DATE_MAKER_ROUTING_KEY,
             exchange='chathub_direct_main',
             headers={
                 'user_id': str(query.from_user.id),
@@ -300,7 +300,7 @@ async def _handle_event_registration(
         )
         await rmq.publish(
             message=DateMakerCommands.REGISTER_USER_TO_EVENT.value,
-            routing_key='date_maker_dev',
+            routing_key=DATE_MAKER_ROUTING_KEY,
             exchange='chathub_direct_main',
             headers={
                 'user_id': str(query.from_user.id),
@@ -336,7 +336,7 @@ async def _handle_cancelling_event_registration(
 async def _cancel_registration(callback_data, bot, query, rmq):
     await rmq.publish(
         message=DateMakerCommands.CANCEL_REGISTRATION.value,
-        routing_key='date_maker_dev',
+        routing_key=DATE_MAKER_ROUTING_KEY,
         exchange='chathub_direct_main',
         headers={
             'user_id': str(query.from_user.id),
@@ -395,7 +395,7 @@ async def _confirm_registration(query, callback_data, rmq, bot):
     )
     await rmq.publish(
         message=DateMakerCommands.CONFIRM_USER_EVENT_REGISTRATION.value,
-        routing_key='date_maker_dev',
+        routing_key=DATE_MAKER_ROUTING_KEY,
         exchange='chathub_direct_main',
         headers={
             'user_id': str(query.from_user.id),

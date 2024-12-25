@@ -50,6 +50,8 @@ if BOT_VARIABLES_LOADED.lower() == 'false':
     load_dotenv(dotenv_path='/app/.env')
     logging.info(f'Environment variables loaded: {BOT_VARIABLES_LOADED}')
 
+DEBUG = os.getenv('DEBUG', 'false')
+
 TG_TOKEN = os.getenv('TG_BOT_TOKEN', '')
 # Read RabbitMQ settings and credentials from environment
 MESSAGE_BROKER_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
@@ -73,3 +75,5 @@ POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', '')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
 AWS_BUCKET = os.getenv('AWS_BUCKET', '')
+
+DATE_MAKER_ROUTING_KEY = 'date_maker_dev' if DEBUG.lower() == 'true' else 'date_maker_prod'

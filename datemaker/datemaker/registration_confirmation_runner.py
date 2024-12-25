@@ -9,7 +9,7 @@ from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 from datemaker import (
     setup_logger,
     EventStateIDs,
-    BotCommands,
+    BotCommands, TG_BOT_ROUTING_KEY,
 )
 from .intelligent_agent import IntelligentAgent
 from .meet_api_controller import GoogleMeetApiController
@@ -67,7 +67,7 @@ class RegistrationConfirmationRunner:
         for user in self.registrations:
             await self.rabbitmq.publish(
                 message=command.value,
-                routing_key='tg_bot_dev',
+                routing_key=TG_BOT_ROUTING_KEY,
                 exchange='chathub_direct_main',
                 headers={
                     'user_id': user.get('user_id'),
