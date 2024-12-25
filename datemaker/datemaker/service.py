@@ -399,7 +399,7 @@ class DateMakerService:
             in events
             if (
                e.get('state_name', '') == EventStates.READY.value and
-               e.get('start_dttm') - datetime.now() < timedelta(minutes=10000)
+               e.get('start_dttm') - datetime.now() < timedelta(hours=24)
             )
         ]
         confirmations = [
