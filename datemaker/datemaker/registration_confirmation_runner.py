@@ -80,7 +80,7 @@ class RegistrationConfirmationRunner:
     async def wait_for_confirmations(self):
         is_all_confirmed = False  # all users confirmed registrations
         is_timeout = False        # confirmation time is out (1 hour before event)
-        while not (is_all_confirmed or is_timeout):
+        while not is_timeout:  # original is_all_confirmed or is_timeout
             LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
             await sleep(100)
             is_timeout = self.event_start_time - datetime.now() < timedelta(hours=1)
