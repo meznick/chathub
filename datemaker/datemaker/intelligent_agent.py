@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List, Tuple, Generator
 
 import pandas as pd
-from more_itertools.more import first
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from datemaker import (
