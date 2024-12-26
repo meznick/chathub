@@ -69,7 +69,8 @@ class RegistrationConfirmationRunner:
                     'event_id': self.event_id,
                 }
             )
-        LOGGER.info(f'Command {command} triggered for {len(self.registrations)} users')
+        if users:
+            LOGGER.debug(f'Command {command} triggered for {len(users)} users')
 
     async def wait_for_confirmations(self):
         is_all_confirmed = False  # all users confirmed registrations
