@@ -402,7 +402,7 @@ class DateMakerService:
                 # ready to start
                 e.get('state_name', '') == EventStates.READY.value and
                 # should start now
-                e.get('start_dttm') - datetime.now() < timedelta(seconds=100000)
+                e.get('start_dttm') - datetime.now() < timedelta(seconds=1)
             )
         ]
         confirmations = [
