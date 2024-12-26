@@ -417,8 +417,6 @@ class DateMakerService:
             )
         ]
         # registration should start 1 day before the event starts
-        for event in confirmations:
-            event['start_dttm'] = event.get('start_dttm') - timedelta(days=1)
         events = dating_events + confirmations
         LOGGER.debug(f'Got {len(events)} events to process')
         return events
