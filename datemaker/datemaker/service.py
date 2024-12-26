@@ -398,8 +398,10 @@ class DateMakerService:
             for e
             in events
             if (
-               e.get('state_name', '') == EventStates.READY.value and
-               e.get('start_dttm') - datetime.now() < timedelta(hours=24)
+                # ready to start
+                e.get('state_name', '') == EventStates.READY.value and
+                # should start now
+                e.get('start_dttm') - datetime.now() < timedelta(seconds=1)
             )
         ]
         confirmations = [
@@ -407,7 +409,9 @@ class DateMakerService:
             for e
             in events
             if (
+                # ready to process
                 e.get('state_name', '') == EventStates.NOT_STARTED.value and
+                # starts tomorrow
                 e.get('start_dttm') - datetime.now() < timedelta(days=1)
             )
         ]
