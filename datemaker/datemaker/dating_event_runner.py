@@ -5,6 +5,8 @@ from asyncio import sleep, AbstractEventLoop
 from datetime import datetime
 
 import pandas as pd
+from google.api_core.exceptions import FailedPrecondition
+from grpc.aio import AioRpcError
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
@@ -225,7 +227,11 @@ class DateRunner:
 
     async def stop_active_spaces(self):
         for space in self.meeting_spaces:
-            await self.meet_api.end_active_call(space)
+            try:
+                await self.meet_api.end_active_call(space)
+            except (AioRpcError, FailedPrecondition):
+                LOGGER.warning('In some meetings were no participants...')
+
         LOGGER.debug(f'Stopped all active meetings for event#{self.event_id}')
 
     async def check_all_users_are_ready(self, send_requests: bool = False):
