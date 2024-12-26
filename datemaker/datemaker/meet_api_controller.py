@@ -1,5 +1,6 @@
 import asyncio
 import os
+from asyncio import AbstractEventLoop
 
 from google.apps import meet_v2
 from google.apps.meet_v2 import UpdateSpaceRequest, SpaceConfig, Space
@@ -18,27 +19,38 @@ LOGGER = setup_logger(__name__)
 
 
 class GoogleMeetApiController:
-    def __init__(self, creds_file_path: str, token_file_path: str = None):
+    def __init__(
+            self,
+            creds_file_path: str,
+            token_file_path: str = None,
+    ):
         self.token_file_path = token_file_path
         self.creds_file_path = creds_file_path
+        self.client = None
+        self.event_loop: AbstractEventLoop = None
+
+    def connect(self, custom_event_loop: AbstractEventLoop):
         self.client = meet_v2.SpacesServiceAsyncClient(
             credentials=self._read_creds()
         )
+        self.event_loop = custom_event_loop or asyncio.get_running_loop()
 
     async def create_space(self) -> Space:
-        space = await self.client.create_space(
+        coro = self.client.create_space(
             request=meet_v2.CreateSpaceRequest()
         )
+        space = await self.event_loop.create_task(coro)
         LOGGER.debug(f'New space {space.name} created.')
         return space
 
     async def end_active_call(self, space: Space):
         LOGGER.debug(f'Ending active call in space {space.name}')
-        await self.client.end_active_conference(
+        coro = self.client.end_active_conference(
             request=meet_v2.EndActiveConferenceRequest(
                 name=space.name,
             )
         )
+        await self.event_loop.create_task(coro)
 
     def _read_creds(self):
         # The file token.json stores the user's access and refresh tokens, and is
