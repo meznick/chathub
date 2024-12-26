@@ -40,14 +40,15 @@ class RegistrationConfirmationRunner:
         self.registrations = []
         loop = custom_event_loop or asyncio.get_event_loop()
         self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
-        LOGGER.info(f'RegistrationConfirmationRunner for event#{event_id} initialized')
+        LOGGER.info(
+            f'RegistrationConfirmationRunner for event#{event_id} initialized. '
+            f'This event starts at {start_time}'
+        )
 
     async def handle_preparations(self):
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has started')
         self.running = True
         await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
-        await self.collect_registrations()
-        await self.trigger_bot_command(BotCommands.CONFIRM_USER_EVENT_REGISTRATION)
         await self.wait_for_confirmations()
         await self.generate_user_groups()
         await self.set_event_state(EventStateIDs.READY)
@@ -56,15 +57,8 @@ class RegistrationConfirmationRunner:
     async def set_event_state(self, state: EventStateIDs):
         await self.postgres.set_event_state(self.event_id, state.value)
 
-    async def collect_registrations(self):
-        """
-        Collecting all users registered for event.
-        """
-        LOGGER.info(f'Collecting registrations for event#{self.event_id}')
-        self.registrations = await self.postgres.get_event_registrations(self.event_id)
-
-    async def trigger_bot_command(self, command: BotCommands):
-        for user in self.registrations:
+    async def trigger_bot_command(self, command: BotCommands, users: list):
+        for user in users:
             await self.rabbitmq.publish(
                 message=command.value,
                 routing_key=TG_BOT_ROUTING_KEY,
@@ -83,8 +77,9 @@ class RegistrationConfirmationRunner:
         while not is_timeout:  # original is_all_confirmed or is_timeout
             LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
             await sleep(100)
+            # ?
             is_timeout = self.event_start_time - datetime.now() < timedelta(hours=1)
-            self.registrations = await self.postgres.get_event_registrations(self.event_id)
+            await self._update_registrations_list()
             is_all_confirmed = len(
                 {user.get('user_id') for user in self.registrations} -
                 {user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')}
@@ -95,6 +90,26 @@ class RegistrationConfirmationRunner:
             f'for event#{self.event_id}'
         )
         LOGGER.info(f'Waiting for confirmation ended for event#{self.event_id}')
+
+    async def _update_registrations_list(self):
+        LOGGER.debug(f'Updating registrations list for event#{self.event_id}')
+        self.registrations = await self.postgres.get_event_registrations(self.event_id)
+        confirmation_not_sent_users = [
+            user for user in self.registrations if not user.get('confirmation_event_sent')
+        ]
+        LOGGER.debug(
+            f'Sending invites to {len(confirmation_not_sent_users)} '
+            f'users for event#{self.event_id}'
+        )
+        await self.trigger_bot_command(
+            BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
+            confirmation_not_sent_users
+        )
+        LOGGER.debug(f'Saving confirmation sent for event#{self.event_id} users to db')
+        await self.postgres.save_event_confirmation_sent(
+            event_id=self.event_id,
+            user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]
+        )
 
     async def generate_user_groups(self):
         """
@@ -119,7 +134,7 @@ class RegistrationConfirmationRunner:
 
         df_registrations = pd.DataFrame(
             self.registrations,
-            columns=['user_id', 'registered_on_dttm', 'confirmed_on_dttm'],
+            columns=['user_id', 'registered_on_dttm', 'confirmed_on_dttm', 'confirmation_event_sent'],
         )
         df_users = pd.DataFrame(
             confirmed_users,
