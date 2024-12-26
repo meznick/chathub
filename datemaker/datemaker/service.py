@@ -110,6 +110,7 @@ class DateMakerService:
             self.postgres_controller.connect()
             loop.run_until_complete(self.async_pg_controller.connect())
             loop.run_until_complete(self.async_rmq_controller.connect())
+            self.meet_api_controller.connect(custom_event_loop=loop)
             loop.create_task(self.run_date_making())
             loop.run_forever()
         except KeyboardInterrupt:
@@ -401,7 +402,7 @@ class DateMakerService:
                 # ready to start
                 e.get('state_name', '') == EventStates.READY.value and
                 # should start now
-                e.get('start_dttm') - datetime.now() < timedelta(seconds=1)
+                e.get('start_dttm') - datetime.now() < timedelta(seconds=100000)
             )
         ]
         confirmations = [
