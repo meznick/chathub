@@ -305,7 +305,7 @@ class AsyncPgConnector:
         :return:
         """
         request_query = """
-            SELECT user_id, registered_on_dttm, confirmed_on_dttm
+            SELECT user_id, registered_on_dttm, confirmed_on_dttm, confirmation_event_sent
             FROM public.dating_registrations
             WHERE event_id = $1;
         """
@@ -313,6 +313,20 @@ class AsyncPgConnector:
             data = await conn.fetch(request_query, event_id)
         LOGGER.debug(f'Found {len(data)} event registrations')
         return data
+
+    async def save_event_confirmation_sent(
+            self,
+            event_id: int,
+            user_ids: list
+    ):
+        request_query = """
+            UPDATE public.dating_registrations
+            SET confirmation_event_sent = TRUE
+            WHERE user_id = ANY($1) AND event_id = $2;
+        """
+        async with self.pool.acquire() as conn:
+            await conn.execute(request_query, user_ids, event_id)
+        LOGGER.debug(f'Event confirmation sending saved for event#{event_id} for users {user_ids}')
 
     async def get_event_participants(
             self,
