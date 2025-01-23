@@ -9,7 +9,7 @@ from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 from datemaker import (
     setup_logger,
     EventStateIDs,
-    BotCommands, TG_BOT_ROUTING_KEY,
+    BotCommands, TG_BOT_ROUTING_KEY, DEBUG,
 )
 from .intelligent_agent import IntelligentAgent
 from .meet_api_controller import GoogleMeetApiController
@@ -21,6 +21,10 @@ class RegistrationConfirmationRunner:
     """
     Class that encapsulates logic for running preparation for an event.
     """
+    registration_timeout_offset = timedelta(days=1)
+    confirmation_timeout_offset = (
+        timedelta(seconds=1) if DEBUG.lower() == 'true' else timedelta(hours=1)
+    )
 
     def __init__(
             self,
@@ -40,9 +44,14 @@ class RegistrationConfirmationRunner:
         self.registrations = []
         loop = custom_event_loop or asyncio.get_event_loop()
         self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
+        self.registration_end_dttm = (
+                self.event_start_time - self.confirmation_timeout_offset
+        )
         LOGGER.info(
             f'RegistrationConfirmationRunner for event#{event_id} initialized. '
-            f'This event starts at {start_time}'
+            f'This event starts at {start_time}. '
+            f'Registration will finish at {self.registration_end_dttm}.'
+            f'Debug mode: {DEBUG}'
         )
 
     async def handle_preparations(self):
@@ -78,14 +87,13 @@ class RegistrationConfirmationRunner:
         await self._update_registrations_list()
         while not is_timeout:  # original is_all_confirmed or is_timeout - rework later
             LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
-            await sleep(100)
-            # ?
-            is_timeout = self.event_start_time - datetime.now() < timedelta(hours=1)
+            await sleep(60)
+            is_timeout = self.event_start_time - self.confirmation_timeout_offset < datetime.now()
             await self._update_registrations_list()
             is_all_confirmed = len(
                 {user.get('user_id') for user in self.registrations} -
                 {user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')}
-            ) == 0
+            ) == 0 and len(self.registrations) > 0
         LOGGER.debug(
             f'All users confirmed registration: {is_all_confirmed}, '
             f'timeout: {is_timeout} '
