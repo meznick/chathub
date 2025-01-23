@@ -177,7 +177,7 @@ class DateRunner:
     async def run_initial_state(self):
         LOGGER.info('State machine is in initial state')
         # self.state_start_time = time.time()
-        # await self.create_spaces_for_event()
+        await self.create_spaces_for_event()
         # ready = await self.check_all_users_are_ready(send_requests=True)
         # start_time = await self.get_event_start_time()
         # while not (ready or start_time < datetime.now()):
