@@ -43,6 +43,8 @@ class BotCommands(Enum):
     SEND_MATCH_MESSAGE = 'send_match_message'
     SEND_READY_FOR_EVENT_REQUEST = 'send_ready_for_event_request'
     SEND_BREAK_MESSAGE = 'send_break_message'
+    SEND_USER_WILL_TAKE_PART_IN_EVENT = 'send_user_will_take_part_in_event'
+    SEND_USER_WILL_NOT_TAKE_PART_IN_EVENT = 'send_user_will_not_take_part_in_event'
 
 
 BOT_VARIABLES_LOADED = os.getenv('BOT_VARIABLES_LOADED', 'false')
