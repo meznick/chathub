@@ -69,7 +69,7 @@ class DataHandlerMixin:
                     '%Y-%m-%d %H:%M'
                 )
                 builder.button(
-                    text=f'{event_id}: {start_time}',
+                    text=f'{event_id}: {start_time} МСК',
                     callback_data=DatingEventCallbackData(
                         action=DatingEventActions.REGISTER.value,
                         event_id=event_id,
