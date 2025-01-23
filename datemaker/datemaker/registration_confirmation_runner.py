@@ -60,6 +60,7 @@ class RegistrationConfirmationRunner:
         await self.set_event_state(EventStateIDs.REGISTRATION_CONFIRMATION)
         await self.wait_for_confirmations()
         await self.generate_user_groups()
+        await self.notify_users_registration_complete()
         await self.set_event_state(EventStateIDs.READY)
         LOGGER.info(f'Registration confirmation for event#{self.event_id} has finished')
 
@@ -107,19 +108,20 @@ class RegistrationConfirmationRunner:
         confirmation_not_sent_users = [
             user for user in self.registrations if not user.get('confirmation_event_sent')
         ]
-        LOGGER.debug(
-            f'Sending invites to {len(confirmation_not_sent_users)} '
-            f'users for event#{self.event_id}'
-        )
-        await self.trigger_bot_command(
-            BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
-            confirmation_not_sent_users
-        )
-        LOGGER.debug(f'Saving confirmation sent for event#{self.event_id} users to db')
-        await self.postgres.save_event_confirmation_sent(
-            event_id=self.event_id,
-            user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]
-        )
+        if len(confirmation_not_sent_users):
+            LOGGER.debug(
+                f'Sending invites to {len(confirmation_not_sent_users)} '
+                f'users for event#{self.event_id}'
+            )
+            await self.trigger_bot_command(
+                BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
+                confirmation_not_sent_users
+            )
+            LOGGER.debug(f'Saving confirmation sent for event#{self.event_id} users to db')
+            await self.postgres.save_event_confirmation_sent(
+                event_id=self.event_id,
+                user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]
+            )
 
     async def generate_user_groups(self):
         """
@@ -165,3 +167,30 @@ class RegistrationConfirmationRunner:
 
         self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
         LOGGER.info(f'Generated user groups for event#{self.event_id}')
+
+    async def notify_users_registration_complete(self):
+        await sleep(10)
+        LOGGER.debug(f'Notifying users that registration for event#{self.event_id} is complete')
+        confirmed_user_ids = {
+            user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
+        }
+        event_data = await self.postgres.get_event_data(self.event_id)
+        match_maked_users = {
+            row.get('user_1_id') for row in event_data
+        } | {
+            row.get('user_2_id') for row in event_data
+        }
+        not_match_maked_users = confirmed_user_ids - match_maked_users
+        await self.trigger_bot_command(
+            BotCommands.SEND_USER_WILL_TAKE_PART_IN_EVENT,
+            [{'user_id': uid} for uid in match_maked_users]
+        )
+        await self.trigger_bot_command(
+            BotCommands.SEND_USER_WILL_NOT_TAKE_PART_IN_EVENT,
+            [{'user_id': uid} for uid in not_match_maked_users]
+        )
+        LOGGER.debug(
+            f'Notified users that registration is complete: '
+            f'{len(match_maked_users)} will take part, '
+            f'{len(not_match_maked_users)} will not'
+        )

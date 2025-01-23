@@ -37,6 +37,10 @@ class BotCommandsHandlerMixin:
             await self.send_ready_for_event_request(message, headers)
         elif BotCommands.SEND_BREAK_MESSAGE.value in message:
             await self.send_break_message(message, headers)
+        elif BotCommands.SEND_USER_WILL_TAKE_PART_IN_EVENT.value in message:
+            await self.send_will_take_part_in_event_message(message, headers)
+        elif BotCommands.SEND_USER_WILL_NOT_TAKE_PART_IN_EVENT.value in message:
+            await self.send_will_not_take_part_in_event_message(message, headers)
         else:
             raise UnknownBotCommandError(f'Cannot process command, message: {message[:100]}')
         return True
@@ -188,5 +192,23 @@ class BotCommandsHandlerMixin:
         await self.send_message(
             chat_id=headers.get('user_id'),
             text=__(_('break message')),
+            parse_mode=ParseMode.MARKDOWN_V2,
+        )
+
+    async def send_will_take_part_in_event_message(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        await self.send_message(
+            chat_id=headers.get('user_id'),
+            text=__(_('will take part in event message')),
+            parse_mode=ParseMode.MARKDOWN_V2,
+        )
+
+    async def send_will_not_take_part_in_event_message(self, message: str, headers: dict):
+        _ = self.i18n.gettext
+
+        await self.send_message(
+            chat_id=headers.get('user_id'),
+            text=__(_('will not take part in event message')),
             parse_mode=ParseMode.MARKDOWN_V2,
         )
