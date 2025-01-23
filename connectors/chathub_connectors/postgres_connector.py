@@ -273,7 +273,7 @@ class AsyncPgConnector:
         request_query = f"""
             SELECT DISTINCT 
                 e.id, 
-                e.start_dttm, 
+                e.start_dttm at time zone 'Europe/Moscow' as start_dttm, 
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
             LEFT JOIN (
@@ -564,7 +564,7 @@ class PostgresConnection:
         request_query = f"""
             SELECT DISTINCT
                 e.id,
-                e.start_dttm,
+                e.start_dttm at time zone 'Europe/Moscow' as start_dttm,
                 s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
