@@ -369,6 +369,7 @@ class DateMakerService:
             if event.get('state_name') == EventStates.READY.value:
                 runner = DateRunner(
                     event_id=event.get('id'),
+                    start_time=event.get('start_dttm'),
                     meet_api_controller=self.meet_api_controller,
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
@@ -401,8 +402,8 @@ class DateMakerService:
             if (
                 # ready to start
                 e.get('state_name', '') == EventStates.READY.value and
-                # should start now
-                e.get('start_dttm') - datetime.now() < timedelta(seconds=1)
+                # should start in 5 minutes
+                e.get('start_dttm') - datetime.now() < DateRunner.send_rules_offset
             )
         ]
         confirmations = [
@@ -412,11 +413,18 @@ class DateMakerService:
             if (
                 # ready to process
                 e.get('state_name', '') == EventStates.NOT_STARTED.value and
-                # starts tomorrow
-                e.get('start_dttm') - datetime.now() < timedelta(days=1)
+                # starts tomorrow - registration should start 1 day before the event starts
+                e.get('start_dttm') - datetime.now() <
+                RegistrationConfirmationRunner.registration_timeout_offset
             )
         ]
-        # registration should start 1 day before the event starts
         events = dating_events + confirmations
-        LOGGER.debug(f'Got {len(events)} events to process')
+        if len(events):
+            LOGGER.info(
+                f'Got {len(events)} ({len(dating_events)} + {len(confirmations)}) events to process'
+            )
+        else:
+            LOGGER.debug(
+                f'Got {len(events)} ({len(dating_events)} + {len(confirmations)}) events to process'
+            )
         return events
