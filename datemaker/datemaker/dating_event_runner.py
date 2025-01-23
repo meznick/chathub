@@ -2,7 +2,7 @@ import asyncio
 import json
 import time
 from asyncio import sleep, AbstractEventLoop
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from google.api_core.exceptions import FailedPrecondition
@@ -14,7 +14,9 @@ from datemaker import (
     setup_logger,
     EventStateIDs,
     BotCommands,
-    DEBUG, TG_BOT_ROUTING_KEY,
+    DEBUG,
+    TG_BOT_ROUTING_KEY,
+    RABBITMQ_EXCHANGE,
 )
 from .finite_state_machine import FiniteStateMachine, State
 from .intelligent_agent import IntelligentAgent
@@ -27,15 +29,20 @@ class DateRunner:
     """
     Class that encapsulates logic for running singe date event.
     """
+
+    send_rules_offset = timedelta(minutes=5)  # await asyncio.sleep(300) below
+
     def __init__(
             self,
             event_id: int,
+            start_time: datetime,
             meet_api_controller: GoogleMeetApiController,
             postgres_controller: AsyncPgConnector,
             rabbitmq_controller: AIORabbitMQConnector,
             custom_event_loop: AbstractEventLoop = None,
     ):
         self.event_id = event_id
+        self.start_time = start_time
         self.meet_api = meet_api_controller
         self.postgres = postgres_controller
         self.rabbitmq = rabbitmq_controller
@@ -49,7 +56,10 @@ class DateRunner:
         self.participants = None
         loop = custom_event_loop or asyncio.get_event_loop()
         self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
-        LOGGER.info(f'DateRunner for event#{event_id} initialized')
+        LOGGER.info(
+            f'DateRunner for event#{event_id} initialized. Start time: {start_time}'
+            f'Debug mode: {DEBUG}'
+        )
 
     async def run_event(self):
         """
@@ -63,6 +73,9 @@ class DateRunner:
         await self.collect_participants()
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
+        # sleep for 300 seconds
+        # because rules was sent 5 mins before event start
+        await asyncio.sleep(300)
         await asyncio.gather(*[
             self.run_dating_fsm(group_id)
             for group_id in self.event_data.group_no.unique().tolist()
@@ -84,7 +97,7 @@ class DateRunner:
             await self.rabbitmq.publish(
                 message=BotCommands.SEND_RULES.value,
                 routing_key=TG_BOT_ROUTING_KEY,
-                exchange='chathub_direct_main',
+                exchange=RABBITMQ_EXCHANGE,
                 headers={
                     'user_id': user.get('user_id'),
                     'chat_id': user.get('user_id'),
@@ -163,13 +176,13 @@ class DateRunner:
 
     async def run_initial_state(self):
         LOGGER.info('State machine is in initial state')
-        self.state_start_time = time.time()
-        await self.create_spaces_for_event()
-        ready = await self.check_all_users_are_ready(send_requests=True)
-        start_time = await self.get_event_start_time()
-        while not (ready or start_time < datetime.now()):
-            await sleep(10)
-            ready = await self.check_all_users_are_ready()
+        # self.state_start_time = time.time()
+        # await self.create_spaces_for_event()
+        # ready = await self.check_all_users_are_ready(send_requests=True)
+        # start_time = await self.get_event_start_time()
+        # while not (ready or start_time < datetime.now()):
+        #     await sleep(10)
+        #     ready = await self.check_all_users_are_ready()
         self.is_ready_to_start = True
 
     async def run_dating_round(self, round_num: int):
@@ -349,7 +362,7 @@ class DateRunner:
         await self.rabbitmq.publish(
             message=json.dumps({command.value: data}),
             routing_key=TG_BOT_ROUTING_KEY,
-            exchange='chathub_direct_main',
+            exchange=RABBITMQ_EXCHANGE,
             headers={
                 'user_id': user_id,
                 'chat_id': user_id,
