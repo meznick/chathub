@@ -17,7 +17,9 @@ def setup_logger(name):
 
     debug = os.getenv('DEBUG', 'false')
 
-    logger.setLevel(logging.DEBUG if debug.lower() == 'true' else logging.INFO)
+    level = logging.DEBUG if debug.lower() == 'true' else logging.INFO
+    logger.setLevel(level)
+    stream_handler.setLevel(level)
     return logger
 
 
