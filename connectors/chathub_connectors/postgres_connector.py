@@ -252,7 +252,8 @@ class AsyncPgConnector:
             self,
             user: Record = None,
             include_finished: bool = False,
-            limit: int = 10
+            limit: int = 10,
+            timezone='UTC',
     ) -> List[Record]:
         """
         List Dating Events
@@ -272,8 +273,8 @@ class AsyncPgConnector:
         limit = f'LIMIT {limit}'
         request_query = f"""
             SELECT DISTINCT 
-                e.id, 
-                e.start_dttm at time zone 'Europe/Moscow' as start_dttm, 
+                e.id,
+                e.start_dttm at time zone '{timezone}' as start_dttm,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
             LEFT JOIN (
@@ -545,6 +546,7 @@ class PostgresConnection:
             user: Record = None,
             include_finished: bool = False,
             limit: int = 10,
+            timezone='UTC',
     ) -> List[RealDictRow]:
         """
         List Dating Events
@@ -555,6 +557,8 @@ class PostgresConnection:
         :param include_finished: A flag indicating if finished events should be
                     included in the result. Defaults to False.
         :param limit: The maximum number of events to retrieve. Defaults to 10.
+        :param timezone: Timezone for displaying.
+                    Default is UTC.
         :return: A list of dating events.
         """
         user_id = user.get("id") if user else None
@@ -564,7 +568,7 @@ class PostgresConnection:
         request_query = f"""
             SELECT DISTINCT
                 e.id,
-                e.start_dttm at time zone 'Europe/Moscow' as start_dttm,
+                e.start_dttm at time zone '{timezone}' as start_dttm,
                 s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
             FROM public.dating_events as e
