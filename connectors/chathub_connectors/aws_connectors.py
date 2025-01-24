@@ -6,7 +6,7 @@ from botocore.exceptions import NoCredentialsError, ClientError
 from chathub_connectors import setup_logger
 
 LOGGER = setup_logger(__name__)
-LOGGER.warning(f'Logger {__name__} is active, level: {LOGGER.getEffectiveLevel()}')
+LOGGER.warning(f'Logger {LOGGER} is active')
 
 
 class S3Client:
