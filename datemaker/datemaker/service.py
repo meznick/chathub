@@ -2,8 +2,9 @@ import asyncio
 import json
 import logging
 from asyncio import sleep
-from datetime import timedelta, datetime
+from datetime import datetime
 
+from tzlocal import get_localzone
 from pika.spec import BasicProperties
 
 from chathub_connectors.postgres_connector import PostgresConnection, AsyncPgConnector
@@ -12,8 +13,7 @@ from datemaker import (
     setup_logger,
     DateMakerCommands,
     EventStates,
-    MEET_TOKEN_FILE,
-    MEET_CREDS_FILE, DEBUG, TG_BOT_ROUTING_KEY,
+    DEBUG, TG_BOT_ROUTING_KEY,
 )
 from .dating_event_runner import DateRunner
 from .meet_api_controller import GoogleMeetApiController
@@ -210,7 +210,7 @@ class DateMakerService:
         :param user: Database user object.
         :param message_params: Dictionary of received parameters.
         """
-        events = self.postgres_controller.get_dating_events()
+        events = self.postgres_controller.get_dating_events(timezone=get_localzone())
         events_list = [
             {
                 event.get('id'): {
@@ -394,7 +394,10 @@ class DateMakerService:
         :return:
         """
         LOGGER.debug('Collecting events')
-        events = self.postgres_controller.get_dating_events(limit=10)
+        events = self.postgres_controller.get_dating_events(
+            limit=10,
+            timezone=get_localzone(),
+        )
         dating_events = [
             e
             for e

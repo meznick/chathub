@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from google.api_core.exceptions import FailedPrecondition
 from grpc.aio import AioRpcError
+from tzlocal import get_localzone
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
@@ -265,7 +266,7 @@ class DateRunner:
         return DEBUG or are_all_ready
 
     async def get_event_start_time(self):
-        events = await self.postgres.get_dating_events()
+        events = await self.postgres.get_dating_events(timezone=get_localzone())
         try:
             start_time = [e['start_dttm'] for e in events if e['id'] == self.event_id][0]
         except (IndexError, KeyError):

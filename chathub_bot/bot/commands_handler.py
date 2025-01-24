@@ -2,6 +2,7 @@ import json
 
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from tzlocal import get_localzone
 
 from bot import BotCommands
 from bot.scenes.callback_data import DatingEventCallbackData, DatingEventActions, PartnerActions, \
@@ -47,7 +48,10 @@ class BotCommandsHandlerMixin:
 
     async def request_event_registration_confirmation(self, headers: dict, user_id: int):
         _ = self.i18n.gettext
-        events = await self.pg.get_dating_events(user={'id': int(user_id)})
+        events = await self.pg.get_dating_events(
+            user={'id': int(user_id)},
+            timezone=get_localzone()
+        )
         target_event = [e for e in events if e.get('id') == int(headers.get('event_id', 0))][0]
 
         builder = InlineKeyboardBuilder()
