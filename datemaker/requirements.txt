@@ -4,3 +4,4 @@ google-auth-oauthlib==1.2.1
 chathub_connectors==1.0.3
 pandas==2.2.3
 python-dotenv==1.0.1
+tzlocal~=5.2
