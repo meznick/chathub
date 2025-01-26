@@ -254,12 +254,15 @@ class AsyncPgConnector:
             include_finished: bool = False,
             limit: int = 10,
             timezone='UTC',
+            event_id: int = None,
     ) -> List[Record]:
         """
         List Dating Events
 
         Retrieve a list of dating events based on the provided parameters.
 
+        :param event_id: If specific event data needed, provide it here.
+        :param timezone: Timezone to display time in.
         :param user: The user for whom the dating events are being listed.
         :param include_finished: A flag indicating if finished events should be
                     included in the result. Defaults to False.
@@ -269,6 +272,7 @@ class AsyncPgConnector:
 
         user_id = user.get("id") if user else None
         only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
+        specific_event = 'AND e.id = $2' if event_id else ''
         for_user = 'WHERE user_id = $1' if user else ''
         limit = f'LIMIT {limit}'
         request_query = f"""
@@ -285,6 +289,7 @@ class AsyncPgConnector:
             ) AS r ON e.id = r.event_id
             WHERE 1=1
                 {only_finished}
+                {specific_event}
             ORDER BY start_dttm ASC
             {limit}
             ;
