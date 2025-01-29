@@ -64,7 +64,7 @@ class EventStateIDs(Enum):
     SKIPPED = 5
 
 
-EVENT_IDEAL_USERS = 20
+DEFAULT_EVENT_IDEAL_USERS = 20
 
 BOT_VARIABLES_LOADED = os.getenv('BOT_VARIABLES_LOADED', 'false')
 if BOT_VARIABLES_LOADED.lower() == 'false':

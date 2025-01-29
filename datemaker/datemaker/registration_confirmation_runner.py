@@ -9,7 +9,7 @@ from chathub_connectors.rabbitmq_connector import AIORabbitMQConnector
 from datemaker import (
     setup_logger,
     EventStateIDs,
-    BotCommands, TG_BOT_ROUTING_KEY, DEBUG,
+    BotCommands, TG_BOT_ROUTING_KEY, DEBUG, DEFAULT_EVENT_IDEAL_USERS,
 )
 from .intelligent_agent import IntelligentAgent
 from .meet_api_controller import GoogleMeetApiController
@@ -42,6 +42,7 @@ class RegistrationConfirmationRunner:
         self.rabbitmq = rabbitmq_controller
         self.running = False
         self.registrations = []
+        self.users_limit = DEFAULT_EVENT_IDEAL_USERS
         loop = custom_event_loop or asyncio.get_event_loop()
         self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
         self.registration_end_dttm = (
@@ -132,7 +133,15 @@ class RegistrationConfirmationRunner:
         In each group, there should be prepared tuple: user pairs that date each
         other.
         """
-        LOGGER.debug(f'Generating user groups for event#{self.event_id}')
+        event_data = await self.postgres.get_dating_events(
+            event_id=self.event_id,
+            include_finished=True
+        )
+        self.users_limit = event_data[0]["users_limit"]
+        LOGGER.debug(
+            f'Generating user groups for event#{self.event_id}. '
+            f'Max users in group: {self.users_limit}'
+        )
         # collect user data to make groups
         confirmed_user_ids = {
             user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
@@ -165,7 +174,7 @@ class RegistrationConfirmationRunner:
         )
         df_users = df_users.merge(df_registrations, on='user_id')
 
-        self.intelligence_agent.cluster_users_for_event(df_users, self.event_id)
+        self.intelligence_agent.cluster_users_for_event(df_users, self.event_id, self.users_limit)
         LOGGER.info(f'Generated user groups for event#{self.event_id}')
 
     async def notify_users_registration_complete(self):

@@ -15,6 +15,20 @@ LOGGER = setup_logger(__name__)
 LOGGER.warning(f'Logger {LOGGER} is active')
 
 
+class OptionalQueryParamIterator:
+    def __init__(self, max = 10):
+        self.current = 1
+        self.max = max
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current > self.max:
+            raise StopIteration
+        return self.current
+
+
 class AsyncPgConnector:
     def __init__(
             self,
@@ -39,8 +53,8 @@ class AsyncPgConnector:
             self.loop = custom_loop
 
         self.pool = await asyncpg.create_pool(
-            min_size=1,
-            max_size=1,
+            min_size=5,
+            max_size=10,
             host=self._host,
             port=self._port,
             database=self._db,
@@ -269,11 +283,11 @@ class AsyncPgConnector:
         :param limit: The maximum number of events to retrieve. Defaults to 10.
         :return: A list of dating events.
         """
-
+        param = OptionalQueryParamIterator()
         user_id = user.get("id") if user else None
         only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
-        specific_event = 'AND e.id = $2' if event_id else ''
-        for_user = 'WHERE user_id = $1' if user else ''
+        for_user = f'WHERE user_id = ${next(param)}' if user else ''
+        specific_event = f'AND e.id = ${next(param)}' if event_id else ''
         limit = f'LIMIT {limit}'
         request_query = f"""
             SELECT DISTINCT 
@@ -295,10 +309,12 @@ class AsyncPgConnector:
             ;
         """
         async with self.pool.acquire() as conn:
-            if user_id:
-                data = await conn.fetch(request_query, user_id)
-            else:
-                data = await conn.fetch(request_query)
+            data = await conn.fetch(request_query, *(
+                param for param in (
+                    user_id,
+                    event_id
+            ) if param is not None
+            ))
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
 

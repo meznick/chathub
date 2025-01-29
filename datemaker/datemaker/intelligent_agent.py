@@ -8,7 +8,7 @@ import pandas as pd
 from chathub_connectors.postgres_connector import AsyncPgConnector
 from datemaker import (
     setup_logger,
-    EVENT_IDEAL_USERS,
+    DEFAULT_EVENT_IDEAL_USERS,
     POSTGRES_HOST,
     POSTGRES_PORT,
     POSTGRES_DB,
@@ -42,7 +42,12 @@ class IntelligentAgent:
         else:
             self.postgres_connector = postgres_connector
 
-    def cluster_users_for_event(self, users: pd.DataFrame, event_id: int) -> pd.DataFrame:
+    def cluster_users_for_event(
+            self,
+            users: pd.DataFrame,
+            event_id: int,
+            users_limit: int = DEFAULT_EVENT_IDEAL_USERS
+    ):
         """
         For a given list of users need to cluster them in groups for
         the best experience.
@@ -55,7 +60,7 @@ class IntelligentAgent:
         # target_users = self._split_by_city(target_users)  # not implemented
         # target_users = self._split_by_rating(target_users)  # rating not implemented
         embedding_data = self._calculate_matchmaking_embedding(target_users, additive_users)
-        groups = self._split_into_groups(target_users, embedding_data)
+        groups = self._split_into_groups(target_users, embedding_data, users_limit)
         # put the final dataframe into dating_event_groups
         for group_num, group in enumerate(groups):
             self.put_event_data_into_bd(
@@ -228,7 +233,8 @@ class IntelligentAgent:
     def _split_into_groups(
             cls,
             target_users: pd.DataFrame,
-            embedding_data: pd.DataFrame
+            embedding_data: pd.DataFrame,
+            users_limit: int = DEFAULT_EVENT_IDEAL_USERS,
     ) -> List[pd.DataFrame]:
         """
         Generate groups.
@@ -250,10 +256,10 @@ class IntelligentAgent:
             target_users.loc[
                 target_users.user_id == user, 'match'
             ] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
-        return cls._split_dataframe(target_users)
+        return cls._split_dataframe(target_users, users_limit)
 
     @staticmethod
-    def _split_dataframe(df: pd.DataFrame, chunk_size: int = EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
+    def _split_dataframe(df: pd.DataFrame, chunk_size: int = DEFAULT_EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
         return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
 
     @staticmethod
