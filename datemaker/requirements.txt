@@ -5,3 +5,4 @@ chathub_connectors==1.0.5
 pandas==2.2.3
 python-dotenv==1.0.1
 tzlocal~=5.2
+dotenv
