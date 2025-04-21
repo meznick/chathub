@@ -3,7 +3,7 @@ CREATE TABLE event_states (
     id INT2,
     state_name VARCHAR(32)
 );
-GRANT SELECT ON event_states TO chathub_service, developer;
+GRANT SELECT ON event_states TO service_datemaker, developer;
 
 INSERT INTO event_states
 VALUES

@@ -12,7 +12,8 @@ CREATE TABLE public.users
     rating REAL DEFAULT 0.0
 );
 
-GRANT SELECT, INSERT, UPDATE ON public.users TO chathub_service;
+GRANT SELECT, INSERT, UPDATE ON public.users TO service_bot;
+GRANT SELECT ON public.users TO service_datemaker;
 GRANT ALL ON public.users TO developer;
 
 CREATE TABLE public.images
@@ -25,9 +26,10 @@ CREATE TABLE public.images
     upload_dttm TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
-GRANT SELECT, INSERT, UPDATE ON public.images TO chathub_service;
+GRANT SELECT, INSERT, UPDATE ON public.images TO service_bot;
+GRANT SELECT ON public.images TO service_datemaker;
 GRANT ALL ON public.images TO developer;
-GRANT USAGE, UPDATE ON SEQUENCE images_id_seq TO chathub_service, developer;
+GRANT USAGE, UPDATE ON SEQUENCE images_id_seq TO service_bot, developer;
 
 -- migrate:down
 DROP TABLE IF EXISTS public.users;

@@ -6,7 +6,7 @@ CREATE TABLE public.likes
     event_id BIGINT NOT NULL
 );
 
-GRANT INSERT, SELECT, DELETE ON public.likes TO developer, chathub_service;
+GRANT INSERT, SELECT, DELETE ON public.likes TO developer, service_datemaker;
 
 CREATE VIEW public.matches AS
 SELECT t1.source_user_id AS user_1_id, t2.source_user_id AS user_2_id, t1.event_id AS event_id
@@ -16,7 +16,7 @@ INNER JOIN public.likes AS t2
     AND t1.source_user_id = t2.target_user_id
     AND t1.event_id = t2.event_id;
 
-GRANT INSERT, SELECT, DELETE ON public.matches TO developer, chathub_service;
+GRANT INSERT, SELECT, DELETE ON public.matches TO developer, service_datemaker;
 
 -- migrate:down
 DROP VIEW public.matches;

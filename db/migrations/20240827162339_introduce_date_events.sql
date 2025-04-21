@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS public.dating_events (
     users_limit INT2 NOT NULL DEFAULT 20
 );
 
-GRANT SELECT, INSERT, UPDATE ON public.dating_events TO chathub_service;
+GRANT SELECT, INSERT, UPDATE ON public.dating_events TO service_datemaker;
 GRANT ALL ON public.dating_events TO developer;
-GRANT USAGE, UPDATE ON SEQUENCE dating_events_id_seq TO chathub_service, developer;
+GRANT USAGE, UPDATE ON SEQUENCE dating_events_id_seq TO service_datemaker, developer;
 
 CREATE TABLE IF NOT EXISTS public.dating_registrations (
     user_id INT8,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.dating_registrations (
     confirmed_on_dttm TIMESTAMP WITHOUT TIME ZONE
 );
 
-GRANT SELECT, INSERT, UPDATE ON public.dating_registrations TO chathub_service;
+GRANT SELECT, INSERT, UPDATE ON public.dating_registrations TO service_datemaker;
 GRANT ALL ON public.dating_registrations TO developer;
 
 -- migrate:down
