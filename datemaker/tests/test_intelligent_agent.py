@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Generator
 
 import pandas as pd
 import pytest
@@ -8,6 +9,8 @@ from datemaker.intelligent_agent import IntelligentAgent
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 120)
+
+AGENT = IntelligentAgent()
 
 
 def test__split_into_genders():
@@ -20,7 +23,7 @@ def test__split_into_genders():
         }
     )
 
-    target, additive = IntelligentAgent._split_into_genders(users)
+    target, additive = AGENT._split_into_genders(users)
 
     # Testing when female users are less than male users
     assert isinstance(target, pd.DataFrame)
@@ -58,8 +61,7 @@ def test_calculate_matchmaking_embedding_no_manual_scoring():
         'manual_score': [0, 0, 0],
     })
 
-    agent = IntelligentAgent()
-    result = agent._calculate_matchmaking_embedding(target_dataframe, additive_dataframe)
+    result = AGENT._calculate_matchmaking_embedding(target_dataframe, additive_dataframe)
 
     assert isinstance(result, pd.DataFrame)
     assert 'match' in result.columns
@@ -92,8 +94,36 @@ embedding_data_demo_case = pd.DataFrame({
     (users_demo_case, embedding_data_demo_case, 20),
 ])
 def test_split_into_groups(target_users, embedding_data, users_limit):
-    agent = IntelligentAgent()
-    result = agent._split_into_groups(target_users, embedding_data, users_limit)
+    result = AGENT._split_into_groups(target_users, embedding_data, users_limit)
     logging.debug(f'\n{result}')
     assert isinstance(result, list)
     assert len(result[0].match.unique().tolist()) == result[0].index.size
+
+
+def test__generate_pairs():
+    def dataframe_generator():
+        yield pd.DataFrame({
+            'user_id': [1, 2, 3],
+            'match': [4, 5, 6]
+        })
+
+    group = next(dataframe_generator())
+    pairs = AGENT._generate_pairs(group)
+
+    assert isinstance(pairs, Generator), "Output should be a generator"
+
+    expected_pairs = [
+        (0, 1, 4), (0, 2, 5), (0, 3, 6),
+        (1, 1, 5), (1, 2, 6), (1, 3, 4),
+        (2, 1, 6), (2, 2, 4), (2, 3, 5),
+    ]
+
+    generated_pairs = list(pairs)
+
+    assert len(generated_pairs) == len(expected_pairs), "Generated incorrect number of pairs"
+
+    for pair in generated_pairs:
+        assert pair in expected_pairs, f"Unexpected pair generated: {pair}"
+
+    for pair in expected_pairs:
+        assert pair in generated_pairs, f"Expected pair missing: {pair}"
