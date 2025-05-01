@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from datemaker.intelligent_agent import IntelligentAgent
 
@@ -34,3 +35,33 @@ def test__split_into_genders():
 
     assert target.empty
     assert additive.empty
+
+
+def test_calculate_matchmaking_embedding_no_manual_scoring():
+    target_dataframe = pd.DataFrame({
+        'user_id': [1, 2, 3],
+        'age': [24, 29, 34],
+        'city': ['New York', 'Los Angeles', 'Chicago'],
+        'manual_score': [0, 0, 0],
+    })
+
+    additive_dataframe = pd.DataFrame({
+        'user_id': [4, 5, 6],
+        'age': [28, 30, 31],
+        'city': ['Los Angeles', 'Chicago', 'New York'],
+        'manual_score': [0, 0, 0],
+    })
+
+    agent = IntelligentAgent()
+    result = agent._calculate_matchmaking_embedding(target_dataframe, additive_dataframe)
+
+    assert isinstance(result, pd.DataFrame)
+    assert 'match' in result.columns
+    assert set(result['user_id'].values) == {1, 2, 3}
+
+    expected_scores = {"4": [6, 11, 4], "5": [4, 9, 8], "6": [5, 8, 7]}
+    for key, values in expected_scores.items():
+        calculated_scores = result[key].tolist()
+        assert calculated_scores == values
+
+    assert result['match'].tolist() == ["4", "4", "5"]
