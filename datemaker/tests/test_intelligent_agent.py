@@ -7,6 +7,7 @@ import pytest
 from datemaker.intelligent_agent import IntelligentAgent
 
 pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 120)
 
 
 def test__split_into_genders():
