@@ -1,7 +1,12 @@
+import logging
+from datetime import datetime
+
 import pandas as pd
 import pytest
 
 from datemaker.intelligent_agent import IntelligentAgent
+
+pd.set_option('display.max_columns', None)
 
 
 def test__split_into_genders():
@@ -65,3 +70,29 @@ def test_calculate_matchmaking_embedding_no_manual_scoring():
         assert calculated_scores == values
 
     assert result['match'].tolist() == ["4", "4", "5"]
+
+
+users_demo_case = pd.DataFrame({
+    'user_id': [1, 2, 3],
+    'rating': [0, 0, 0],
+    'age': [24, 29, 34],
+    'city': ['New York', 'Los Angeles', 'Chicago'],
+    'manual_score': [0, 0, 0],
+    'registered_on_dttm': [datetime.now(), datetime.now(), datetime.now()],
+})
+embedding_data_demo_case = pd.DataFrame({
+    'user_id': [1, 2, 3],
+    "4": [6, 11, 4],
+    "5": [4, 9, 8],
+    "6": [5, 8, 7],
+    "match": ["4", "4", "5"]
+})
+@pytest.mark.parametrize("target_users, embedding_data, users_limit", [
+    (users_demo_case, embedding_data_demo_case, 20),
+])
+def test_split_into_groups(target_users, embedding_data, users_limit):
+    agent = IntelligentAgent()
+    result = agent._split_into_groups(target_users, embedding_data, users_limit)
+    logging.debug(f'\n{result}')
+    assert isinstance(result, list)
+    assert len(result[0].match.unique().tolist()) == result[0].index.size
