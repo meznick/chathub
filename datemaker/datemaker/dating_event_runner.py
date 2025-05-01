@@ -156,7 +156,7 @@ class DateRunner:
         while not self.is_ready_to_start:
             await sleep(10)
 
-        rounds = self.event_data.loc[self.event_data.group_no == group_id].shape[0]
+        rounds = self.event_data.turn_no.max() + 1  # turns start from 0
         LOGGER.debug(f'There will be {rounds} rounds for event#{self.event_id} group#{group_id}')
         if rounds == 0:
             await self.set_event_state(EventStateIDs.SKIPPED)
