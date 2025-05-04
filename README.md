@@ -5,6 +5,21 @@ For business logic descriptions look other md files in modules.
 
 # Modules
 Here's a description and installation instructions of each included module.
+
+## Bot
+Launch as a python module:
+```shell
+python -m bot --debug --long-polling
+```
+Module requires environment variables to be set for proper functioning (readme).
+
+## Datemaker
+Launch as a python module:
+```shell
+python -m datemaker --debug
+```
+Module requires environment variables to be set for proper functioning (readme).
+
 ## API
 Fastapi based async API endpoints for later use in web app.
 ```shell
