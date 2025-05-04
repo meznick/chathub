@@ -78,3 +78,36 @@ make compile
 source ~/.env
 python -m bot --debug --long-polling
 ```
+
+## Environment Variables
+The following environment variables are required for running the bot module:
+
+### General Configuration
+- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file
+- `DEBUG` - Controls logging level and routing key
+- `TG_BOT_TOKEN` - Telegram bot token
+
+### RabbitMQ Configuration
+- `RABBITMQ_HOST` - RabbitMQ host
+- `RABBITMQ_PORT` - RabbitMQ port
+- `RABBITMQ_VIRTUAL_HOST` - RabbitMQ virtual host
+- `TG_BOT_RABBITMQ_EXCHANGE` - RabbitMQ exchange to read from for the bot
+- `TG_BOT_RABBITMQ_QUEUE` - RabbitMQ queue to read from for the bot
+- `TG_BOT_RABBITMQ_ROUTING_KEY` - RabbitMQ routing key for the bot
+- `TG_BOT_RABBITMQ_USERNAME` - RabbitMQ username for the bot
+- `TG_BOT_RABBITMQ_PASSWORD` - RabbitMQ password for the bot
+
+### PostgreSQL Configuration
+- `POSTGRES_HOST` - PostgreSQL host
+- `POSTGRES_PORT` - PostgreSQL port
+- `POSTGRES_DB` - PostgreSQL database name
+- `TG_BOT_POSTGRES_USER` - PostgreSQL username for the bot
+- `TG_BOT_POSTGRES_PASSWORD` - PostgreSQL password for the bot
+
+### AWS Configuration
+- `AWS_ACCESS_KEY_ID` - AWS access key ID
+- `AWS_SECRET_ACCESS_KEY` - AWS secret access key
+- `AWS_BUCKET` - AWS S3 bucket name
+
+These environment variables should be set in the `.env` file that is sourced 
+before running the bot.

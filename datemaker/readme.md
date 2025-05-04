@@ -172,3 +172,34 @@ GMeet для выявления того что мы можем сохранят
 2. При чтении новых сообщений в брокере, они обрабатываются в соответствии с
 созданными записями.
 3. После обработки запись в DataHandler удаляется.
+
+## Environment Variables
+The following environment variables are required for running the datemaker module:
+
+### General Configuration
+- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file
+- `DEBUG` - Controls logging level and routing key
+
+### RabbitMQ Configuration
+- `RABBITMQ_HOST` - RabbitMQ host
+- `RABBITMQ_PORT` - RabbitMQ port
+- `RABBITMQ_VIRTUAL_HOST` - RabbitMQ virtual host
+- `RABBITMQ_EXCHANGE` - RabbitMQ exchange
+- `DATEMAKER_RABBITMQ_QUEUE` - RabbitMQ queue for datemaker
+- `DATEMAKER_RABBITMQ_ROUTING_KEY` - RabbitMQ routing key for datemaker
+- `DATEMAKER_RABBITMQ_USERNAME` - RabbitMQ username for datemaker
+- `DATEMAKER_RABBITMQ_PASSWORD` - RabbitMQ password for datemaker
+
+### Google Meet API Configuration
+- `MEET_CREDS_FILE` - Path to the Google Meet API credentials file
+- `MEET_TOKEN_FILE` - Path to the Google Meet API token file
+
+### PostgreSQL Configuration
+- `POSTGRES_HOST` - PostgreSQL host
+- `POSTGRES_PORT` - PostgreSQL port
+- `POSTGRES_DB` - PostgreSQL database name
+- `DATEMAKER_POSTGRES_USER` - PostgreSQL username for datemaker
+- `DATEMAKER_POSTGRES_PASSWORD` - PostgreSQL password for datemaker
+
+These environment variables should be set in the `.env` file that is sourced
+before running the datemaker module.
