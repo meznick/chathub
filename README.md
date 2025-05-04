@@ -1,26 +1,40 @@
 # chathub
-Chat platform for experiments
+A chat platform for experimentation.
 
-# Develop
-Backend:
+# Modules
+Here's a description and installation instructions of each included module.
+## API
+Fastapi based async API endpoints for later use in web app.
 ```shell
-cd server
+# create python venv any way you prefer
 python -m venv venv
-# first build chathub packages (below) or install them as editable with pip (pip install -e)
-pip install -r requirements.txt  # base requirements
+source venv/bin/activate
 cd api
-pip install -r requirements.txt  # FastAPI requirements
-# websocket
-python sever.py
-# fastapi
+# installing requirements for this module
+pip install -r requirements.txt
+# running API server
 uvicorn api:app --reload
 ```
+Utils is cross-module code that potentially can be used. This module can 
+easily be installed as connectors modules. But not now, now it's abandoned
+until working on API.
 
-Frontend:
+## WebSocket
+Module for handling websocket connections.
 ```shell
-# надо повспоминать как ставить окружение
+# installation goes same way as in API section
+# running server is done like this
+python sever.py
+```
+
+## Client
+This is a VueJS based web app that can use API and websocket.
+```shell
+# to be written later
 npm run dev
 ```
+
+## Connectors
 
 # Run tests
 ```shell
