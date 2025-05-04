@@ -1,5 +1,7 @@
 # chathub
-A chat platform for experimentation.
+A chat platform for experimentation. This is file with installation and some
+technical instructions.
+For business logic descriptions look other md files in modules.
 
 # Modules
 Here's a description and installation instructions of each included module.
@@ -35,25 +37,33 @@ npm run dev
 ```
 
 ## Connectors
+Module includes connectors for AWS, PG, RabbitMQ, Redis.
+
+Build module in activated venv:
+```shell
+make build
+```
+
+Install module in editable mode for development in activated venv:
+```shell
+pip install -e .
+```
+
+Upload to repository:
+```shell
+make upload  # update repository url in makefile
+```
+
+Install from repository:
+```shell
+pip install --index-url http://007pi.loc:8228 chathub_connectors
+```
 
 # Run tests
-```shell
-# chathub_utils: from /utils dir:
-python -m unittest tests/test_auth.py -v
-```
+Update this section in PR for adding tests.
 
 # Deploy
-Backend
-```shell
-docker build -t chathub-api:latest .
-docker run --rm --hostname chathub-api --name chathub-api \
--p 8888:8888 -d chathub-api:latest
-```
-
-Frontend
-```shell
-# пока хз)
-```
+If you want to see the deploy instructions, look in the infra repo.
 
 # PG migrations
 ```shell
