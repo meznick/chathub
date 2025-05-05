@@ -1,4 +1,5 @@
 import asyncio
+import os
 from asyncio import AbstractEventLoop
 from datetime import datetime
 from typing import List, Tuple, Generator
@@ -24,8 +25,14 @@ class IntelligentAgent:
     MVP class for matchmaker. Will be moved to a separate service.
     """
 
-    def __init__(self, custom_event_loop: AbstractEventLoop = None, postgres_connector=None):
+    def __init__(
+            self,
+            custom_event_loop: AbstractEventLoop = None,
+            postgres_connector=None,
+            debug: bool = False
+    ):
         self.loop = custom_event_loop or asyncio.get_event_loop()
+        self.debug = debug
 
         if not postgres_connector:
             self.postgres_connector = AsyncPgConnector(
@@ -52,8 +59,13 @@ class IntelligentAgent:
         For a given list of users need to cluster them in groups for
         the best experience.
         :param users: Dataframe with users and their features.
+        :param event_id: ID of the event.
+        :param users_limit: Maximum number of users per group.
         :return: Dataframe with user IDs and groups.
         """
+        # Store event_id as an instance variable for use in _calculate_matchmaking_embedding
+        self._current_event_id = event_id
+
         users = self.prepare_data(users)
         target_users, additive_users = self._split_into_genders(users)
         # target_users = self._split_by_age(target_users)  # not implemented
@@ -174,8 +186,7 @@ class IntelligentAgent:
         """
         return users
 
-    @staticmethod
-    def _calculate_matchmaking_embedding(target: pd.DataFrame, additive: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_matchmaking_embedding(self, target: pd.DataFrame, additive: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate matrix of compatibility coefficients for each M-F pair.
 
@@ -226,7 +237,13 @@ class IntelligentAgent:
                 # assigning score
                 embedding.loc[embedding.user_id == target_user, str(additive_user)] = score
 
-        embedding['match'] = embedding[[str(x) for x in additive.user_id.values.tolist()]].idxmax(axis=1)
+        embedding['match'] = embedding[
+            [str(x) for x in additive.user_id.values.tolist()]
+        ].idxmax(axis=1)
+
+        if self.debug:
+            self.save_embedding_dataframe_as_artifact(embedding, self._current_event_id)
+
         return embedding
 
     @classmethod
@@ -290,3 +307,24 @@ class IntelligentAgent:
                 )
             )
             asyncio.gather(task)
+
+    def save_embedding_dataframe_as_artifact(self, embedding: pd.DataFrame, event_id: int):
+        """
+        Save embedding dataframe as a CSV file in the artifacts directory.
+
+        :param embedding: DataFrame to save
+        :param event_id: ID of the event
+        """
+        LOGGER.debug(f'Saving embedding dataframe as artifact for event {event_id}')
+        artifacts_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'datemaker',
+            'artifacts'
+        )
+        os.makedirs(artifacts_dir, exist_ok=True)
+
+        filename = f'embedding_event_{event_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        filepath = os.path.join(artifacts_dir, filename)
+
+        embedding.to_csv(filepath, index=False)
+        LOGGER.debug(f'Embedding dataframe saved to {filepath}')
