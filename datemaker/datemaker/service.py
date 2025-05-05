@@ -49,6 +49,7 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
+        self.debug = debug
         self.meet_api_controller = GoogleMeetApiController(
             creds_file_path=meet_creds_file,
             token_file_path=meet_token_file,
@@ -374,6 +375,7 @@ class DateMakerService:
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
                     custom_event_loop=loop,
+                    debug=self.debug,
                 )
                 loop.create_task(runner.run_event())
                 loop.create_task(runner.save_event_results())
@@ -385,6 +387,7 @@ class DateMakerService:
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
                     custom_event_loop=loop,
+                    debug=self.debug,
                 )
                 loop.create_task(runner.handle_preparations())
 

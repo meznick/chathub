@@ -34,6 +34,7 @@ class RegistrationConfirmationRunner:
             postgres_controller: AsyncPgConnector,
             rabbitmq_controller: AIORabbitMQConnector,
             custom_event_loop: AbstractEventLoop = None,
+            debug: bool = False,
     ):
         self.event_id = event_id
         self.event_start_time = start_time
@@ -41,10 +42,11 @@ class RegistrationConfirmationRunner:
         self.postgres = postgres_controller
         self.rabbitmq = rabbitmq_controller
         self.running = False
+        self.debug = debug
         self.registrations = []
         self.users_limit = DEFAULT_EVENT_IDEAL_USERS
         loop = custom_event_loop or asyncio.get_event_loop()
-        self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
+        self.intelligence_agent = IntelligentAgent(loop, postgres_controller, debug=self.debug)
         self.registration_end_dttm = (
                 self.event_start_time - self.confirmation_timeout_offset
         )
@@ -52,7 +54,7 @@ class RegistrationConfirmationRunner:
             f'RegistrationConfirmationRunner for event#{event_id} initialized. '
             f'This event starts at {start_time}. '
             f'Registration will finish at {self.registration_end_dttm}.'
-            f'Debug mode: {DEBUG}'
+            f'Debug mode: {self.debug}'
         )
 
     async def handle_preparations(self):
