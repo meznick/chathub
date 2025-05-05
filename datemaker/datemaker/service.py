@@ -424,7 +424,7 @@ class DateMakerService:
         events = dating_events + confirmations
         if len(events):
             LOGGER.info(
-                f'Got {len(events)} ({len(dating_events)} + {len(confirmations)}) events to process'
+                f'Got {len(events)} ({len(dating_events)} events + {len(confirmations)} confirmations) events to process'
             )
         else:
             LOGGER.debug(
