@@ -242,13 +242,12 @@ class IntelligentAgent:
         ].idxmax(axis=1)
 
         if self.debug:
-            self.save_embedding_dataframe_as_artifact(embedding, self._current_event_id)
+            self.save_df_artifact(embedding, self._current_event_id, 'match_matrix')
 
         return embedding
 
-    @classmethod
     def _split_into_groups(
-            cls,
+            self,
             target_users: pd.DataFrame,
             match_scoring_matrix: pd.DataFrame,
             users_limit: int = DEFAULT_EVENT_IDEAL_USERS,
@@ -295,7 +294,10 @@ class IntelligentAgent:
                     target_users[target_users['user_id'] == user_id].index
                 )
 
-        return cls._split_dataframe(target_users, users_limit)
+        if self.debug:
+            self.save_df_artifact(target_users, self._current_event_id, 'matching_result')
+
+        return self._split_dataframe(target_users, users_limit)
 
     @staticmethod
     def _split_dataframe(df: pd.DataFrame, chunk_size: int = DEFAULT_EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
@@ -330,14 +332,23 @@ class IntelligentAgent:
             )
             asyncio.gather(task)
 
-    def save_embedding_dataframe_as_artifact(self, embedding: pd.DataFrame, event_id: int):
+    @staticmethod
+    def save_df_artifact(embedding: pd.DataFrame, event_id: int, artifact_type: str):
         """
-        Save embedding dataframe as a CSV file in the artifacts directory.
+        Saves an embedding DataFrame as a CSV file artifact associated with a specific
+        event ID and artifact type. The artifact is stored in a pre-defined directory
+        structure, ensuring proper organization of event data. If the directory does
+        not exist, it is created. The saved file is named according to the given
+        artifact type and event ID.
 
-        :param embedding: DataFrame to save
-        :param event_id: ID of the event
+        :param embedding: The DataFrame to be saved as a CSV file.
+        :type embedding: pd.DataFrame
+        :param event_id: The unique identifier for the event associated with the artifact.
+        :type event_id: int
+        :param artifact_type: A string representing the category or type of the artifact.
+        :type artifact_type: str
+        :return: None
         """
-        LOGGER.debug(f'Saving embedding dataframe as artifact for event {event_id}')
         artifacts_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'datemaker',
@@ -345,8 +356,8 @@ class IntelligentAgent:
         )
         os.makedirs(artifacts_dir, exist_ok=True)
 
-        filename = f'embedding_event_{event_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        filename = f'{artifact_type}_event#{event_id}.csv'
         filepath = os.path.join(artifacts_dir, filename)
 
         embedding.to_csv(filepath, index=False)
-        LOGGER.debug(f'Embedding dataframe saved to {filepath}')
+        LOGGER.debug(f'Saved {artifact_type} dataframe saved to {filepath}')
