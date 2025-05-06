@@ -93,7 +93,7 @@ class DateMakerService:
             password=message_broker_password,
             caller_service='datemaker',
         )
-        LOGGER.info('DateMaker service initialized')
+        LOGGER.info(f'DateMaker service initialized. Debug: {self.debug}')
 
     def run(self):
         """

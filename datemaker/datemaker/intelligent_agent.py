@@ -75,6 +75,7 @@ class IntelligentAgent:
         groups = self._split_into_groups(target_users, embedding_data, users_limit)
         # put the final dataframe into dating_event_groups
         for group_num, group in enumerate(groups):
+            LOGGER.debug(f'Putting group {group_num} into bd. Group size: {len(group)}')
             self.put_event_data_into_bd(
                 event_id,
                 group_num,
