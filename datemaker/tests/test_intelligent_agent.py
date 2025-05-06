@@ -100,6 +100,59 @@ def test_split_into_groups(target_users, embedding_data, users_limit):
     assert len(result[0].match.unique().tolist()) == result[0].index.size
 
 
+def test__split_dataframe():
+    # Test case 1: Normal case with DataFrame size > chunk_size
+    df = pd.DataFrame({
+        'user_id': [1, 2, 3, 4, 5, 6, 7, 8],
+        'value': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    })
+
+    # Using the AGENT instance
+    result = AGENT._split_dataframe(df, chunk_size=3)
+
+    assert isinstance(result, list), "Result should be a list"
+    assert len(result) == 3, "Should split into 3 chunks"
+    assert len(result[0]) == 3, "First chunk should have 3 rows"
+    assert len(result[1]) == 3, "Second chunk should have 3 rows"
+    assert len(result[2]) == 2, "Third chunk should have 2 rows"
+
+    # Verify content of chunks
+    assert result[0]['user_id'].tolist() == [1, 2, 3], "First chunk should contain user_ids 1, 2, 3"
+    assert result[1]['user_id'].tolist() == [4, 5, 6], "Second chunk should contain user_ids 4, 5, 6"
+    assert result[2]['user_id'].tolist() == [7, 8], "Third chunk should contain user_ids 7, 8"
+
+    # Test case 2: Edge case with DataFrame size < chunk_size
+    small_df = pd.DataFrame({
+        'user_id': [1, 2],
+        'value': ['a', 'b']
+    })
+
+    # Using the class method
+    result = IntelligentAgent._split_dataframe(small_df, chunk_size=5)
+
+    assert isinstance(result, list), "Result should be a list"
+    assert len(result) == 1, "Should have only one chunk"
+    assert len(result[0]) == 2, "Chunk should have 2 rows"
+    assert result[0]['user_id'].tolist() == [1, 2], "Chunk should contain all user_ids"
+
+    # Test case 3: Edge case with empty DataFrame
+    empty_df = pd.DataFrame(columns=['user_id', 'value'])
+
+    result = IntelligentAgent._split_dataframe(empty_df, chunk_size=3)
+
+    assert isinstance(result, list), "Result should be a list"
+    assert len(result) == 0, "Should have no chunks for empty DataFrame"
+
+    # Test case 4: Edge case with chunk_size = 1
+    result = IntelligentAgent._split_dataframe(df, chunk_size=1)
+
+    assert isinstance(result, list), "Result should be a list"
+    assert len(result) == 8, "Should split into 8 chunks"
+    for i, chunk in enumerate(result):
+        assert len(chunk) == 1, f"Chunk {i} should have 1 row"
+        assert chunk['user_id'].tolist() == [i+1], f"Chunk {i} should contain user_id {i+1}"
+
+
 def test__generate_pairs():
     def dataframe_generator():
         yield pd.DataFrame({
