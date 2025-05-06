@@ -250,18 +250,18 @@ class IntelligentAgent:
     def _split_into_groups(
             cls,
             target_users: pd.DataFrame,
-            embedding_data: pd.DataFrame,
+            match_scoring_matrix: pd.DataFrame,
             users_limit: int = DEFAULT_EVENT_IDEAL_USERS,
     ) -> List[pd.DataFrame]:
         """
         Generate groups.
 
-        1. Order target by rating, age and registration date.
+        1. Order target by rating, age, registration date.
         2. Select the best possible pair for each target user (every additive used once)
         3. Split into groups.
 
         :param target_users:
-        :param embedding_data:
+        :param match_scoring_matrix:
         :return:
         """
         sorted_user_ids = target_users.sort_values(
@@ -269,10 +269,32 @@ class IntelligentAgent:
             ascending=False
         ).user_id.tolist()
         target_users['match'] = -1
-        for user in sorted_user_ids:
-            target_users.loc[
-                target_users.user_id == user, 'match'
-            ] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
+
+        # Keep track of already assigned matches
+        assigned_matches = set()
+
+        match_columns = [
+            col for col in match_scoring_matrix.columns
+            if col != 'user_id' and col != 'match' and col.isdigit()
+        ]
+
+        for user_id in sorted_user_ids:
+            # Get the user's embedding row
+            user_scores = match_scoring_matrix.loc[match_scoring_matrix.user_id == user_id]
+            # Sort matches by score (descending)
+            matches_sorted = user_scores[match_columns].iloc[0].sort_values(ascending=False)
+            # Find the first match that hasn't been assigned yet
+            for match_id in matches_sorted.index:
+                if match_id not in assigned_matches:
+                    assigned_matches.add(match_id)
+                    target_users.loc[target_users.user_id == user_id, 'match'] = match_id
+                    break
+            else:
+                # If all potential matches are taken, delete the target user from the event
+                target_users = target_users.drop(
+                    target_users[target_users['user_id'] == user_id].index
+                )
+
         return cls._split_dataframe(target_users, users_limit)
 
     @staticmethod
