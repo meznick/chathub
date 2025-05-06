@@ -300,7 +300,10 @@ class IntelligentAgent:
         return self._split_dataframe(target_users, users_limit)
 
     @staticmethod
-    def _split_dataframe(df: pd.DataFrame, chunk_size: int = DEFAULT_EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
+    def _split_dataframe(
+            df: pd.DataFrame,
+            chunk_size: int = DEFAULT_EVENT_IDEAL_USERS
+    ) -> List[pd.DataFrame]:
         return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
 
     @staticmethod
