@@ -1,4 +1,5 @@
 import asyncio
+import os
 from asyncio import AbstractEventLoop
 from datetime import datetime
 from typing import List, Tuple, Generator
@@ -24,8 +25,14 @@ class IntelligentAgent:
     MVP class for matchmaker. Will be moved to a separate service.
     """
 
-    def __init__(self, custom_event_loop: AbstractEventLoop = None, postgres_connector=None):
+    def __init__(
+            self,
+            custom_event_loop: AbstractEventLoop = None,
+            postgres_connector=None,
+            debug: bool = False
+    ):
         self.loop = custom_event_loop or asyncio.get_event_loop()
+        self.debug = debug
 
         if not postgres_connector:
             self.postgres_connector = AsyncPgConnector(
@@ -52,8 +59,13 @@ class IntelligentAgent:
         For a given list of users need to cluster them in groups for
         the best experience.
         :param users: Dataframe with users and their features.
+        :param event_id: ID of the event.
+        :param users_limit: Maximum number of users per group.
         :return: Dataframe with user IDs and groups.
         """
+        # Store event_id as an instance variable for use in _calculate_matchmaking_embedding
+        self._current_event_id = event_id
+
         users = self.prepare_data(users)
         target_users, additive_users = self._split_into_genders(users)
         # target_users = self._split_by_age(target_users)  # not implemented
@@ -63,6 +75,7 @@ class IntelligentAgent:
         groups = self._split_into_groups(target_users, embedding_data, users_limit)
         # put the final dataframe into dating_event_groups
         for group_num, group in enumerate(groups):
+            LOGGER.debug(f'Putting group {group_num} into bd. Group size: {len(group)}')
             self.put_event_data_into_bd(
                 event_id,
                 group_num,
@@ -174,8 +187,8 @@ class IntelligentAgent:
         """
         return users
 
-    @staticmethod
     def _calculate_matchmaking_embedding(
+            self,
             target: pd.DataFrame,
             additive: pd.DataFrame
     ) -> pd.DataFrame:
@@ -229,25 +242,30 @@ class IntelligentAgent:
                 # assigning score
                 embedding.loc[embedding.user_id == target_user, str(additive_user)] = score
 
-        embedding['match'] = embedding[[str(x) for x in additive.user_id.values.tolist()]].idxmax(axis=1)
+        embedding['match'] = embedding[
+            [str(x) for x in additive.user_id.values.tolist()]
+        ].idxmax(axis=1)
+
+        if self.debug:
+            self.save_df_artifact(embedding, self._current_event_id, 'match_matrix')
+
         return embedding
 
-    @classmethod
     def _split_into_groups(
-            cls,
+            self,
             target_users: pd.DataFrame,
-            embedding_data: pd.DataFrame,
+            match_scoring_matrix: pd.DataFrame,
             users_limit: int = DEFAULT_EVENT_IDEAL_USERS,
     ) -> List[pd.DataFrame]:
         """
         Generate groups.
 
-        1. Order target by rating, age and registration date.
+        1. Order target by rating, age, registration date.
         2. Select the best possible pair for each target user (every additive used once)
         3. Split into groups.
 
         :param target_users:
-        :param embedding_data:
+        :param match_scoring_matrix:
         :return:
         """
         sorted_user_ids = target_users.sort_values(
@@ -255,14 +273,42 @@ class IntelligentAgent:
             ascending=False
         ).user_id.tolist()
         target_users['match'] = -1
-        for user in sorted_user_ids:
-            target_users.loc[
-                target_users.user_id == user, 'match'
-            ] = embedding_data.loc[embedding_data.user_id == user].match.values[0]
-        return cls._split_dataframe(target_users, users_limit)
+
+        # Keep track of already assigned matches
+        assigned_matches = set()
+
+        match_columns = [
+            col for col in match_scoring_matrix.columns
+            if col != 'user_id' and col != 'match' and col.isdigit()
+        ]
+
+        for user_id in sorted_user_ids:
+            # Get the user's embedding row
+            user_scores = match_scoring_matrix.loc[match_scoring_matrix.user_id == user_id]
+            # Sort matches by score (descending)
+            matches_sorted = user_scores[match_columns].iloc[0].sort_values(ascending=False)
+            # Find the first match that hasn't been assigned yet
+            for match_id in matches_sorted.index:
+                if match_id not in assigned_matches:
+                    assigned_matches.add(match_id)
+                    target_users.loc[target_users.user_id == user_id, 'match'] = match_id
+                    break
+            else:
+                # If all potential matches are taken, delete the target user from the event
+                target_users = target_users.drop(
+                    target_users[target_users['user_id'] == user_id].index
+                )
+
+        if self.debug:
+            self.save_df_artifact(target_users, self._current_event_id, 'matching_result')
+
+        return self._split_dataframe(target_users, users_limit // 2)
 
     @staticmethod
-    def _split_dataframe(df: pd.DataFrame, chunk_size: int = DEFAULT_EVENT_IDEAL_USERS) -> List[pd.DataFrame]:
+    def _split_dataframe(
+            df: pd.DataFrame,
+            chunk_size: int = DEFAULT_EVENT_IDEAL_USERS
+    ) -> List[pd.DataFrame]:
         return [df.iloc[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
 
     @staticmethod
@@ -293,3 +339,33 @@ class IntelligentAgent:
                 )
             )
             asyncio.gather(task)
+
+    @staticmethod
+    def save_df_artifact(embedding: pd.DataFrame, event_id: int, artifact_type: str):
+        """
+        Saves an embedding DataFrame as a CSV file artifact associated with a specific
+        event ID and artifact type. The artifact is stored in a pre-defined directory
+        structure, ensuring proper organization of event data. If the directory does
+        not exist, it is created. The saved file is named according to the given
+        artifact type and event ID.
+
+        :param embedding: The DataFrame to be saved as a CSV file.
+        :type embedding: pd.DataFrame
+        :param event_id: The unique identifier for the event associated with the artifact.
+        :type event_id: int
+        :param artifact_type: A string representing the category or type of the artifact.
+        :type artifact_type: str
+        :return: None
+        """
+        artifacts_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'datemaker',
+            'artifacts'
+        )
+        os.makedirs(artifacts_dir, exist_ok=True)
+
+        filename = f'{artifact_type}_event#{event_id}.csv'
+        filepath = os.path.join(artifacts_dir, filename)
+
+        embedding.to_csv(filepath, index=False)
+        LOGGER.debug(f'Saved {artifact_type} dataframe to {filepath}')

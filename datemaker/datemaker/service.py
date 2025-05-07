@@ -49,6 +49,7 @@ class DateMakerService:
             # other
             debug: bool = False,
     ):
+        self.debug = debug
         self.meet_api_controller = GoogleMeetApiController(
             creds_file_path=meet_creds_file,
             token_file_path=meet_token_file,
@@ -92,7 +93,7 @@ class DateMakerService:
             password=message_broker_password,
             caller_service='datemaker',
         )
-        LOGGER.info('DateMaker service initialized')
+        LOGGER.info(f'DateMaker service initialized. Debug: {self.debug}')
 
     def run(self):
         """
@@ -374,6 +375,7 @@ class DateMakerService:
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
                     custom_event_loop=loop,
+                    debug=self.debug,
                 )
                 loop.create_task(runner.run_event())
                 loop.create_task(runner.save_event_results())
@@ -385,6 +387,7 @@ class DateMakerService:
                     postgres_controller=self.async_pg_controller,
                     rabbitmq_controller=self.async_rmq_controller,
                     custom_event_loop=loop,
+                    debug=self.debug,
                 )
                 loop.create_task(runner.handle_preparations())
 
@@ -424,7 +427,7 @@ class DateMakerService:
         events = dating_events + confirmations
         if len(events):
             LOGGER.info(
-                f'Got {len(events)} ({len(dating_events)} + {len(confirmations)}) events to process'
+                f'Got {len(events)} ({len(dating_events)} events + {len(confirmations)} confirmations) events to process'
             )
         else:
             LOGGER.debug(

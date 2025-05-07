@@ -1,7 +1,0 @@
-# use this file only for installing requirements for local development
-redis==5.0.1
-sqlfluff
-asyncpg~=0.29.0
-websockets~=12.0
-pika==1.3.2
-tzlocal~=5.2
