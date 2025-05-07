@@ -298,7 +298,7 @@ class IntelligentAgent:
         if self.debug:
             self.save_df_artifact(target_users, self._current_event_id, 'matching_result')
 
-        return self._split_dataframe(target_users, users_limit)
+        return self._split_dataframe(target_users, users_limit // 2)
 
     @staticmethod
     def _split_dataframe(
