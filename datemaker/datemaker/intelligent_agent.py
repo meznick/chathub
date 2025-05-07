@@ -364,4 +364,4 @@ class IntelligentAgent:
         filepath = os.path.join(artifacts_dir, filename)
 
         embedding.to_csv(filepath, index=False)
-        LOGGER.debug(f'Saved {artifact_type} dataframe saved to {filepath}')
+        LOGGER.debug(f'Saved {artifact_type} dataframe to {filepath}')
