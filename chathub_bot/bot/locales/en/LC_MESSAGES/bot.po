@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1\n"
 "Report-Msgid-Bugs-To: mezhng@gmail.com\n"
-"POT-Creation-Date: 2025-01-23 13:23+0300\n"
+"POT-Creation-Date: 2025-05-07 18:45+0300\n"
 "PO-Revision-Date: 2024-08-18 15:35+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -14,23 +14,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/commands_handler.py:55
+#: bot/commands_handler.py:59
 msgid "confirm button"
 msgstr "✅ confirm"
 
-#: bot/commands_handler.py:65
+#: bot/commands_handler.py:69
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 "You have registered for an event starting at *{event_start_time}*.\n"
 "Please confirm or cancel your participation ✅❌"
 
-#: bot/commands_handler.py:79
+#: bot/commands_handler.py:83
 msgid "event will start soon, heres rule remainder"
 msgstr ""
 "The event will start soon and you will get first date link! Here's a "
 "quick reminder of the rules."
 
-#: bot/commands_handler.py:84 bot/scenes/dating.py:208
+#: bot/commands_handler.py:88 bot/scenes/dating.py:208
 msgid "dating rules"
 msgstr ""
 "*Event Rules* 🎉\n"
@@ -61,40 +61,44 @@ msgstr ""
 "\n"
 "XOXO ❤️"
 
-#: bot/commands_handler.py:95
+#: bot/commands_handler.py:99
 msgid "meeting invitation {url}"
 msgstr ""
-"*The round is starting!@ 🚀\n"
+"*The round is starting!* 🚀\n"
 "\n"
 "Here’s the link to join the call: {url}.\n"
 "\n"
-"Don't forget your webcam! 💖"
+"Don't forget your webcam! 💖\n"
+"\n"
+"*Note*: Your meeting partner might be late or even absent. Feel free to "
+"relax and wait, or after the call ends, you can report the issue using "
+"the report button. Enjoy your time and keep it light! 🌟"
 
-#: bot/commands_handler.py:107
+#: bot/commands_handler.py:111
 msgid "like button"
 msgstr "❤️"
 
-#: bot/commands_handler.py:116
+#: bot/commands_handler.py:120
 msgid "dislike button"
 msgstr "👎"
 
-#: bot/commands_handler.py:125
+#: bot/commands_handler.py:129
 msgid "report button"
 msgstr "🚩 report"
 
-#: bot/commands_handler.py:137 bot/scenes/dating.py:432
+#: bot/commands_handler.py:141 bot/scenes/dating.py:432
 #: bot/scenes/dating.py:448 bot/scenes/dating.py:464
 msgid "please rate partners performance"
 msgstr "If you want, rate the partner you just talked to 🙏🤔"
 
-#: bot/commands_handler.py:147
+#: bot/commands_handler.py:151
 msgid "final dating message"
 msgstr ""
 "The event has come to an end. Please give us a little time to summarize "
 "the results. Soon, you’ll see your mutual matches and will be able to "
 "connect with the people you’ve chosen. 😊✨"
 
-#: bot/commands_handler.py:162
+#: bot/commands_handler.py:166
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
 "You have a mutual match 💞 with the user *{partner_name}*, their contact "
@@ -102,25 +106,25 @@ msgstr ""
 "\n"
 "Enjoy your conversation 🎉"
 
-#: bot/commands_handler.py:174
+#: bot/commands_handler.py:178
 msgid "i am ready button"
 msgstr "✅ ready"
 
-#: bot/commands_handler.py:184
+#: bot/commands_handler.py:188
 msgid "are you ready to start event?"
 msgstr "We're starting the event, check in if you're ready!"
 
-#: bot/commands_handler.py:194
+#: bot/commands_handler.py:198
 msgid "break message"
 msgstr ""
 "The round has ended, now you have a minute to take a break, prepare for "
 "the next participant, or rate the previous partner."
 
-#: bot/commands_handler.py:203
+#: bot/commands_handler.py:207
 msgid "will take part in event message"
 msgstr "Our algorithm found a group for you, so get ready 🚀"
 
-#: bot/commands_handler.py:212
+#: bot/commands_handler.py:216
 msgid "will not take part in event message"
 msgstr ""
 "Unfortunately, no suitable partners were found for you at the moment. "
