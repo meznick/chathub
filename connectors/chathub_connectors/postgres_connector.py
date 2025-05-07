@@ -356,15 +356,33 @@ class AsyncPgConnector:
             event_id: int,
     ) -> List[Record]:
         request_query = """
+            WITH event_group_participants AS (
+                SELECT event_id, group_no, (MAX(turn_no) + 1) * 2 AS participants
+                FROM public.dating_event_groups
+                WHERE event_id = $1
+                GROUP BY event_id, group_no
+            ),
+            full_groups AS (
+                SELECT group_no, event_id
+                FROM dating_events as e
+                JOIN event_group_participants AS p
+                    ON e.id = p.event_id
+                    AND e.users_limit = p.participants
+            ),
+            uids AS (
+                SELECT user_1_id, user_2_id
+                FROM full_groups AS g
+                JOIN dating_event_groups AS ag 
+                     ON ag.event_id = g.event_id 
+                     AND ag.group_no = g.group_no
+            )
             SELECT DISTINCT user_1_id as user_id
-            FROM public.dating_event_groups
-            WHERE event_id = $1
-            
+            FROM uids
+
             UNION ALL
-            
+
             SELECT DISTINCT user_2_id as user_id
-            FROM public.dating_event_groups
-            WHERE event_id = $1;
+            FROM uids;
         """
         async with self.pool.acquire() as conn:
             data = await conn.fetch(request_query, event_id)
