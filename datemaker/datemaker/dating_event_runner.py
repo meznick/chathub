@@ -201,6 +201,18 @@ class DateRunner:
             await self.send_partner_profiles(row)
 
     async def run_dating_break(self, round_num: int):
+        """
+        Runs the dating break phase after every round of the event.
+
+        This method handles stopping any active meeting spaces, sending break notifications
+        to all participants currently in the event, and processing partner rating
+        requests for each participant pair in the given round.
+
+        :param round_num: The round number for which the dating break phase is
+            being executed. Determines which partner pairs are processed during
+            the break.
+        :type round_num: int
+        """
         LOGGER.info('State machine is in dating break')
         await self.stop_active_spaces()
         round_pairs = self.event_data.loc[self.event_data.turn_no == round_num]
