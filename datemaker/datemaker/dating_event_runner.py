@@ -41,6 +41,7 @@ class DateRunner:
             postgres_controller: AsyncPgConnector,
             rabbitmq_controller: AIORabbitMQConnector,
             custom_event_loop: AbstractEventLoop = None,
+            debug: bool = False,
     ):
         self.event_id = event_id
         self.start_time = start_time
@@ -48,6 +49,7 @@ class DateRunner:
         self.postgres = postgres_controller
         self.rabbitmq = rabbitmq_controller
         self.running = True
+        self.debug = debug
         # data created in RegistrationConfirmationRunner
         self.event_data: pd.DataFrame | None = None
         self.user_ids_in_event = list
@@ -56,10 +58,10 @@ class DateRunner:
         self.is_ready_to_start = False  # flag when state machine is ready to start rounds
         self.participants = None
         loop = custom_event_loop or asyncio.get_event_loop()
-        self.intelligence_agent = IntelligentAgent(loop, postgres_controller)
+        self.intelligence_agent = IntelligentAgent(loop, postgres_controller, debug=self.debug)
         LOGGER.info(
             f'DateRunner for event#{event_id} initialized. Start time: {start_time}'
-            f'Debug mode: {DEBUG}'
+            f'Debug mode: {self.debug}'
         )
 
     async def run_event(self):
@@ -156,7 +158,7 @@ class DateRunner:
         while not self.is_ready_to_start:
             await sleep(10)
 
-        rounds = self.event_data.loc[self.event_data.group_no == group_id].shape[0]
+        rounds = self.event_data.turn_no.max() + 1  # turns start from 0
         LOGGER.debug(f'There will be {rounds} rounds for event#{self.event_id} group#{group_id}')
         if rounds == 0:
             await self.set_event_state(EventStateIDs.SKIPPED)

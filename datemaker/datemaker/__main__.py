@@ -18,7 +18,8 @@ from datemaker import (
     POSTGRES_USER,
     POSTGRES_PASSWORD,
     MEET_TOKEN_FILE,
-    MEET_CREDS_FILE
+    MEET_CREDS_FILE,
+    DEBUG,
 )
 from .service import DateMakerService
 
@@ -51,7 +52,7 @@ if __name__ == "__main__":
         postgres_user=POSTGRES_USER,
         postgres_password=POSTGRES_PASSWORD,
         # other
-        debug=getattr(args, 'debug', False)
+        debug=DEBUG,
     )
 
     service.run()
