@@ -17,6 +17,7 @@ Environment variables:
 """
 
 import asyncio
+from datetime import datetime
 import json
 import os
 from aiogram.client.default import DefaultBotProperties
@@ -25,12 +26,14 @@ from aiogram.enums import ParseMode
 # Import from the bot package
 from bot import TG_TOKEN, BotCommands, setup_logger
 from bot.bot import DatingBot
+from bot.utils import escape_markdown_v2 as __
 
 # Set up logger
 LOGGER = setup_logger(__name__)
 
 # Target user ID
 TARGET_USER_ID = 5356971580
+
 
 async def send_all_locale_messages():
     """
@@ -45,6 +48,7 @@ async def send_all_locale_messages():
 
     # Create the bot instance
     bot = DatingBot(tg_token=TG_TOKEN, default=default_properties, debug=True)
+    _ = bot.i18n.gettext
 
     try:
         # Connect to required services
@@ -56,18 +60,23 @@ async def send_all_locale_messages():
         # Send a starting message
         await bot.send_message(
             chat_id=TARGET_USER_ID,
-            text="Starting to send all locale messages for testing purposes...",
+            text=__("Starting to send all locale messages for testing purposes..."),
             parse_mode=ParseMode.MARKDOWN_V2
         )
-
-        # Send all command-based messages
-        LOGGER.info("Sending command-based messages...")
+        await asyncio.sleep(1)
 
         # 1. Request event registration confirmation
-        try:
-            await bot.request_event_registration_confirmation({"event_id": "1"}, TARGET_USER_ID)
-        except Exception as e:
-            LOGGER.error(f"Error sending registration confirmation: {e}")
+        # change for bot.request_event_registration_confirmation later
+        # (https://app.asana.com/1/1203611209129092/project/1207693187941726/task/1210315330275701)
+        await bot.send_message(
+            chat_id=TARGET_USER_ID,
+            text=__(_(
+                'please confirm event registration. event will start at {event_start_time}'
+            ).format(
+                event_start_time='[[time]]'
+            )),
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
 
         # 2. Send pre-event rules
         await bot.send_pre_event_rules(TARGET_USER_ID)
@@ -98,7 +107,7 @@ async def send_all_locale_messages():
         # Send a completion message
         await bot.send_message(
             chat_id=TARGET_USER_ID,
-            text="All locale messages have been sent successfully!",
+            text=__("All locale messages have been sent successfully!"),
             parse_mode=ParseMode.MARKDOWN_V2
         )
 
@@ -107,9 +116,6 @@ async def send_all_locale_messages():
     finally:
         # Close connections
         LOGGER.info("Closing connections...")
-        await bot.pg.close()
-        await bot.rmq.close()
-        await bot.session.close()
 
 if __name__ == "__main__":
     """
