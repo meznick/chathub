@@ -185,11 +185,9 @@ class RegistrationConfirmationRunner:
         confirmed_user_ids = {
             user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')
         }
-        event_data = await self.postgres.get_event_data(self.event_id)
         match_maked_users = {
-            row.get('user_1_id') for row in event_data
-        } | {
-            row.get('user_2_id') for row in event_data
+            row.get('user_id') for row in
+            await self.postgres.get_event_participants(event_id=self.event_id)
         }
         not_match_maked_users = confirmed_user_ids - match_maked_users
         await self.trigger_bot_command(

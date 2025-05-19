@@ -77,7 +77,7 @@ class DateRunner:
         await self.trigger_bot_to_send_rules()
         await self.get_event_prepared_data()
         # sleep for 300 seconds
-        # because rules was sent 5 mins before event start
+        # because rules should be sent 5 mins before the event starts
         await asyncio.sleep(300)
         await asyncio.gather(*[
             self.run_dating_fsm(group_id)
@@ -137,9 +137,6 @@ class DateRunner:
             - break -> dating
             - dating -> final
         """
-        # event loop for running tasks
-        loop = asyncio.get_running_loop()
-
         # states for fsm
         initial_state = State('initial', action=self.run_initial_state)
         round_state = State('round', action=self.run_dating_round)
@@ -178,6 +175,13 @@ class DateRunner:
             await fsm.transition('finish')
 
     async def run_initial_state(self):
+        """
+        Executes the initial state of the state machine, performing necessary setup
+        and updates the readiness state.
+
+        This method logs the current state of the state machine, initializes spaces
+        required for the event, and updates the readiness flag once the setup is complete.
+        """
         LOGGER.info('State machine is in initial state')
         # self.state_start_time = time.time()
         await self.create_spaces_for_event()
@@ -197,6 +201,18 @@ class DateRunner:
             await self.send_partner_profiles(row)
 
     async def run_dating_break(self, round_num: int):
+        """
+        Runs the dating break phase after every round of the event.
+
+        This method handles stopping any active meeting spaces, sending break notifications
+        to all participants currently in the event, and processing partner rating
+        requests for each participant pair in the given round.
+
+        :param round_num: The round number for which the dating break phase is
+            being executed. Determines which partner pairs are processed during
+            the break.
+        :type round_num: int
+        """
         LOGGER.info('State machine is in dating break')
         await self.stop_active_spaces()
         round_pairs = self.event_data.loc[self.event_data.turn_no == round_num]
@@ -234,7 +250,7 @@ class DateRunner:
 
     async def create_spaces_for_event(self):
         """
-        Create N spaces where N is pair count in every round
+        Create N spaces where N is the pair count in every round
         """
         for i in range(self.event_data.shape[0]):
             self.meeting_spaces.append(await self.meet_api.create_public_space())

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SpeedDatingBot 0.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-01-23 13:23+0300\n"
+"POT-Creation-Date: 2025-05-07 18:45+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,68 +18,68 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: bot/commands_handler.py:55
+#: bot/commands_handler.py:59
 msgid "confirm button"
 msgstr ""
 
-#: bot/commands_handler.py:65
+#: bot/commands_handler.py:69
 msgid "please confirm event registration. event will start at {event_start_time}"
 msgstr ""
 
-#: bot/commands_handler.py:79
+#: bot/commands_handler.py:83
 msgid "event will start soon, heres rule remainder"
 msgstr ""
 
-#: bot/commands_handler.py:84 bot/scenes/dating.py:208
+#: bot/commands_handler.py:88 bot/scenes/dating.py:208
 msgid "dating rules"
 msgstr ""
 
-#: bot/commands_handler.py:95
+#: bot/commands_handler.py:99
 msgid "meeting invitation {url}"
 msgstr ""
 
-#: bot/commands_handler.py:107
+#: bot/commands_handler.py:111
 msgid "like button"
 msgstr ""
 
-#: bot/commands_handler.py:116
+#: bot/commands_handler.py:120
 msgid "dislike button"
 msgstr ""
 
-#: bot/commands_handler.py:125
+#: bot/commands_handler.py:129
 msgid "report button"
 msgstr ""
 
-#: bot/commands_handler.py:137 bot/scenes/dating.py:432
+#: bot/commands_handler.py:141 bot/scenes/dating.py:432
 #: bot/scenes/dating.py:448 bot/scenes/dating.py:464
 msgid "please rate partners performance"
 msgstr ""
 
-#: bot/commands_handler.py:147
+#: bot/commands_handler.py:151
 msgid "final dating message"
 msgstr ""
 
-#: bot/commands_handler.py:162
+#: bot/commands_handler.py:166
 msgid "you match with {partner_name}, his contact {partner_contact}"
 msgstr ""
 
-#: bot/commands_handler.py:174
+#: bot/commands_handler.py:178
 msgid "i am ready button"
 msgstr ""
 
-#: bot/commands_handler.py:184
+#: bot/commands_handler.py:188
 msgid "are you ready to start event?"
 msgstr ""
 
-#: bot/commands_handler.py:194
+#: bot/commands_handler.py:198
 msgid "break message"
 msgstr ""
 
-#: bot/commands_handler.py:203
+#: bot/commands_handler.py:207
 msgid "will take part in event message"
 msgstr ""
 
-#: bot/commands_handler.py:212
+#: bot/commands_handler.py:216
 msgid "will not take part in event message"
 msgstr ""
 

@@ -356,15 +356,33 @@ class AsyncPgConnector:
             event_id: int,
     ) -> List[Record]:
         request_query = """
+            WITH event_group_participants AS (
+                SELECT event_id, group_no, (MAX(turn_no) + 1) * 2 AS participants
+                FROM public.dating_event_groups
+                WHERE event_id = $1
+                GROUP BY event_id, group_no
+            ),
+            full_groups AS (
+                SELECT group_no, event_id
+                FROM dating_events as e
+                JOIN event_group_participants AS p
+                    ON e.id = p.event_id
+                    AND e.users_limit = p.participants
+            ),
+            uids AS (
+                SELECT user_1_id, user_2_id
+                FROM full_groups AS g
+                JOIN dating_event_groups AS ag 
+                     ON ag.event_id = g.event_id 
+                     AND ag.group_no = g.group_no
+            )
             SELECT DISTINCT user_1_id as user_id
-            FROM public.dating_event_groups
-            WHERE event_id = $1
-            
+            FROM uids
+
             UNION ALL
-            
+
             SELECT DISTINCT user_2_id as user_id
-            FROM public.dating_event_groups
-            WHERE event_id = $1;
+            FROM uids;
         """
         async with self.pool.acquire() as conn:
             data = await conn.fetch(request_query, event_id)
@@ -437,9 +455,24 @@ class AsyncPgConnector:
 
     async def get_event_data(self, event_id: int):
         request_query = """
-            SELECT group_no, turn_no, user_1_id, user_2_id
-            FROM public.dating_event_groups
-            where event_id = $1;
+            WITH event_group_participants AS (
+                SELECT event_id, group_no, (MAX(turn_no) + 1) * 2 AS participants
+                FROM public.dating_event_groups
+                WHERE event_id = $1
+                GROUP BY event_id, group_no
+            ),
+            full_groups AS (
+                SELECT group_no, event_id
+                FROM dating_events as e
+                JOIN event_group_participants AS p
+                    ON e.id = p.event_id
+                    AND e.users_limit = p.participants
+            )
+            SELECT deg.group_no, turn_no, user_1_id, user_2_id
+            FROM public.dating_event_groups AS deg
+            JOIN full_groups AS g
+                 ON g.group_no = deg.group_no
+                 AND g.event_id = deg.event_id;
         """
         async with self.pool.acquire() as conn:
             data = await conn.fetch(request_query, event_id)
@@ -512,7 +545,7 @@ class AsyncPgConnector:
         loop = self.loop or asyncio.new_event_loop()
         if self.pool:
             try:
-                close_task = loop.create_task(self.pool.close())
+                close_task = loop.create_task(self.pool.terminate())
                 asyncio.gather(close_task)
             except Exception as e:
                 LOGGER.warning(f'Fail on closing connection: {e}')
