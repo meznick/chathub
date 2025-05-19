@@ -545,7 +545,7 @@ class AsyncPgConnector:
         loop = self.loop or asyncio.new_event_loop()
         if self.pool:
             try:
-                close_task = loop.create_task(self.pool.close())
+                close_task = loop.create_task(self.pool.terminate())
                 asyncio.gather(close_task)
             except Exception as e:
                 LOGGER.warning(f'Fail on closing connection: {e}')
