@@ -177,7 +177,7 @@ GMeet для выявления того что мы можем сохранят
 The following environment variables are required for running the datemaker module:
 
 ### General Configuration
-- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file
+- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file. Always set to true
 - `DEBUG` - Controls logging level and routing key
 
 ### RabbitMQ Configuration
@@ -186,7 +186,6 @@ The following environment variables are required for running the datemaker modul
 - `RABBITMQ_VIRTUAL_HOST` - RabbitMQ virtual host
 - `RABBITMQ_EXCHANGE` - RabbitMQ exchange
 - `DATEMAKER_RABBITMQ_QUEUE` - RabbitMQ queue for datemaker
-- `DATEMAKER_RABBITMQ_ROUTING_KEY` - RabbitMQ routing key for datemaker
 - `DATEMAKER_RABBITMQ_USERNAME` - RabbitMQ username for datemaker
 - `DATEMAKER_RABBITMQ_PASSWORD` - RabbitMQ password for datemaker
 

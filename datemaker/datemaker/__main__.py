@@ -42,7 +42,6 @@ if __name__ == "__main__":
         message_broker_virtual_host=MESSAGE_BROKER_VIRTUAL_HOST,
         message_broker_exchange=MESSAGE_BROKER_EXCHANGE,
         message_broker_queue=MESSAGE_BROKER_QUEUE,
-        message_broker_routing_key=MESSAGE_BROKER_ROUTING_KEY,
         message_broker_username=MESSAGE_BROKER_USERNAME,
         message_broker_password=MESSAGE_BROKER_PASSWORD,
         # all parameters for AsyncPgConnector
