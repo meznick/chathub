@@ -162,3 +162,4 @@ client/vite.config.ts
 
 # credential files
 datemaker/creds.json
+/.junie/
