@@ -83,7 +83,7 @@ python -m bot --debug --long-polling
 The following environment variables are required for running the bot module:
 
 ### General Configuration
-- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file
+- `BOT_VARIABLES_LOADED` - Controls whether to load variables from the .env file. Always set to true
 - `DEBUG` - Controls logging level and routing key
 - `TG_BOT_TOKEN` - Telegram bot token
 
@@ -93,7 +93,6 @@ The following environment variables are required for running the bot module:
 - `RABBITMQ_VIRTUAL_HOST` - RabbitMQ virtual host
 - `TG_BOT_RABBITMQ_EXCHANGE` - RabbitMQ exchange to read from for the bot
 - `TG_BOT_RABBITMQ_QUEUE` - RabbitMQ queue to read from for the bot
-- `TG_BOT_RABBITMQ_ROUTING_KEY` - RabbitMQ routing key for the bot
 - `TG_BOT_RABBITMQ_USERNAME` - RabbitMQ username for the bot
 - `TG_BOT_RABBITMQ_PASSWORD` - RabbitMQ password for the bot
 
