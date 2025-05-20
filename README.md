@@ -97,6 +97,10 @@ Prod env files are stored in /home/infra/.env_files:
 - tg_bot_prod
 - datemaker_prod
 
+Need to create separate prod env file for infrastructure:
+- for applying migrations (DATABASE_URL)
+- building containers (lots of env vars)
+
 Use these files to build developers' env files:
 - combine them, removing duplicated lines 
 - change prod db to dev
@@ -104,3 +108,4 @@ Use these files to build developers' env files:
 - update google meet paths to yours
 - change tg bot token to dev (unique for every developer)
 - change debug flag
+- for development you dont actually need params for building containers
