@@ -87,7 +87,6 @@ class RabbitMQConnector:
         self._password = password
         self._exchange = exchange
         self._queue = queue
-        self._routing_key = routing_key
         self._message_callback = message_callback
         self._channel = None
         self._connection = None
