@@ -101,6 +101,10 @@ Need to create separate prod env file for infrastructure:
 - for applying migrations (DATABASE_URL)
 - building containers (lots of env vars)
 
+File with pre-generated passwords and constants:
+- admin password for RBQ, PG, Redis
+- AWS creds
+
 Use these files to build developers' env files:
 - combine them, removing duplicated lines 
 - change prod db to dev
