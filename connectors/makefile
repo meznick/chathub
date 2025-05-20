@@ -14,4 +14,4 @@ build: clean
 
 upload:
 	@echo "Uploading package..."
-	twine upload --repository-url http://007pi.loc:8228 dist/* --verbose
+	twine upload --repository-url https://pypi.meznick.moscow/ dist/* --verbose
