@@ -92,3 +92,15 @@ sqlfluff fix filename.sql --dialect postgres
 dbmate up # perform migrations
 dbmate rollback # revert last batch of migrations
 ```
+# Env files
+Prod env files are stored in /home/infra/.env_files:
+- tg_bot_prod
+- datemaker_prod
+
+Use these files to build developers' env files:
+- combine them, removing duplicated lines 
+- change prod db to dev
+- change prod rabbitmq queue to dev
+- update google meet paths to yours
+- change tg bot token to dev (unique for every developer)
+- change debug flag
