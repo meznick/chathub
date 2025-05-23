@@ -76,6 +76,7 @@ class RegistrationConfirmationRunner:
                 message=command.value,
                 routing_key=TG_BOT_ROUTING_KEY,
                 exchange='chathub_direct_main',
+                # todo: add event start_dttm to headers
                 headers={
                     'user_id': user.get('user_id'),
                     'chat_id': user.get('user_id'),
@@ -86,6 +87,8 @@ class RegistrationConfirmationRunner:
             LOGGER.debug(f'Command {command} triggered for {len(users)} users')
 
     async def wait_for_confirmations(self):
+        # todo: check if confirmation request sent correctly
+        #   event if user register after confirmation started
         is_all_confirmed = False  # all users confirmed registrations
         is_timeout = False        # confirmation time is out (1 hour before event)
         await self._update_registrations_list()
@@ -111,8 +114,9 @@ class RegistrationConfirmationRunner:
         confirmation_not_sent_users = [
             user for user in self.registrations if not user.get('confirmation_event_sent')
         ]
+        # todo: move sending requests for separate method
         if len(confirmation_not_sent_users):
-            LOGGER.debug(
+            LOGGER.info(
                 f'Sending invites to {len(confirmation_not_sent_users)} '
                 f'users for event#{self.event_id}'
             )
@@ -120,7 +124,7 @@ class RegistrationConfirmationRunner:
                 BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
                 confirmation_not_sent_users
             )
-            LOGGER.debug(f'Saving confirmation sent for event#{self.event_id} users to db')
+            LOGGER.info(f'Saving confirmation sent for event#{self.event_id} users to db')
             await self.postgres.save_event_confirmation_sent(
                 event_id=self.event_id,
                 user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]

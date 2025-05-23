@@ -53,6 +53,8 @@ class BotCommandsHandlerMixin:
             timezone=get_localzone()
         )
         target_event = [e for e in events if e.get('id') == int(headers.get('event_id', 0))][0]
+        # todo: remove getting event data from bd
+        # todo: pass event start dttm here from datemaker
 
         builder = InlineKeyboardBuilder()
         builder.button(
