@@ -10,18 +10,27 @@ from dotenv import load_dotenv
 def setup_logger(name):
     logger = logging.getLogger(name)
 
-    log_format = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
-    formatter = logging.Formatter(log_format)
+    # Only add handler if the logger doesn't already have handlers
+    if not logger.handlers:
+        log_format = '%(levelname)s - %(asctime)s - %(name)s - %(message)s'
+        formatter = logging.Formatter(log_format)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+
+        # Set propagate to False to prevent duplicate logs
+        logger.propagate = False
 
     debug = os.getenv('DEBUG', 'false')
 
     level = logging.DEBUG if debug.lower() == 'true' else logging.INFO
     logger.setLevel(level)
-    stream_handler.setLevel(level)
+
+    # Only set handler level if we added a handler
+    if logger.handlers:
+        logger.handlers[0].setLevel(level)
+
     return logger
 
 
@@ -52,7 +61,9 @@ class BotCommands(Enum):
 BOT_VARIABLES_LOADED = os.getenv('BOT_VARIABLES_LOADED', 'false')
 if BOT_VARIABLES_LOADED.lower() == 'false':
     load_dotenv(dotenv_path='/app/.env')
-    logging.info(f'Environment variables loaded: {BOT_VARIABLES_LOADED}')
+    # Use a module-level logger instead of the root logger
+    module_logger = setup_logger(__name__)
+    module_logger.info(f'Environment variables loaded: {BOT_VARIABLES_LOADED}')
 
 DEBUG = os.getenv('DEBUG', 'false')
 
