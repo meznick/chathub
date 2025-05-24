@@ -14,9 +14,9 @@ LOGGER.warning(f'Logger {LOGGER} is active')
 
 
 class OptionalQueryParamIterator:
-    def __init__(self, max = 10):
+    def __init__(self, _max=10):
         self.current = 1
-        self.max = max
+        self.max = _max
 
     def __iter__(self):
         return self
@@ -117,7 +117,16 @@ class AsyncPgConnector:
         '''
         async with self.pool.acquire() as conn:
             await conn.execute(
-                request_query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
+                request_query,
+                user_id,
+                username,
+                password_hash,
+                birthday,
+                city,
+                bio,
+                sex,
+                name,
+                rating
             )
         LOGGER.debug(f'User created: {username} [{user_id}]')
 
@@ -315,7 +324,7 @@ class AsyncPgConnector:
                 param for param in (
                     user_id,
                     event_id
-            ) if param is not None
+                ) if param is not None
             ))
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
@@ -553,6 +562,21 @@ class AsyncPgConnector:
             data = await conn.fetch(request_query, user.get('id'))
         LOGGER.debug(f'Found {len(data)} event registrations for user {user.get("id")}')
         return data
+
+    async def cancel_registration(self, user: Record, event_id: int):
+        """
+        Method for registration cancellation.
+        :param user:
+        :param event_id:
+        :return:
+        """
+        cancel_query = """
+            DELETE FROM public.dating_registrations
+            WHERE user_id = %s AND event_id = %s;
+        """
+        async with self.pool.acquire() as conn:
+            await conn.fetch(cancel_query, user.get('id'), event_id)
+        LOGGER.debug(f'User {user.get("id")} cancelled registration for event {event_id}')
 
     def __del__(self):
         loop = self.loop or asyncio.new_event_loop()
