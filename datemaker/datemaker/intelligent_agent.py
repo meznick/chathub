@@ -187,7 +187,11 @@ class IntelligentAgent:
         """
         return users
 
-    def _calculate_matchmaking_embedding(self, target: pd.DataFrame, additive: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_matchmaking_embedding(
+            self,
+            target: pd.DataFrame,
+            additive: pd.DataFrame
+    ) -> pd.DataFrame:
         """
         Calculate matrix of compatibility coefficients for each M-F pair.
 
