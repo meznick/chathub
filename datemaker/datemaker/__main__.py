@@ -2,6 +2,7 @@
 main file for calling module
 """
 import argparse
+import asyncio
 
 from datemaker import (
     MESSAGE_BROKER_HOST,
@@ -53,4 +54,5 @@ if __name__ == "__main__":
         debug=DEBUG,
     )
 
-    service.run()
+    # service.run()
+    asyncio.run(service.run())
