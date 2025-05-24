@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot import setup_logger
+from bot import setup_logger, DEBUG
 from bot.scenes.callback_data import (
     DatingMenuActionsCallbackData,
     DatingEventCallbackData,
@@ -124,18 +124,6 @@ class DataHandlerMixin:
         _ = self.i18n.gettext
         command_name = [key for key in data.keys()][0]
         succeed = data[command_name]
-        if succeed:
-            LOGGER.debug(f'Operation {command_name} was succeeded for {chat_id}')
-            await self.send_message(
-                chat_id=chat_id,
-                text=_('operation was succeeded'),
-                parse_mode=ParseMode.HTML,
-            )
-        else:
-            LOGGER.debug(f'Operation {command_name} was failed for {chat_id}')
-            await self.send_message(
-                chat_id=chat_id,
-                text=_('operation failed'),
-                parse_mode=ParseMode.HTML,
-            )
+        result = 'succeeded' if succeed else 'failed'
+        LOGGER.info(f'Operation {command_name} was {result} for {chat_id}')
         return True

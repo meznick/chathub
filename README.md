@@ -40,14 +40,15 @@ according to list of env params in readme files for each service.
 
 ```shell
 cd ~/.env_files
-# prod tg bot
+# tg bot
 cat prod aws pg rabbitmq tg_bot > tg_bot_prod
-# dev tg bot
 cat dev aws pg rabbitmq tg_bot > tg_bot_dev
-# prod datemaker
+# datemaker
 cat prod aws pg rabbitmq datemaker > datemaker_prod
-# dev datemaker
 cat dev aws pg rabbitmq datemaker > datemaker_dev
 # params for infra deployment
 cat aws pg rabbitmq admin > deploy
+# migrations
+cat pg dev migrations > migrations_dev
+cat pg prod migrations > migrations_prod
 ```

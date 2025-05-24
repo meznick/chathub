@@ -4,10 +4,8 @@ from datetime import datetime
 from typing import Optional, List
 
 import asyncpg
-import psycopg2
 from asyncpg import Record
-from psycopg2 import Error
-from psycopg2.extras import RealDictCursor, RealDictRow
+from psycopg2.extras import RealDictRow
 
 from chathub_connectors import setup_logger
 
@@ -16,9 +14,9 @@ LOGGER.warning(f'Logger {LOGGER} is active')
 
 
 class OptionalQueryParamIterator:
-    def __init__(self, max = 10):
+    def __init__(self, _max=10):
         self.current = 1
-        self.max = max
+        self.max = _max
 
     def __iter__(self):
         return self
@@ -119,7 +117,16 @@ class AsyncPgConnector:
         '''
         async with self.pool.acquire() as conn:
             await conn.execute(
-                request_query, user_id, username, password_hash, birthday, city, bio, sex, name, rating
+                request_query,
+                user_id,
+                username,
+                password_hash,
+                birthday,
+                city,
+                bio,
+                sex,
+                name,
+                rating
             )
         LOGGER.debug(f'User created: {username} [{user_id}]')
 
@@ -269,12 +276,14 @@ class AsyncPgConnector:
             limit: int = 10,
             timezone='UTC',
             event_id: int = None,
+            registration_available: bool = True,
     ) -> List[Record]:
         """
         List Dating Events
 
         Retrieve a list of dating events based on the provided parameters.
 
+        :param registration_available: Show only events that user can register for.
         :param event_id: If specific event data needed, provide it here.
         :param timezone: Timezone to display time in.
         :param user: The user for whom the dating events are being listed.
@@ -285,25 +294,29 @@ class AsyncPgConnector:
         """
         param = OptionalQueryParamIterator()
         user_id = user.get("id") if user else None
-        only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
+        finished_filter = 'AND start_dttm > NOW()' if not include_finished else ''
         for_user = f'WHERE user_id = ${next(param)}' if user else ''
-        specific_event = f'AND e.id = ${next(param)}' if event_id else ''
+        specific_event_filter = f'AND e.id = ${next(param)}' if event_id else ''
+        registration_available_filter = 'AND state_id < 2' if registration_available else ''
         limit = f'LIMIT {limit}'
         request_query = f"""
             SELECT DISTINCT 
                 e.id,
                 e.start_dttm at time zone '{timezone}' as start_dttm,
+                s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered,
                 users_limit
             FROM public.dating_events as e
+            LEFT JOIN event_states as s ON e.state_id = s.id
             LEFT JOIN (
                 SELECT *
                 FROM public.dating_registrations
                 {for_user}
             ) AS r ON e.id = r.event_id
             WHERE 1=1
-                {only_finished}
-                {specific_event}
+                {finished_filter}
+                {registration_available_filter}
+                {specific_event_filter}
             ORDER BY start_dttm ASC
             {limit}
             ;
@@ -313,7 +326,7 @@ class AsyncPgConnector:
                 param for param in (
                     user_id,
                     event_id
-            ) if param is not None
+                ) if param is not None
             ))
         LOGGER.debug(f'Found {len(data)} dating events')
         return data
@@ -541,6 +554,32 @@ class AsyncPgConnector:
         LOGGER.debug(f'Fetched {len(data)} user matches for user {user_id} in event {event_id}')
         return data
 
+    async def get_event_registrations_for_user(self, user: RealDictRow):
+        request_query = """
+            SELECT DISTINCT event_id
+            FROM public.dating_registrations
+            WHERE user_id = %s;
+        """
+        async with self.pool.acquire() as conn:
+            data = await conn.fetch(request_query, user.get('id'))
+        LOGGER.debug(f'Found {len(data)} event registrations for user {user.get("id")}')
+        return data
+
+    async def cancel_registration(self, user: Record, event_id: int):
+        """
+        Method for registration cancellation.
+        :param user:
+        :param event_id:
+        :return:
+        """
+        cancel_query = """
+            DELETE FROM public.dating_registrations
+            WHERE user_id = %s AND event_id = %s;
+        """
+        async with self.pool.acquire() as conn:
+            await conn.fetch(cancel_query, user.get('id'), event_id)
+        LOGGER.debug(f'User {user.get("id")} cancelled registration for event {event_id}')
+
     def __del__(self):
         loop = self.loop or asyncio.new_event_loop()
         if self.pool:
@@ -551,205 +590,3 @@ class AsyncPgConnector:
                 LOGGER.warning(f'Fail on closing connection: {e}')
             LOGGER.info(f'PG connection to {self._host}:{self._port}/{self._db} closed')
         LOGGER.debug('PG connector deleted')
-
-
-class PostgresConnection:
-    def __init__(
-            self,
-            host: str = 'localhost',
-            port: int = 5432,
-            db: str = 'chathub_dev',
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-    ):
-        self._host = host
-        self._port = port
-        self._db = db
-        self._username = username
-        self._password = password
-        self.client: psycopg2.extensions.connection | None = None
-        LOGGER.info('Synchronous PG connector initialized')
-
-    def connect(self):
-        try:
-            self.client = psycopg2.connect(
-                host=self._host,
-                dbname=self._db,
-                user=self._username,
-                password=self._password,
-                port=self._port,
-            )
-            LOGGER.info("Connection to PostgreSQL DB successful")
-        except Error as e:
-            LOGGER.error(f"Error: {e}")
-
-    def get_user(self, user_id: int) -> Optional[RealDictRow]:
-        """
-        :param user_id: ID of the user to fetch.
-        :return: The user data fetched from the database.
-        """
-        if not self.client:
-            self.connect()
-
-        request_query = 'SELECT * FROM users WHERE id = %s;'
-        data = self._fetch_results(request_query, (user_id,))[0]
-        LOGGER.debug(f'Fetched user: {data}')
-        return data
-
-    def get_dating_events(
-            self,
-            user: Record = None,
-            include_finished: bool = False,
-            limit: int = 10,
-            timezone='UTC',
-    ) -> List[RealDictRow]:
-        """
-        List Dating Events
-
-        Retrieve a list of dating events based on the provided parameters.
-
-        :param user: The user for whom the dating events are being listed.
-        :param include_finished: A flag indicating if finished events should be
-                    included in the result. Defaults to False.
-        :param limit: The maximum number of events to retrieve. Defaults to 10.
-        :param timezone: Timezone for displaying.
-                    Default is UTC.
-        :return: A list of dating events.
-        """
-        user_id = user.get("id") if user else None
-        only_finished = 'AND start_dttm > NOW()' if not include_finished else ''
-        for_user = f'WHERE r.user_id = %s' if user else ''
-        limit = f'LIMIT {limit}'
-        request_query = f"""
-            SELECT DISTINCT
-                e.id,
-                e.start_dttm at time zone '{timezone}' as start_dttm,
-                s.state_name,
-                CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered
-            FROM public.dating_events as e
-            LEFT JOIN event_states as s ON e.state_id = s.id
-            LEFT JOIN (
-                SELECT *
-                FROM public.dating_registrations
-                {for_user}
-            ) AS r ON e.id = r.event_id
-            WHERE 1=1
-                {only_finished}
-            ORDER BY start_dttm ASC
-            {limit}
-            ;
-        """
-        data = self._fetch_results(request_query, (user_id, ))
-        LOGGER.debug(f'Found {len(data)} dating events')
-        return data
-
-    def get_event_registrations(
-            self,
-            event_id: int
-    ) -> List[RealDictRow]:
-        """
-        List Event Registrations.
-        :param event_id:
-        :return:
-        """
-        request_query = """
-            SELECT user_id, registered_on_dttm, confirmed_on_dttm
-            FROM public.dating_registrations
-            WHERE event_id = %s;
-        """
-        data = self._fetch_results(request_query, (event_id,))
-        LOGGER.debug(f'Found {len(data)} event registrations for event {event_id}')
-        return data
-
-    def get_event_registrations_for_user(self, user: RealDictRow):
-        request_query = """
-            SELECT DISTINCT event_id
-            FROM public.dating_registrations
-            WHERE user_id = %s;
-        """
-        data = self._fetch_results(request_query, (user.get('id'),))
-        LOGGER.debug(f'Found {len(data)} event registrations for user {user.get("id")}')
-        return data
-
-    def register_for_event(
-            self,
-            user: Record,
-            event_id: int
-    ):
-        """
-        Method for adding new member to event.
-        Remember to check if user already registered!
-
-        :param user:
-        :param event_id:
-        :return:
-        """
-        request_query = """
-            INSERT INTO public.dating_registrations (user_id, event_id)
-            VALUES (%s, %s);
-        """
-        self._execute_query(request_query, (user.get('id'), event_id))
-        LOGGER.debug(f'User {user.get("id")} registered for event {event_id}')
-
-    def confirm_registration(self, user: Record, event_id: int):
-        """
-        Method for registration confirmation.
-
-        :param user:
-        :param event_id:
-        :return:
-        """
-        request_query = """
-            UPDATE public.dating_registrations
-            SET confirmed_on_dttm = NOW()
-            WHERE user_id = %s AND event_id = %s;
-        """
-        self._execute_query(request_query, (user.get('id'), event_id))
-        LOGGER.debug(
-            f'User {user.get("id")} confirmed registration for event {event_id}'
-        )
-
-    def cancel_registration(self, user: Record, event_id: int):
-        """
-        Method for registration cancellation.
-
-        :param user:
-        :param event_id:
-        :return:
-        """
-        cancel_query = """
-            DELETE FROM public.dating_registrations
-            WHERE user_id = %s AND event_id = %s;
-        """
-        self._execute_query(cancel_query, (user.get('id'), event_id))
-        LOGGER.debug(f'User {user.get("id")} cancelled registration for event {event_id}')
-
-    def _execute_query(self, request_query, params=None):
-        if self.client is None:
-            print("No connection to database.")
-            return
-        try:
-            with self.client.cursor() as cursor:
-                cursor.execute(request_query, params)
-                self.client.commit()
-                print("Query executed successfully")
-        except Error as e:
-            print(f"Error: {e}")
-
-    def _fetch_results(self, request_query, params=None):
-        if self.client is None:
-            print("No connection to database.")
-            return
-        try:
-            with self.client.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute(request_query, params)
-                results = cursor.fetchall()
-                return results
-        except Error as e:
-            print(f"Error: {e}")
-            return None
-
-    def disconnect(self):
-        if self.client:
-            self.client.close()
-            print("Connection closed")

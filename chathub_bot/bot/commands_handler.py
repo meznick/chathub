@@ -48,11 +48,6 @@ class BotCommandsHandlerMixin:
 
     async def request_event_registration_confirmation(self, headers: dict, user_id: int):
         _ = self.i18n.gettext
-        events = await self.pg.get_dating_events(
-            user={'id': int(user_id)},
-            timezone=get_localzone()
-        )
-        target_event = [e for e in events if e.get('id') == int(headers.get('event_id', 0))][0]
 
         builder = InlineKeyboardBuilder()
         builder.button(
@@ -69,7 +64,7 @@ class BotCommandsHandlerMixin:
             text=__(_(
                 'please confirm event registration. event will start at {event_start_time}'
             ).format(
-                event_start_time=target_event.get('start_dttm')
+                event_start_time=headers.get('start_dttm')
             )),
             parse_mode=ParseMode.MARKDOWN_V2,
             reply_markup=builder.as_markup(),

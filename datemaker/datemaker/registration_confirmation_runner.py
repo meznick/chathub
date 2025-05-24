@@ -80,20 +80,23 @@ class RegistrationConfirmationRunner:
                     'user_id': user.get('user_id'),
                     'chat_id': user.get('user_id'),
                     'event_id': self.event_id,
+                    'event_start_dttm': self.event_start_time.strftime('%Y-%m-%d %H:%M:%S'),
                 }
             )
         if users:
             LOGGER.debug(f'Command {command} triggered for {len(users)} users')
 
     async def wait_for_confirmations(self):
+        # todo: check if confirmation request sent correctly
+        #   event if user register after confirmation started
         is_all_confirmed = False  # all users confirmed registrations
         is_timeout = False        # confirmation time is out (1 hour before event)
-        await self._update_registrations_list()
+        await self.update_registrations_list()
         while not is_timeout:  # original is_all_confirmed or is_timeout - rework later
             LOGGER.debug(f'Waiting confirmations for event {self.event_id}')
             await sleep(60)
             is_timeout = self.event_start_time - self.confirmation_timeout_offset < datetime.now()
-            await self._update_registrations_list()
+            await self.update_registrations_list()
             is_all_confirmed = len(
                 {user.get('user_id') for user in self.registrations} -
                 {user.get('user_id') for user in self.registrations if user.get('confirmed_on_dttm')}
@@ -105,26 +108,29 @@ class RegistrationConfirmationRunner:
         )
         LOGGER.info(f'Waiting for confirmation ended for event#{self.event_id}')
 
-    async def _update_registrations_list(self):
+    async def update_registrations_list(self):
         LOGGER.debug(f'Updating registrations list for event#{self.event_id}')
         self.registrations = await self.postgres.get_event_registrations(self.event_id)
         confirmation_not_sent_users = [
             user for user in self.registrations if not user.get('confirmation_event_sent')
         ]
         if len(confirmation_not_sent_users):
-            LOGGER.debug(
-                f'Sending invites to {len(confirmation_not_sent_users)} '
-                f'users for event#{self.event_id}'
-            )
-            await self.trigger_bot_command(
-                BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
-                confirmation_not_sent_users
-            )
-            LOGGER.debug(f'Saving confirmation sent for event#{self.event_id} users to db')
-            await self.postgres.save_event_confirmation_sent(
-                event_id=self.event_id,
-                user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]
-            )
+            await self.send_event_confirmation_requests(confirmation_not_sent_users)
+
+    async def send_event_confirmation_requests(self, confirmation_not_sent_users):
+        LOGGER.info(
+            f'Sending invites to {len(confirmation_not_sent_users)} '
+            f'users for event#{self.event_id}'
+        )
+        await self.trigger_bot_command(
+            BotCommands.CONFIRM_USER_EVENT_REGISTRATION,
+            confirmation_not_sent_users
+        )
+        LOGGER.info(f'Saving confirmation sent for event#{self.event_id} users to db')
+        await self.postgres.save_event_confirmation_sent(
+            event_id=self.event_id,
+            user_ids=[uid.get('user_id') for uid in confirmation_not_sent_users]
+        )
 
     async def generate_user_groups(self):
         """

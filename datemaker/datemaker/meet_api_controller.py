@@ -29,7 +29,7 @@ class GoogleMeetApiController:
         self.client = None
         self.event_loop: AbstractEventLoop = None
 
-    def connect(self, custom_event_loop: AbstractEventLoop):
+    def connect(self, custom_event_loop: AbstractEventLoop = None):
         self.client = meet_v2.SpacesServiceAsyncClient(
             credentials=self._read_creds()
         )
