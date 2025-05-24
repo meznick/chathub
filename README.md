@@ -4,75 +4,14 @@ technical instructions.
 For business logic descriptions look other md files in modules.
 
 # Modules
-Here's a description and installation instructions of each included module.
-
-## Bot
-Launch as a python module:
-```shell
-python -m bot --debug --long-polling
-```
-Module requires environment variables to be set for proper functioning (readme).
-
-## Datemaker
-Launch as a python module:
-```shell
-python -m datemaker --debug
-```
-Module requires environment variables to be set for proper functioning (readme).
-
-## API
-Fastapi based async API endpoints for later use in web app.
-```shell
-# create python venv any way you prefer
-python -m venv venv
-source venv/bin/activate
-cd api
-# installing requirements for this module
-pip install -r requirements.txt
-# running API server
-uvicorn api:app --reload
-```
-Utils is cross-module code that potentially can be used. This module can 
-easily be installed as connectors modules. But not now, now it's abandoned
-until working on API.
-
-## WebSocket
-Module for handling websocket connections.
-```shell
-# installation goes same way as in API section
-# running server is done like this
-python sever.py
-```
-
-## Client
-This is a VueJS based web app that can use API and websocket.
-```shell
-# to be written later
-npm run dev
-```
-
-## Connectors
-Module includes connectors for AWS, PG, RabbitMQ, Redis.
-
-Build module in activated venv:
-```shell
-make build
-```
-
-Install module in editable mode for development in activated venv:
-```shell
-pip install -e .
-```
-
-Upload to repository:
-```shell
-make upload  # update repository url in makefile
-```
-
-Install from repository:
-```shell
-pip install --index-url http://007pi.loc:8228 chathub_connectors
-```
+Description for every module look inside module's directory.
+API: No readme yet.
+Bot: [readme.md](chathub_bot/readme.md)
+Client: [README.md](client/README.md)
+Connectors: [readme.md](connectors/readme.md)
+Datemaker: [readme.md](datemaker/readme.md)
+Matchmaker: No readme yet.
+WebSocket: No readme yet.
 
 # Run tests
 Update this section in PR for adding tests.
@@ -93,23 +32,22 @@ dbmate up # perform migrations
 dbmate rollback # revert last batch of migrations
 ```
 # Env files
-Prod env files are stored in /home/infra/.env_files:
-- tg_bot_prod
-- datemaker_prod
+All env variables are written in different files to restrict different services.
+Files are located in `/home/infra/.env_files`.
 
-Need to create separate prod env file for infrastructure:
-- for applying migrations (DATABASE_URL)
-- building containers (lots of env vars)
+To get working env configuration you need to concatenate multiple files into one
+according to list of env params in readme files for each service.
 
-File with pre-generated passwords and constants:
-- admin password for RBQ, PG, Redis
-- AWS creds
-
-Use these files to build developers' env files:
-- combine them, removing duplicated lines 
-- change prod db to dev
-- change prod rabbitmq queue to dev
-- update google meet paths to yours
-- change tg bot token to dev (unique for every developer)
-- change debug flag
-- for development you dont actually need params for building containers
+```shell
+cd ~/.env_files
+# prod tg bot
+cat prod aws pg rabbitmq tg_bot > tg_bot_prod
+# dev tg bot
+cat dev aws pg rabbitmq tg_bot > tg_bot_dev
+# prod datemaker
+cat prod aws pg rabbitmq datemaker > datemaker_prod
+# dev datemaker
+cat dev aws pg rabbitmq datemaker > datemaker_dev
+# params for infra deployment
+cat aws pg rabbitmq admin > deploy
+```
