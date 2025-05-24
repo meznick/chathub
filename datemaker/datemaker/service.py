@@ -3,6 +3,7 @@ import json
 from asyncio import sleep
 from datetime import datetime
 
+import aio_pika
 from tzlocal import get_localzone
 
 from chathub_connectors.postgres_connector import AsyncPgConnector
@@ -95,7 +96,7 @@ class DateMakerService:
         except KeyboardInterrupt:
             LOGGER.info('Stopping DateMakerService...')
 
-    async def process_incoming_message(self, channel, method, properties, body):
+    async def process_incoming_message(self, message: aio_pika.abc.AbstractIncomingMessage):
         """
         Method for processing an incoming message from RabbitMQ broker.
         Possible messages can be:
@@ -103,39 +104,34 @@ class DateMakerService:
         - event selection
         - event registration confirmation
 
-        :param channel: RabbitMQ channel
-        :param method: RabbitMQ method
-        :param properties: message properties
-        :param body: message body
+        :param message: Incoming message object.
         """
+        headers = message.headers
+        channel_number = message.channel.number
+        message = message.body.decode('utf-8')
+
         LOGGER.debug(
-            f'Got message on channel {channel.channel_number}: {body}. '
-            f'Method: {method}. Headers: {properties.headers}.'
+            f'Got message on channel {channel_number}: {message}. '
+            f'Headers: {headers}.'
         )
-        # properties should contain data to return answer to right user:
-        # - chat id (from tg bot)?
-        # user should be in headers as well, because its ID is necessary for processing
-        message_params = properties.headers
-        message = body.decode('utf-8')
         try:
-            user = await self.async_pg_controller.get_user(int(message_params['user_id']))
+            user = await self.async_pg_controller.get_user(int(headers.get('user_id', -1)))
             if not user:
                 raise Exception('No user found')
 
-            await self.process_commands(message, message_params, user)
+            await self.process_commands(message, headers, user)
 
         except Exception as e:
             LOGGER.error(
                 f'Error in processing message "{message}" '
-                f'with params {message_params} '
-                f'from {method.routing_key}. '
+                f'with params {headers} '
                 f'Error: {e}'
             )
             await self.async_rmq_controller.publish(
                 json.dumps({'success': False}),
                 routing_key=TG_BOT_ROUTING_KEY,
                 exchange=MESSAGE_BROKER_EXCHANGE,
-                headers=message_params
+                headers=headers
             )
 
     async def process_commands(self, message, message_params, user):
