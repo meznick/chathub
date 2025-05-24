@@ -370,7 +370,7 @@ class DateMakerService:
         :return:
         """
         LOGGER.debug('Collecting events')
-        events = self.postgres_controller.get_dating_events(
+        events = await self.async_pg_controller.get_dating_events(
             limit=10,
             timezone=get_localzone(),
         )
@@ -400,7 +400,8 @@ class DateMakerService:
         events = dating_events + confirmations
         if len(events):
             LOGGER.info(
-                f'Got {len(events)} ({len(dating_events)} events + {len(confirmations)} confirmations) events to process'
+                f'Got {len(events)} ({len(dating_events)} events + '
+                f'{len(confirmations)} confirmations) events to process'
             )
         else:
             LOGGER.debug(
