@@ -17,7 +17,7 @@ from datemaker import (
     BotCommands,
     DEBUG,
     TG_BOT_ROUTING_KEY,
-    RABBITMQ_EXCHANGE,
+    MESSAGE_BROKER_EXCHANGE,
 )
 from .finite_state_machine import FiniteStateMachine, State
 from .intelligent_agent import IntelligentAgent
@@ -100,7 +100,7 @@ class DateRunner:
             await self.rabbitmq.publish(
                 message=BotCommands.SEND_RULES.value,
                 routing_key=TG_BOT_ROUTING_KEY,
-                exchange=RABBITMQ_EXCHANGE,
+                exchange=MESSAGE_BROKER_EXCHANGE,
                 headers={
                     'user_id': user.get('user_id'),
                     'chat_id': user.get('user_id'),
@@ -381,7 +381,7 @@ class DateRunner:
         await self.rabbitmq.publish(
             message=json.dumps({command.value: data}),
             routing_key=TG_BOT_ROUTING_KEY,
-            exchange=RABBITMQ_EXCHANGE,
+            exchange=MESSAGE_BROKER_EXCHANGE,
             headers={
                 'user_id': user_id,
                 'chat_id': user_id,

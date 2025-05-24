@@ -102,4 +102,3 @@ POSTGRES_USER = os.getenv('DATEMAKER_POSTGRES_USER', '')
 POSTGRES_PASSWORD = os.getenv('DATEMAKER_POSTGRES_PASSWORD', '')
 
 TG_BOT_ROUTING_KEY = 'tg_bot_dev' if DEBUG.lower() == 'true' else 'tg_bot_prod'
-RABBITMQ_EXCHANGE = 'chathub_direct_main'

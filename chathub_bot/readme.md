@@ -91,7 +91,7 @@ The following environment variables are required for running the bot module:
 - `RABBITMQ_HOST` - RabbitMQ host
 - `RABBITMQ_PORT` - RabbitMQ port
 - `RABBITMQ_VIRTUAL_HOST` - RabbitMQ virtual host
-- `TG_BOT_RABBITMQ_EXCHANGE` - RabbitMQ exchange to read from for the bot
+- `RABBITMQ_EXCHANGE` - RabbitMQ exchange to read from for the bot
 - `TG_BOT_RABBITMQ_QUEUE` - RabbitMQ queue to read from for the bot
 - `TG_BOT_RABBITMQ_USERNAME` - RabbitMQ username for the bot
 - `TG_BOT_RABBITMQ_PASSWORD` - RabbitMQ password for the bot
