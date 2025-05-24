@@ -210,6 +210,7 @@ class DateMakerService:
         :param message_params: Dictionary of received parameters.
         """
         # todo: fix this method. it shows too old events
+        # todo: list only events with open registration
         events = self.postgres_controller.get_dating_events(timezone='Europe/Moscow')
         events_list = [
             {
