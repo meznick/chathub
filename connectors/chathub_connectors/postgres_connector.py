@@ -303,9 +303,11 @@ class AsyncPgConnector:
             SELECT DISTINCT 
                 e.id,
                 e.start_dttm at time zone '{timezone}' as start_dttm,
+                s.state_name,
                 CASE WHEN r.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS registered,
                 users_limit
             FROM public.dating_events as e
+            LEFT JOIN event_states as s ON e.state_id = s.id
             LEFT JOIN (
                 SELECT *
                 FROM public.dating_registrations
